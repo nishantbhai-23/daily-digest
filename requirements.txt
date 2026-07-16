@@ -1,0 +1,9 @@
+# Daily Digest — Dependencies
+# ============================
+
+# Default provider (local models)
+ollama
+
+# Optional providers — uncomment as needed:
+# anthropic        # For Claude models
+# google-generativeai  # For Gemini models
