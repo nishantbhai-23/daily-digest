@@ -1,14 +1,11 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1223] feat: Fix timezone handling in scheduler
-From: Rachel Nakamura <rachel.nakamura@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 30 Jun 2026 12:11:24 -0700
-Message-ID: <178419386409.46576.3624176301940430202@meridianlabs.io>
+Subject: Quick question about the inventory forecast accuracy
+From: Derek Osei <derek.osei@northstarfoods.com>
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 30 Jun 2026 13:27:11 -0700
+Message-ID: <178421232604.54106.11237069372941166403@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgYSBmYWN0b3J5
-IG1ldGhvZCBmb3IgdGhlIHRlc3QgZml4dHVyZXMKLSBUaGUgdmFyaWFibGUgbmFtaW5nIGNvdWxk
-IGJlIGNsZWFyZXIKCk5vdGhpbmcgYmxvY2tpbmcg4oCUIGFwcHJvdmUgb25jZSBhZGRyZXNzZWQu
-ClJhY2hlbAo=
+SGkgQXZlcnksCgpXYW50ZWQgdG8gZmxhZyBhIHNtYWxsIGRhdGEgZGlzY3JlcGFuY3kg4oCUIG5v
+dGhpbmcgdXJnZW50LCBqdXN0IHdhbnQgdG8gY2xvc2UgdGhlIGxvb3AuCgpCZXN0LApEZXJlawo=

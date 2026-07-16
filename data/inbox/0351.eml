@@ -1,12 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [GitHub] PR #1232 approved
-From: Datadog <alert@datadoghq.com>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 07 Jul 2026 09:04:07 -0700
-Message-ID: <178419386411.46576.8514891551685313087@meridianlabs.io>
+Subject: Sprint notes
+From: Devon Brooks <devon@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Cc: Jordan Liu <jordan@tessera.io>
+Date: Tue, 07 Jul 2026 07:25:26 -0700
+Message-ID: <178421232605.54106.7716629017366111818@tessera.io>
 
-QXV0b21hdGVkIG5vdGlmaWNhdGlvbiDigJQgbm8gcmVwbHkgbmVlZGVkLgoKLS0tClRpY2tldCBQ
-TEFULTkyMyBoYXMgYmVlbiB1cGRhdGVkLgpTdGF0dXM6IFRvIERvIOKGkiBJbiBQcm9ncmVzcwpB
-c3NpZ25lZTogU2FtIE8nQnJpZW4KUHJpb3JpdHk6IFAyIC0gTWVkaXVtCkRhdGFkb2cK
+QXZlcnkg4oCUIG5lZWQgYSBxdWljayBjYWxsIG9uIHdoZXRoZXIgd2Ugc3VwcG9ydCBtdWx0aS13
+YXJlaG91c2UgaW4gdGhlIGRhdGEgbW9kZWwgKFRvbcOhcyBpcyBhc2tpbmcpLiBOb3RoaW5nIHVy
+Z2VudCwgdGhpcyB3ZWVrIGlzIGZpbmUuCgrigJQgSm9yZGFuCkRldm9uCg==

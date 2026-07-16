@@ -1,14 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1385] feat: Update SDK client retry logic
-From: Lina Zhang <lina.zhang@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Thu, 18 Jun 2026 14:01:03 -0700
-Message-ID: <178419386406.46576.7124059079081685427@meridianlabs.io>
+Subject: [Inventory Forecasting Model] PR up for review
+From: Maya Fischer <maya@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Cc: Priya Iyer <priya@tessera.io>
+Date: Thu, 18 Jun 2026 10:45:34 -0700
+Message-ID: <178421232602.54106.17212459893611162887@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgYSBidWlsZGVy
-IHBhdHRlcm4gZm9yIHRoZSB0ZXN0IGZpeHR1cmVzCi0gVGhlIHRlc3QgY292ZXJhZ2UgY291bGQg
-YmUgYmV0dGVyIGZvciBlZGdlIGNhc2VzCgpOb3RoaW5nIGJsb2NraW5nIOKAlCBhcHByb3ZlIG9u
-Y2UgYWRkcmVzc2VkLgpMaW5hCg==
+QXZlcnksCgpXZSBzaG91bGQgdGFsayB0aHJvdWdoIHRoZSBkYXRhIG1vZGVsIGZvciBtdWx0aS13
+YXJlaG91c2Ugc3VwcG9ydCBzb21ldGltZSB0aGlzIHdlZWsuCgrigJQgUHJpeWEKTWF5YQo=

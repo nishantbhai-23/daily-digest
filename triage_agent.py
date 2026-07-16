@@ -9,7 +9,12 @@ MAP phase:  Each day's emails → structured signals
 REDUCE phase: Full 30-day ledger → executive digest with trajectory tracking
 
 The ledger is persistent and supports incremental updates — re-running
-the script only processes newly added emails.
+the script only processes newly added emails. Old entries beyond the
+retention window are compacted into weekly rollups so REDUCE cost doesn't
+grow unbounded. Both phases are personalized via data/persona.md — a
+profile of the operator this digest serves — so triage priority and
+digest structure reflect their actual stated priorities, not generic
+defaults.
 
 Usage:
     python triage_agent.py
@@ -20,64 +25,125 @@ Usage:
 """
 
 import argparse
-import json
 import os
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 
 from email_parser import load_inbox, group_by_date
-from llm import create_llm
+from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger
+from llm import create_llm, call_with_retry
+from persona import load_persona
 
 
 # ─── Path Configuration ──────────────────────────────────────────────────────
 
 INBOX_DIR = "./data/inbox/"
 OUTPUT_DIR = "./output/"
+HISTORY_DIR = os.path.join(OUTPUT_DIR, "history")
 LEDGER_FILE = os.path.join(OUTPUT_DIR, "rolling_ledger.json")
 SUMMARY_FILE = os.path.join(OUTPUT_DIR, "current_30day_summary.md")
 
+COUNT_KEY = "email_count"
 
-# ─── System Prompts ──────────────────────────────────────────────────────────
+MAP_SCHEMA = {
+    "deadlines": ["description", "priority"],
+    "decisions": ["description", "priority"],
+    "action_items": ["description", "priority"],
+    "thread_progressions": ["thread", "progression"],
+}
 
-MAP_SYSTEM_PROMPT = (
-    "You are a strict data compression node. You will receive a batch of emails "
-    "from a single day. Extract the following signals:\n"
-    "1. **Deadlines**: Any hard deadlines mentioned or implied (include dates).\n"
-    "2. **Decisions**: Critical decisions that were reached or proposed.\n"
-    "3. **Action items**: Tasks assigned to or promised by anyone (include who).\n"
-    "4. **Thread progressions**: For ongoing conversation threads, note how "
-    "the thread advanced (e.g., 'Aurora caching discussion moved from RFC "
-    "review to implementation approval').\n\n"
+COMPACT_SYSTEM_PROMPT = (
+    "You are compressing a week's worth of daily email-triage deltas into a single "
+    "weekly delta, using the exact same JSON schema. Merge duplicate/similar items, "
+    "keep genuinely distinct ones, and preserve specifics (names, dates, subjects, "
+    "priority levels).\n\n"
     "Output strictly valid JSON matching this schema:\n"
     "{\n"
-    '  "deadlines": [{"description": "...", "date": "...", "source_subject": "..."}],\n'
-    '  "decisions": [{"description": "...", "source_subject": "..."}],\n'
-    '  "action_items": [{"description": "...", "owner": "...", "source_subject": "..."}],\n'
+    '  "deadlines": [{"description": "...", "date": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
+    '  "decisions": [{"description": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
+    '  "action_items": [{"description": "...", "owner": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
     '  "thread_progressions": [{"thread": "...", "progression": "..."}]\n'
     "}\n\n"
-    "If a category has no entries for the day, use an empty array.\n"
     "Do not write any markdown wrappers, conversational pleasantries, or extra text."
 )
 
-REDUCE_SYSTEM_PROMPT = (
-    "You are an expert executive analyst assistant. You are given a chronological "
-    "sequence of highly compressed daily email summaries covering a 30-day window.\n\n"
-    "Synthesize this timeline to produce an executive digest covering:\n\n"
-    "## 1. OVERARCHING TRAJECTORY\n"
-    "What major objectives or projects dominated this month? How have key "
-    "conversations and initiatives evolved over time?\n\n"
-    "## 2. PROACTIVE DEADLINE ANALYSIS\n"
-    "Identify upcoming deliverables due in the next week or two. List specific "
-    "actions that MUST be addressed TODAY to prevent slipping on those timelines.\n\n"
-    "## 3. CONVERSATION PROGRESSION\n"
-    "Track how important email threads have evolved — what started as a question, "
-    "became a decision, became an action item. Highlight threads that stalled.\n\n"
-    "## 4. HIGH PRIORITY RADAR\n"
-    "Open threads or action items that appear neglected across multiple days. "
-    "Flag items that were mentioned early in the window but never resolved.\n\n"
-    "Write a concise, high-impact executive digest in markdown format. "
-    "Be specific — name people, dates, and project names."
-)
+
+# ─── Prompt Builders (persona-injected) ───────────────────────────────────────
+
+
+def build_map_system_prompt(persona_text: str) -> str:
+    return (
+        f"{persona_text}\n\n"
+        "---\n\n"
+        "You are an email triage node for the operator profiled above. You will "
+        "receive a batch of emails from a single day. Extract the following signals, "
+        "using the profile's \"People who matter\" priority weighting (P0-P4) as your "
+        "default for each item — override based on content when the email itself "
+        "signals otherwise:\n\n"
+        "1. **Deadlines**: Any hard deadlines mentioned or implied (include dates).\n"
+        "2. **Decisions**: Critical decisions that were reached or proposed.\n"
+        "3. **Action items**: Tasks assigned to or promised by anyone (include who).\n"
+        "4. **Thread progressions**: For ongoing conversation threads, note how "
+        "the thread advanced (e.g., 'Halberd renewal conversation shifted from routine "
+        "check-in to a budget concern').\n\n"
+        "Do NOT extract signals from newsletters, marketing email, automated "
+        "notifications, or threads whose only content is 'FYI' — per the profile, "
+        "these should not be surfaced at all.\n\n"
+        "Output strictly valid JSON matching this schema:\n"
+        "{\n"
+        '  "deadlines": [{"description": "...", "date": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
+        '  "decisions": [{"description": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
+        '  "action_items": [{"description": "...", "owner": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
+        '  "thread_progressions": [{"thread": "...", "progression": "..."}]\n'
+        "}\n\n"
+        "If a category has no entries for the day, use an empty array. Do not write any "
+        "markdown wrappers, conversational pleasantries, or extra text."
+    )
+
+
+def build_reduce_system_prompt(persona_text: str) -> str:
+    return (
+        f"{persona_text}\n\n"
+        "---\n\n"
+        "You are the email half of the operator's daily digest, for the operator "
+        "profiled above. You are given a chronological sequence of highly compressed "
+        "daily email summaries covering up to a 30-day window. This complements a "
+        "separate calendar digest — focus on email content and threads, not the "
+        "operator's schedule.\n\n"
+        "Per the profile, a great digest answers three questions in under 90 seconds:\n\n"
+        "## 1. WHAT NEEDS ME TODAY\n"
+        "Not what's interesting — what requires the operator's judgment, signature, or "
+        "reply before end of day. Weight by the profile's people-priority list "
+        "(P0-P4).\n\n"
+        "## 2. WHAT AM I ABOUT TO DROP\n"
+        "Threads that have gone quiet, decisions deferred and forgotten, promises made "
+        "in email with no corresponding follow-through visible in the data. Per the "
+        "profile: flag quiet P0/P1 threads (e.g. an investor gone quiet several "
+        "business days), not just loud ones. You will be given a DETERMINISTIC SENDER "
+        "STALENESS list computed in code — this is ground truth for who has actually "
+        "gone quiet and for how long. Use it directly for this section, weighted by the "
+        "profile's people-priority list; do not try to independently guess staleness "
+        "from the ledger narrative, and do not omit a quiet P0/P1 sender that appears in "
+        "that list.\n\n"
+        "## 3. WHAT CAN I DISPATCH RIGHT NOW\n"
+        "Replies under 3 sentences, quick yes/no approvals, anything low-effort to "
+        "clear. Match the profile's tone rules for any drafted language (short, "
+        "direct, no 'circling back', no fluff) — except don't draft anything for the "
+        "profile's P0 personal contact, just surface it per the profile's own rule.\n\n"
+        "Do not surface newsletters, already-accepted calendar invites, marketing "
+        "email, long threads where the operator already had the last word, or anything "
+        "whose only content is FYI — per the profile, these are noise, not signal.\n\n"
+        "Follow the profile's honesty rules: say if the data looks stale, flag any "
+        "assumptions behind a suggested action, and don't hide contradictions between "
+        "sources. Write a concise, high-impact digest in markdown. Be specific — name "
+        "people, dates, and threads.\n\n"
+        "Important: write the digest itself, addressed directly to the operator in "
+        "second person, as their morning brief. Do NOT describe, summarize, or explain "
+        "the JSON data format, field names, or structure of the ledger you were given — "
+        "that is input data for you to read, not something to report on."
+    )
 
 
 # ─── Helper Functions ─────────────────────────────────────────────────────────
@@ -103,24 +169,102 @@ def format_email_batch(emails: list[dict]) -> str:
     return "\n".join(parts)
 
 
-def load_existing_ledger() -> tuple:
-    """Load existing ledger and extract the set of already-processed days.
+# ─── Deterministic Sender Staleness ───────────────────────────────────────────
+# "Who's gone quiet" is a hard fact (last-contact date, computed from parsed
+# headers) — not something the LLM should have to infer by scanning 30 days
+# of rendered ledger text and noticing an absence. That's a needle-in-haystack
+# task language models are bad at, and it's exactly the failure mode observed
+# where a genuinely-stale P0 thread got diluted in favor of a more recent but
+# less important mention. Compute it in code, hand REDUCE the answer.
+
+_FROM_HEADER_RE = re.compile(r'^"?([^"<]*)"?\s*<?([\w.+-]+@[\w.-]+)?>?$')
+
+
+def compute_sender_staleness(emails: list[dict], quiet_threshold_days: int = 3) -> list[dict]:
+    """Track last-contact date per sender and flag who's gone quiet.
+
+    Surfaces every sender whose most recent email is at least
+    `quiet_threshold_days` before the most recent day present in the
+    dataset — including senders with only one email, since a single
+    unanswered P0 ask (e.g. an investor's one unreplied request) is exactly
+    the kind of quiet thread this is meant to catch. This deliberately does
+    not try to filter out low-relevance senders (newsletters, recruiters,
+    notifications) by email count — that's a relevance judgment, and the
+    REDUCE prompt already instructs the LLM to disregard that category of
+    noise using the profile, the same way it does everywhere else.
+
+    Args:
+        emails: Parsed email dicts (must have 'from' and 'date_key').
+        quiet_threshold_days: Minimum days since last contact to surface.
 
     Returns:
-        (ledger_entries, processed_days_set)
+        List of {"name", "email", "email_count", "first_seen", "last_seen",
+        "days_since_last_contact"}, sorted most-quiet first.
     """
-    if os.path.exists(LEDGER_FILE):
-        with open(LEDGER_FILE, "r", encoding="utf-8") as f:
-            ledger = json.load(f)
-        processed_days = {entry["day"] for entry in ledger}
-        return ledger, processed_days
-    return [], set()
+    if not emails:
+        return []
+
+    activity = {}
+    for em in emails:
+        day = em.get("date_key", "unknown")
+        if day == "unknown":
+            continue
+
+        match = _FROM_HEADER_RE.match(em.get("from", "").strip())
+        if match and match.group(2):
+            name = (match.group(1) or "").strip() or match.group(2)
+            email_addr = match.group(2).lower()
+        else:
+            name = em.get("from", "unknown")
+            email_addr = em.get("from", "unknown").lower()
+
+        entry = activity.setdefault(
+            email_addr, {"name": name, "count": 0, "first_seen": day, "last_seen": day}
+        )
+        entry["count"] += 1
+        entry["first_seen"] = min(entry["first_seen"], day)
+        entry["last_seen"] = max(entry["last_seen"], day)
+
+    reference_day = max(em["date_key"] for em in emails if em.get("date_key") != "unknown")
+    ref_date = datetime.strptime(reference_day, "%Y-%m-%d").date()
+
+    results = []
+    for email_addr, entry in activity.items():
+        last_date = datetime.strptime(entry["last_seen"], "%Y-%m-%d").date()
+        days_since = (ref_date - last_date).days
+        if days_since < quiet_threshold_days:
+            continue
+        results.append({
+            "name": entry["name"],
+            "email": email_addr,
+            "email_count": entry["count"],
+            "first_seen": entry["first_seen"],
+            "last_seen": entry["last_seen"],
+            "days_since_last_contact": days_since,
+        })
+
+    results.sort(key=lambda r: -r["days_since_last_contact"])
+    return results
+
+
+def format_staleness_report(staleness: list[dict]) -> str:
+    """Render the staleness list as ground-truth text for the REDUCE prompt."""
+    if not staleness:
+        return "(No senders with an established thread have gone quiet.)"
+    lines = []
+    for s in staleness:
+        lines.append(
+            f"- {s['name']} <{s['email']}>: last heard from {s['last_seen']} "
+            f"({s['days_since_last_contact']} days ago), {s['email_count']} emails total "
+            f"in this window (first: {s['first_seen']})"
+        )
+    return "\n".join(lines)
 
 
 # ─── MAP Phase ────────────────────────────────────────────────────────────────
 
 
-def _map_single_day(llm, day: str, batch: list[dict]) -> dict | None:
+def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str) -> dict | None:
     """Process a single day's emails through the LLM. Thread-safe.
 
     Returns:
@@ -129,27 +273,34 @@ def _map_single_day(llm, day: str, batch: list[dict]) -> dict | None:
     context = format_email_batch(batch)
     start = time.time()
 
-    try:
-        structured_delta = llm.chat_json(
+    def _call():
+        delta = llm.chat_json(
             messages=[
-                {"role": "system", "content": MAP_SYSTEM_PROMPT},
+                {"role": "system", "content": map_system_prompt},
                 {"role": "user", "content": f"Emails for {day}:\n\n{context}"},
             ]
         )
+        errors = validate_schema(delta, MAP_SCHEMA)
+        if errors:
+            raise ValueError(f"Invalid MAP output: {errors}")
+        return delta
+
+    try:
+        structured_delta = call_with_retry(_call)
         elapsed = time.time() - start
         print(f"   ✅ {day} — {len(batch)} emails — {elapsed:.1f}s")
         return {
             "day": day,
-            "email_count": len(batch),
+            COUNT_KEY: len(batch),
             "delta": structured_delta,
         }
     except Exception as e:
         elapsed = time.time() - start
-        print(f"   ⚠️  {day} — FAILED ({elapsed:.1f}s): {e}")
+        print(f"   ⚠️  {day} — FAILED after retries ({elapsed:.1f}s): {e}")
         return None
 
 
-def run_map_phase(llm, max_workers: int = 4):
+def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
     """MAP: Process emails day-by-day into structured signal deltas.
 
     Uses ThreadPoolExecutor for concurrent processing — each day's
@@ -159,6 +310,7 @@ def run_map_phase(llm, max_workers: int = 4):
 
     Args:
         llm: A BaseLLM instance from the abstraction layer.
+        map_system_prompt: The persona-injected MAP system prompt.
         max_workers: Number of concurrent threads (default: 4).
 
     Returns:
@@ -182,7 +334,7 @@ def run_map_phase(llm, max_workers: int = 4):
     print(f"   Spanning {len(daily_batches)} days.\n")
 
     # Load existing ledger for incremental updates
-    ledger, processed_days = load_existing_ledger()
+    ledger, processed_days = load_ledger(LEDGER_FILE)
     if processed_days:
         print(
             f"📋 Existing ledger found: {len(processed_days)} days already processed."
@@ -201,9 +353,7 @@ def run_map_phase(llm, max_workers: int = 4):
     if not days_to_process:
         print("   Nothing new to process.")
         # Still save ledger (idempotent)
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
-        with open(LEDGER_FILE, "w", encoding="utf-8") as f:
-            json.dump(ledger, f, indent=2)
+        save_ledger(LEDGER_FILE, ledger)
         return True
 
     print(
@@ -216,19 +366,15 @@ def run_map_phase(llm, max_workers: int = 4):
     succeeded = 0
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_day = {
-            executor.submit(_map_single_day, llm, day, batch): day
+            executor.submit(_map_single_day, llm, day, batch, map_system_prompt): day
             for day, batch in days_to_process
         }
         for future in as_completed(future_to_day):
             result = future.result()
             if result is not None:
                 ledger.append(result)
-                # Keep ledger sorted chronologically
-                ledger.sort(key=lambda r: r["day"])
                 # Save immediately
-                os.makedirs(OUTPUT_DIR, exist_ok=True)
-                with open(LEDGER_FILE, "w", encoding="utf-8") as f:
-                    json.dump(ledger, f, indent=2)
+                save_ledger(LEDGER_FILE, ledger)
                 succeeded += 1
 
     total_time = time.time() - map_start
@@ -243,7 +389,44 @@ def run_map_phase(llm, max_workers: int = 4):
 # ─── REDUCE Phase ─────────────────────────────────────────────────────────────
 
 
-def run_reduce_phase(llm):
+def render_ledger_as_text(ledger: list[dict]) -> str:
+    """Render the ledger as readable text instead of raw JSON.
+
+    Smaller local models tend to fall into "describe this JSON" pattern-
+    completion when handed a large literal JSON blob as context, regardless
+    of system-prompt instructions to the contrary. Flattening it to prose
+    keeps the model focused on synthesizing content instead of narrating
+    the data structure.
+    """
+    lines = []
+    for entry in ledger:
+        label = f"Week of {entry['day']}" if entry.get("compacted") else entry["day"]
+        lines.append(f"### {label} ({entry.get(COUNT_KEY, 0)} emails)")
+
+        delta = entry.get("delta", {})
+        for item in delta.get("deadlines", []):
+            lines.append(
+                f"- DEADLINE [{item.get('priority', '?')}]: {item.get('description')} "
+                f"(date: {item.get('date') or 'unspecified'}, from: {item.get('source_subject', '')})"
+            )
+        for item in delta.get("decisions", []):
+            lines.append(
+                f"- DECISION [{item.get('priority', '?')}]: {item.get('description')} "
+                f"(from: {item.get('source_subject', '')})"
+            )
+        for item in delta.get("action_items", []):
+            lines.append(
+                f"- ACTION [{item.get('priority', '?')}]: {item.get('description')} "
+                f"(owner: {item.get('owner') or 'unspecified'}, from: {item.get('source_subject', '')})"
+            )
+        for item in delta.get("thread_progressions", []):
+            lines.append(f"- THREAD '{item.get('thread')}': {item.get('progression')}")
+
+        lines.append("")
+    return "\n".join(lines)
+
+
+def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
     """REDUCE: Synthesize the 30-day ledger into an executive digest.
 
     Reads the full rolling ledger and passes it to the LLM for synthesis.
@@ -252,44 +435,60 @@ def run_reduce_phase(llm):
 
     Args:
         llm: A BaseLLM instance from the abstraction layer.
+        reduce_system_prompt: The persona-injected REDUCE system prompt.
     """
     reduce_start = time.time()
     print("📉 Starting REDUCE Phase...")
 
-    if not os.path.exists(LEDGER_FILE):
-        print(f"❌ Ledger not found at '{LEDGER_FILE}'. Run MAP phase first.")
+    ledger, _ = load_ledger(LEDGER_FILE)
+    if not ledger:
+        print(f"❌ Ledger not found or empty at '{LEDGER_FILE}'. Run MAP phase first.")
         return
 
-    with open(LEDGER_FILE, "r", encoding="utf-8") as f:
-        ledger_data = json.load(f)
+    # Collapse anything older than the retention window into weekly rollups
+    # before synthesizing, so REDUCE cost doesn't grow unbounded over time.
+    ledger = compact_ledger(ledger, llm, COMPACT_SYSTEM_PROMPT, retention_days=30, count_key=COUNT_KEY)
+    save_ledger(LEDGER_FILE, ledger)
 
-    ledger_context = json.dumps(ledger_data, indent=2)
+    ledger_context = render_ledger_as_text(ledger)
 
-    print(f"🧠 Synthesizing {len(ledger_data)}-day context window...")
+    # Deterministic ground truth for "who's gone quiet" — computed from raw
+    # inbox headers, not inferred by the LLM from the rendered ledger.
+    emails = load_inbox(INBOX_DIR)
+    staleness = compute_sender_staleness(emails)
+    staleness_report = format_staleness_report(staleness)
+
+    print(f"🧠 Synthesizing {len(ledger)}-entry context window...")
 
     try:
-        summary = llm.chat(
+        summary = call_with_retry(
+            llm.chat,
             messages=[
-                {"role": "system", "content": REDUCE_SYSTEM_PROMPT},
+                {"role": "system", "content": reduce_system_prompt},
                 {
                     "role": "user",
                     "content": (
-                        f"Chronological 30-Day Email Ledger:\n\n{ledger_context}"
+                        f"DETERMINISTIC SENDER STALENESS (ground truth — computed in code, "
+                        f"not inferred; use this directly for 'what am I about to drop', "
+                        f"don't try to re-derive quietness from the ledger below):\n\n"
+                        f"{staleness_report}\n\n"
+                        f"---\n\n"
+                        f"Chronological Email Ledger:\n\n{ledger_context}"
                     ),
                 },
-            ]
+            ],
         )
     except Exception as e:
-        print(f"❌ REDUCE phase failed: {e}")
+        print(f"❌ REDUCE phase failed after retries: {e}")
         return
 
-    # Save the summary
-    with open(SUMMARY_FILE, "w", encoding="utf-8") as f:
-        f.write(summary)
+    # Save current + a timestamped history copy
+    history_path = save_digest(summary, SUMMARY_FILE, HISTORY_DIR)
 
     reduce_time = time.time() - reduce_start
     print(f"✅ REDUCE Phase completed in {reduce_time:.1f}s.")
     print(f"   Summary saved to: {SUMMARY_FILE}")
+    print(f"   History copy: {history_path}")
     print(f"\n{'─' * 60}")
     print("   Current 30-Day Executive Digest")
     print(f"{'─' * 60}\n")
@@ -316,7 +515,7 @@ def parse_args():
     parser.add_argument(
         "--provider",
         default="ollama",
-        choices=["ollama", "anthropic", "google"],
+        choices=["ollama", "anthropic", "google", "openrouter", "deepseek"],
         help="LLM provider (default: ollama)",
     )
     parser.add_argument(
@@ -356,6 +555,10 @@ def main():
     print(f"   Temperature: {args.temperature}")
     print(f"   Workers: {args.workers}\n")
 
+    persona_text = load_persona()
+    map_system_prompt = build_map_system_prompt(persona_text)
+    reduce_system_prompt = build_reduce_system_prompt(persona_text)
+
     llm = create_llm(
         provider=args.provider,
         model=args.model,
@@ -365,14 +568,14 @@ def main():
     total_start = time.time()
 
     if args.reduce_only:
-        run_reduce_phase(llm)
+        run_reduce_phase(llm, reduce_system_prompt)
     elif args.map_only:
-        run_map_phase(llm, max_workers=args.workers)
+        run_map_phase(llm, map_system_prompt, max_workers=args.workers)
     else:
         # Full pipeline: MAP → REDUCE
-        map_success = run_map_phase(llm, max_workers=args.workers)
+        map_success = run_map_phase(llm, map_system_prompt, max_workers=args.workers)
         if map_success:
-            run_reduce_phase(llm)
+            run_reduce_phase(llm, reduce_system_prompt)
 
     total_time = time.time() - total_start
     print(f"\n⏱️  Total elapsed: {total_time:.1f}s")

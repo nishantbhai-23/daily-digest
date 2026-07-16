@@ -1,15 +1,14 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [P1] Memory leak in background worker
-From: Marcus Kim <marcus.kim@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Lina Zhang <lina.zhang@meridianlabs.io>, Priya Sharma <priya.sharma@meridianlabs.io>, Nina Kowalski <nina.kowalski@meridianlabs.io>
-Date: Tue, 07 Jul 2026 12:24:42 -0700
-Message-ID: <178419386411.46576.17050360467107884513@meridianlabs.io>
+Subject: Re: Halberd expansion conversation
+From: Diane Okafor <diane@bramblewoodvc.com>
+To: Avery Chen <avery@tessera.io>
+Date: Mon, 06 Jul 2026 12:44:44 -0700
+Message-ID: <178421232605.54106.17383101605891408946@tessera.io>
+In-Reply-To: <178421232605.54106.1563361057038100704@tessera.io>
+References: <178421232605.54106.1563361057038100704@tessera.io>
 
-VGVhbSwKCldlJ3JlIHNlZWluZyB0aW1lb3V0IGVycm9ycyBvbiB0aGUgc2VhcmNoIGNsdXN0ZXIu
-CgoqKkltcGFjdCoqOiB+NSUgb2YgQVBJIHJlcXVlc3RzIGFmZmVjdGVkCioqU3RhcnRlZCoqOiB+
-MSBob3VycyBhZ28KKipDdXJyZW50IHN0YXR1cyoqOiBNaXRpZ2F0aW9uIGRlcGxveWVkLCBtb25p
-dG9yaW5nCgpJJ3ZlIGNyZWF0ZWQgYSBKaXJhIHRpY2tldC4gV2lsbCB1cGRhdGUgaW4gMzAgbWlu
-LgoK4oCUIE1hcmN1cwo=
+SGV5IEF2ZXJ5LAoKRm91bmQgYW4gZWRnZSBjYXNlIGluIHRoZSBmb3JlY2FzdGluZyBtb2RlbCBm
+b3Igc2Vhc29uYWwgU0tVcy4KCkxldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIHRha2UgYSBsb29r
+LgoK4oCUIE5hZGlhCkRpYW5lCg==

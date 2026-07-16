@@ -1,14 +1,11 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1299] refactor: Refactor auth middleware
-From: =?utf-8?q?Tom=C3=A1s_Herrera_=3Ctomas=2Eherrera=40meridianlabs=2Eio=3E?=
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 07 Jul 2026 09:54:29 -0700
-Message-ID: <178419386411.46576.4016487917742619758@meridianlabs.io>
+Subject: This week in SaaStr: benchmarks you should know
+From: Lenny's Newsletter <news@lennysnewsletter.com>
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 07 Jul 2026 10:21:18 -0700
+Message-ID: <178421232605.54106.14752804434999738345@tessera.io>
 
-SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
-IGNoYW5jZT8gSXQncyBwcmV0dHkgc21hbGwgKH4xNTAgbGluZXMpLgoKS2V5IGNoYW5nZXM6Ci0g
-UmVmYWN0b3JlZCB0aGUgc2VydmljZSBsYXllcgotIEFkZGVkIHVuaXQgdGVzdHMKCkkndmUgdGVz
-dGVkIGxvY2FsbHkgYW5kIENJIGlzIGdyZWVuLiBMZXQgbWUga25vdyBpZiB5b3UgaGF2ZSBxdWVz
-dGlvbnMuCgpUaGFua3MhClRvbcOhcwo=
+QSBxdWljayByZWFkIG9uIG5ldyBwcm9kdWN0IHVwZGF0ZXMgeW91IG1pZ2h0IGhhdmUgbWlzc2Vk
+LgoKUmVhZCBtb3JlIG9uIG91ciBzaXRlIOKGkgpMZW5ueSdzCg==

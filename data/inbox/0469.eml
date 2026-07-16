@@ -1,14 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1409] refactor: Migrate to new ORM syntax
-From: Elena Vasquez <elena.vasquez@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 14 Jul 2026 10:04:22 -0700
-Message-ID: <178419386412.46576.8600925621138307993@meridianlabs.io>
+Subject: Quick question about supplier risk alerts
+From: Derek Osei <derek.osei@northstarfoods.com>
+To: Avery Chen <avery@tessera.io>
+Date: Mon, 13 Jul 2026 12:29:35 -0700
+Message-ID: <178421232607.54106.16950740443380627730@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgZGVwZW5kZW5j
-eSBpbmplY3Rpb24gZm9yIHRoZSBjbGllbnQgaW5pdGlhbGl6YXRpb24KLSBUaGUgZXJyb3IgbWVz
-c2FnZSBjb3VsZCBiZSBtb3JlIGRlc2NyaXB0aXZlCgpOb3RoaW5nIGJsb2NraW5nIOKAlCBhcHBy
-b3ZlIG9uY2UgYWRkcmVzc2VkLgpFbGVuYQo=
+SGkgQXZlcnksCgpUZWFtIGhhcyBiZWVuIGdldHRpbmcgZ29vZCB1c2Ugb3V0IG9mIHRoZSBhbGVy
+dHMuIE9uZSBxdWVzdGlvbiDigJQgd2hlbiBkb2VzIHRoZSBuZXh0IGZvcmVjYXN0aW5nIG1vZGVs
+IHVwZGF0ZSBzaGlwPwoKVGhhbmtzLApEZXJlawo=

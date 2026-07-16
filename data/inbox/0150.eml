@@ -1,15 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [PR #1356] refactor: Fix N+1 query in dashboard endpoint
-From: Fatima Al-Rashid <fatima.alrashid@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Wed, 24 Jun 2026 13:22:22 -0700
-Message-ID: <178419386408.46576.18412826578334390019@meridianlabs.io>
-In-Reply-To: <178419386406.46576.11110597675658807259@meridianlabs.io>
-References: <178419386406.46576.11110597675658807259@meridianlabs.io>
+Subject: Quick question about supplier risk alerts
+From: Lindsey Cho <lindsey.cho@veritascomponents.com>
+To: Avery Chen <avery@tessera.io>
+Date: Wed, 24 Jun 2026 16:24:21 -0700
+Message-ID: <178421232603.54106.11133490861363701475@tessera.io>
 
-UXVpY2sgdXBkYXRlIG9uIHRoZSB0aW1lb3V0IGlzc3VlOgoKUm9vdCBjYXVzZSB3YXMgYSBkZWFk
-bG9jayBpbiB0aGUgam9iIHF1ZXVlLiBGaXggaGFzIGJlZW4gZGVwbG95ZWQgdG8gc3RhZ2luZyBm
-b3IgdmVyaWZpY2F0aW9uLgoKUG9zdG1vcnRlbSBzY2hlZHVsZWQgZm9yIG5leHQgTW9uZGF5LgpG
-YXRpbWEK
+SGkgQXZlcnksCgpDaGVja2luZyBpbiBvbiB0aGUgQVBJIHJhdGUgbGltaXQgaW5jcmVhc2Ug4oCU
+IG5vdGhpbmcgdXJnZW50LCBqdXN0IHdhbnQgdG8gY2xvc2UgdGhlIGxvb3AuCgpCZXN0LApMaW5k
+c2V5Cg==

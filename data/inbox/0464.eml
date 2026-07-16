@@ -1,13 +1,11 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [PR #1366] feat: Migrate to new ORM syntax
-From: Elena Vasquez <elena.vasquez@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 14 Jul 2026 09:59:08 -0700
-Message-ID: <178419386412.46576.9850075040350130789@meridianlabs.io>
-In-Reply-To: <178419386412.46576.7914112539962249730@meridianlabs.io>
-References: <178419386412.46576.7914112539962249730@meridianlabs.io>
+Subject: Candidate pipeline update
+From: Jordan Liu <jordan@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Mon, 13 Jul 2026 11:59:52 -0700
+Message-ID: <178421232607.54106.1978350987810299662@tessera.io>
 
-SGV5IEF2ZXJ5IQoKQXJlIHlvdSBjb21pbmcgdG8gdHJpdmlhIG5pZ2h0IG9uIFRodXJzZGF5PyBX
-ZSBuZWVkIHlvdSBvbiB0aGUgdGVhbSEKCuKAlCBPbGl2ZXIKRWxlbmEK
+QXZlcnkg4oCUIGJlaGluZCBvbiBnZXR0aW5nIGJhY2sgdG8gYSBjb3VwbGUgY2FuZGlkYXRlcywg
+d2lsbCBjbGVhbiB1cCB0aGlzIHdlZWsuCgrigJQgR3JhY2UKSm9yZGFuCg==

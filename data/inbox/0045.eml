@@ -1,16 +1,14 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [PR #1309] chore: Migrate to new ORM syntax
-From: Jordan Reeves <jordan.reeves@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Wed, 17 Jun 2026 08:43:53 -0700
-Message-ID: <178419386406.46576.14192125543336631825@meridianlabs.io>
-In-Reply-To: <178419386406.46576.7259988493051846218@meridianlabs.io>
-References: <178419386406.46576.7259988493051846218@meridianlabs.io>
+Subject: =?utf-8?q?Re=3A_Expense_report_=E2=80=94_need_receipts?=
+From: Lindsey Cho <lindsey.cho@veritascomponents.com>
+To: Avery Chen <avery@tessera.io>
+Date: Thu, 18 Jun 2026 15:35:28 -0700
+Message-ID: <178421232601.54106.8071476429012299712@tessera.io>
+In-Reply-To: <178421232601.54106.11765401006070662709@tessera.io>
+References: <178421232601.54106.11765401006070662709@tessera.io>
 
-VXBkYXRlIG9uIHRoZSBHbG9iYWxUZWNoIHNpdHVhdGlvbjoKCkkgc3Bva2Ugd2l0aCB0aGVpciB0
-ZWFtIGFuZCB0aGUgaXNzdWUgaXMgYSBrbm93biBidWcgZml4ZWQgaW4gdGhlIG5leHQgcmVsZWFz
-ZS4KClByb3Bvc2VkIHJlc29sdXRpb246IERlcGxveWluZyB0aGUgaG90Zml4IHRvbmlnaHQuCgpD
-dXN0b21lciBzZWVtcyBoYXBweSBhbmQgYXBwcmVjaWF0aXZlIG9mIHRoZSBxdWljayByZXNwb25z
-ZS4KSm9yZGFuCg==
+QXZlcnkg4oCUIHF1aWNrIHJlbWluZGVyLCBuZWVkIHJlY2VpcHRzIGZvciB0aGUgQVdTIHJlOklu
+dmVudCBib290aCBleHBlbnNlIHJlcG9ydCBieSBlbmQgb2Ygd2VlayB0byBjbG9zZSB0aGUgYm9v
+a3Mgb24gdGltZS4KCuKAlCBPd2VuCkxpbmRzZXkK

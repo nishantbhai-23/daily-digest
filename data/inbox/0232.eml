@@ -1,14 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [Platform SDK] Milestone reached
-From: Jordan Reeves <jordan.reeves@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 30 Jun 2026 13:13:42 -0700
-Message-ID: <178419386409.46576.2867657309429625604@meridianlabs.io>
+Subject: =?utf-8?q?Architecture_decision_=E2=80=94_need_your_input?=
+From: Jordan Liu <jordan@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Cc: =?utf-8?b?UmF2aSBDaGFuZHJhIDxyYXZpQHRlc3NlcmEuaW8+LCBUb23DoXMgUmV5ZXMgPHRvbWFzQHRlc3NlcmEuaW8+?=
+Date: Tue, 30 Jun 2026 10:16:42 -0700
+Message-ID: <178421232604.54106.15153989725760418070@tessera.io>
 
-VGVhbSwKCkdyZWF0IG5ld3Mg4oCUIHdlIHNoaXBwZWQgdGhlIG5ldyBkYXNoYm9hcmQgd2lkZ2V0
-cyB0byBzdGFnaW5nIHRvZGF5LiDwn46JCgpFYXJseSBtZXRyaWNzIGxvb2sgcHJvbWlzaW5nLiBQ
-OTUgbGF0ZW5jeSBpcyBkb3duIDM5JSBjb21wYXJlZCB0byB0aGUgcHJldmlvdXMgdmVyc2lvbi4K
-Ck5leHQgc3RlcHM6IHdyaXRlIHRoZSBhbm5vdW5jZW1lbnQgYmxvZyBwb3N0LgoKQ2hlZXJzLApK
-b3JkYW4K
+QXZlcnkg4oCUIG5lZWQgYSBxdWljayBjYWxsIG9uIHRoZSBTT0MgMiB0aW1lbGluZSDigJQgYXVk
+aXRvciB3YW50cyBhIGRlY2lzaW9uIG9uIHNjb3BlLiBOb3RoaW5nIHVyZ2VudCwgdGhpcyB3ZWVr
+IGlzIGZpbmUuCgrigJQgSm9yZGFuCg==

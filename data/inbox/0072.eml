@@ -1,14 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [Customer Portal v2] Blockers update
-From: Ben Torres <ben.torres@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Fri, 19 Jun 2026 08:28:42 -0700
-Message-ID: <178419386406.46576.15737355297576376328@meridianlabs.io>
+Subject: Candidate pipeline update
+From: Grace Lin <grace@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Cc: Owen Fitzgerald <owen@tessera.io>, Devon Brooks <devon@tessera.io>
+Date: Fri, 19 Jun 2026 15:04:03 -0700
+Message-ID: <178421232602.54106.7492689440253898567@tessera.io>
 
-SGkgdGVhbSwKClF1aWNrIHVwZGF0ZSBvbiB3aGVyZSB3ZSBzdGFuZC4KCldlJ3ZlIGNvbXBsZXRl
-ZCB0aGUgbG9hZCB0ZXN0aW5nIGFuZCBhcmUgb24gdHJhY2sgZm9yIHRoZSBtaWQtSnVseSBkZWFk
-bGluZS4KClJlbWFpbmluZyBpdGVtczoKLSBVcGRhdGUgQVBJIGRvY3MKLSBHZXQgc2lnbi1vZmYg
-ZnJvbSBzZWN1cml0eQotIFN5bmMgd2l0aCBkZXNpZ24gb24gZWRnZSBjYXNlcwoKTGV0IG1lIGtu
-b3cgaWYgeW91IGhhdmUgcXVlc3Rpb25zLgoKQmVzdCwKQmVuCg==
+SGkgQXZlcnksCgpQaXBlbGluZSB1cGRhdGU6IDUgY2FuZGlkYXRlcyBpbiBzY3JlZW5pbmcgZm9y
+IHRoZSBzZW5pb3IgZW5naW5lZXIgcm9sZS4gT25lIG9mZmVyIGxpa2VseSB0byBnbyBvdXQgdGhp
+cyB3ZWVrLgoK4oCUIEdyYWNlCg==

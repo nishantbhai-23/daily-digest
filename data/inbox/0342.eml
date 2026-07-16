@@ -1,13 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [BUG] Elevated error rates on /api/v2/orders
-From: Lina Zhang <lina.zhang@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 07 Jul 2026 15:47:15 -0700
-Message-ID: <178419386410.46576.6864724973042551294@meridianlabs.io>
+Subject: Great catching up last week
+From: Diane Okafor <diane@bramblewoodvc.com>
+To: Avery Chen <avery@tessera.io>
+Date: Mon, 06 Jul 2026 19:18:16 -0700
+Message-ID: <178421232605.54106.14920159232691594068@tessera.io>
 
-UXVpY2sgdXBkYXRlIG9uIHRoZSB0aW1lb3V0IGlzc3VlOgoKUm9vdCBjYXVzZSB3YXMgYSBtaXNz
-aW5nIGNvbm5lY3Rpb24gcG9vbCBsaW1pdC4gRml4IGhhcyBiZWVuIGRlcGxveWVkIHRvIHN0YWdp
-bmcgZm9yIHZlcmlmaWNhdGlvbi4KClBvc3Rtb3J0ZW0gc2NoZWR1bGVkIGZvciBuZXh0IE1vbmRh
-eS4KTGluYQo=
+QXZlcnkg4oCUIGVuam95ZWQgdGhlIGNvbnZlcnNhdGlvbiBsYXN0IHdlZWsgYWJvdXQgdGhlIEhh
+bGJlcmQgZXhwYW5zaW9uLiBMZXQgbWUga25vdyBpZiB0aGVyZSdzIGFueXRoaW5nIHVzZWZ1bCBJ
+IGNhbiBkbyBvbiB0aGUgaW52ZXN0b3IgaW50cm8gc2lkZS4KCkRpYW5lCg==

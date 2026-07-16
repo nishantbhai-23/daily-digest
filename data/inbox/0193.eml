@@ -1,15 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [INCIDENT] Auth tokens not refreshing after rotation
-From: Marcus Kim <marcus.kim@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Priya Sharma <priya.sharma@meridianlabs.io>, Nina Kowalski <nina.kowalski@meridianlabs.io>
-Date: Fri, 26 Jun 2026 18:51:12 -0700
-Message-ID: <178419386408.46576.11843763325998659552@meridianlabs.io>
+Subject: Sprint notes
+From: Devon Brooks <devon@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Fri, 26 Jun 2026 15:52:13 -0700
+Message-ID: <178421232603.54106.18308641302358732800@tessera.io>
 
-VGVhbSwKCldlJ3JlIHNlZWluZyB0aW1lb3V0IGVycm9ycyBvbiB0aGUgb3JkZXJzIHNlcnZpY2Uu
-CgoqKkltcGFjdCoqOiBFbnRlcnByaXNlIGRhc2hib2FyZCBkZWdyYWRlZAoqKlN0YXJ0ZWQqKjog
-fjEgaG91cnMgYWdvCioqQ3VycmVudCBzdGF0dXMqKjogUm9vdCBjYXVzZSBpZGVudGlmaWVkLCBm
-aXggaW4gcHJvZ3Jlc3MKCkkndmUgY3JlYXRlZCBhIEppcmEgdGlja2V0LiBXaWxsIHVwZGF0ZSBp
-biAzMCBtaW4uCgrigJQgTWFyY3VzCg==
+QXZlcnkg4oCUIG5lZWQgYSBxdWljayBjYWxsIG9uIGEgc2NhbGluZyBxdWVzdGlvbiBmb3IgdGhl
+IEhhbGJlcmQgZGF0YSB2b2x1bWUuIE5vdGhpbmcgdXJnZW50LCB0aGlzIHdlZWsgaXMgZmluZS4K
+CuKAlCBKb3JkYW4KRGV2b24K

@@ -1,183 +1,164 @@
 [
   {
-    "id": "PLAT-489",
-    "title": "Fix auth token rotation for SSO users",
-    "description": "SSO users are experiencing auth failures after token rotation. The refresh token flow doesn't account for the SAML assertion expiry, causing a 401 loop. Need to update the token refresh logic to re-initiate SAML flow when the assertion is expired.",
+    "id": "TESS-201",
+    "title": "Finalize Series A data room",
+    "description": "Close out remaining items in the data room checklist: fully-diluted cap table, IP assignment agreements for contractors, customer reference list for Marcus, and the signed SAFE amendment redline from Ben.",
     "status": "in-progress",
     "priority": "P1",
-    "assignee": "Avery Chen",
-    "due_date": "2026-07-11",
-    "created_at": "2026-07-07T09:15:00-07:00",
-    "tags": [
-      "bug",
-      "auth",
-      "sso",
-      "project-aurora"
-    ],
-    "subtasks": [
-      {
-        "title": "Reproduce the issue with test SSO provider",
-        "done": true
-      },
-      {
-        "title": "Update token refresh logic for SAML assertions",
-        "done": false
-      },
-      {
-        "title": "Add integration tests for SSO token rotation",
-        "done": false
-      },
-      {
-        "title": "Deploy fix to staging and verify",
-        "done": false
-      }
-    ]
-  },
-  {
-    "id": "PLAT-501",
-    "title": "Implement L2 Redis cache for Aurora API",
-    "description": "As outlined in the caching RFC, implement the distributed Redis cache layer (L2) for Aurora API read endpoints. This includes setting up the Redis cluster connection, implementing write-through invalidation, and adding cache hit/miss metrics to Datadog.",
-    "status": "in-progress",
-    "priority": "P2",
     "assignee": "Avery Chen",
     "due_date": "2026-07-18",
-    "created_at": "2026-06-26T14:30:00-07:00",
+    "created_at": "2026-06-26T09:00:00-07:00",
     "tags": [
-      "feature",
-      "caching",
-      "redis",
-      "project-aurora"
+      "series-a",
+      "fundraising",
+      "legal"
     ],
     "subtasks": [
       {
-        "title": "Set up Redis 7 cluster configuration",
+        "title": "Financials, cap table (current), burn model",
         "done": true
       },
       {
-        "title": "Implement cache read/write for /orders endpoint",
-        "done": true
-      },
-      {
-        "title": "Add write-through invalidation on mutations",
+        "title": "Fully diluted cap table with post-round scenarios",
         "done": false
       },
       {
-        "title": "Add Datadog metrics (hit rate, latency, evictions)",
+        "title": "IP assignment agreements for contractors",
         "done": false
       },
       {
-        "title": "Load test with cache enabled vs disabled",
+        "title": "Sign SAFE amendment redline from Ben",
+        "done": false
+      },
+      {
+        "title": "Customer reference list + book reference calls",
         "done": false
       }
     ]
   },
   {
-    "id": "PLAT-510",
-    "title": "Write Aurora API customer migration guide",
-    "description": "Write a customer-facing migration guide for transitioning from Aurora API v1 to v2. Include endpoint mapping, breaking changes, new authentication flow, code examples in Python and JavaScript, and a FAQ section. Coordinate with Nina (tech writer) and Marcus (PM) for review.",
+    "id": "TESS-207",
+    "title": "Close Halberd Manufacturing integration",
+    "description": "Ship the Halberd ERP integration: SFTP ingestion, reconciliation engine, anomaly detection for supplier risk alerts, and a decision on whether to build proper multi-warehouse support now or ship a workaround.",
+    "status": "in-progress",
+    "priority": "P1",
+    "assignee": "Avery Chen",
+    "due_date": "2026-07-24",
+    "created_at": "2026-06-30T11:00:00-07:00",
+    "tags": [
+      "engineering",
+      "halberd-integration",
+      "customer"
+    ],
+    "subtasks": [
+      {
+        "title": "SFTP ingestion + normalization",
+        "done": true
+      },
+      {
+        "title": "Reconciliation engine + anomaly detection",
+        "done": false
+      },
+      {
+        "title": "Decide multi-warehouse approach (option 1 vs 2)",
+        "done": false
+      },
+      {
+        "title": "Beta with Halberd ops team",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": "TESS-212",
+    "title": "Send Diane the Q2 board update",
+    "description": "Write and send the Q2 board update to Diane Okafor — metrics, Series A status, product progress, hiring. Draft exists in notes but has not been sent since early Q1.",
     "status": "todo",
     "priority": "P2",
     "assignee": "Avery Chen",
-    "due_date": "2026-07-21",
-    "created_at": "2026-07-08T10:00:00-07:00",
+    "due_date": "2026-07-15",
+    "created_at": "2026-07-01T08:30:00-07:00",
     "tags": [
-      "docs",
-      "migration",
-      "project-aurora",
-      "customer-facing"
+      "board",
+      "investor-relations"
     ],
     "subtasks": [
       {
-        "title": "Outline migration guide structure",
+        "title": "Fill in final ARR number from Owen",
         "done": false
       },
       {
-        "title": "Document breaking changes and endpoint mapping",
+        "title": "Get Priya's SOC 2 timeline confidence level",
         "done": false
       },
       {
-        "title": "Write code examples (Python + JS)",
-        "done": false
-      },
-      {
-        "title": "Review with Nina and Marcus",
+        "title": "Send to Diane",
         "done": false
       }
     ]
   },
   {
-    "id": "PLAT-515",
-    "title": "Add connection pool saturation monitor",
-    "description": "Post-incident action item: add a Datadog monitor that alerts when database connection pool utilization exceeds 80%. This should trigger a PagerDuty notification to the on-call engineer. Also add a dashboard panel showing connection pool usage over time.",
+    "id": "TESS-215",
+    "title": "SOC 2 Type II audit prep",
+    "description": "Prepare for the September SOC 2 Type II audit: vendor security questionnaires, quarterly access review, change management policy, and incident response tabletop exercise.",
     "status": "blocked",
-    "priority": "P1",
+    "priority": "P2",
     "assignee": "Avery Chen",
-    "due_date": "2026-07-14",
-    "created_at": "2026-07-10T16:00:00-07:00",
+    "due_date": "2026-08-15",
+    "created_at": "2026-06-28T10:00:00-07:00",
     "tags": [
-      "observability",
-      "incident-followup",
-      "datadog",
-      "reliability"
+      "compliance",
+      "soc2",
+      "series-a"
     ],
-    "blocked_by": "Waiting for Sam to provision Datadog API key with write access to monitors",
+    "blocked_by": "Waiting on Owen to finish vendor security questionnaires (3 of 9 vendors done); also blocked on multi-warehouse data handling scope decision.",
     "subtasks": [
       {
-        "title": "Define alert thresholds (warning: 70%, critical: 85%)",
+        "title": "SSO + access review process",
         "done": true
       },
       {
-        "title": "Create Datadog monitor via Terraform",
+        "title": "Run first quarterly access review",
         "done": false
       },
       {
-        "title": "Configure PagerDuty integration",
+        "title": "Vendor security questionnaires (9 vendors)",
         "done": false
       },
       {
-        "title": "Add dashboard panel for connection pool metrics",
+        "title": "Change management policy doc",
         "done": false
       },
       {
-        "title": "Test alert with synthetic load",
+        "title": "Incident response tabletop exercise",
         "done": false
       }
     ]
   },
   {
-    "id": "PLAT-520",
-    "title": "Prototype Platform SDK (hybrid approach)",
-    "description": "Build a proof-of-concept for the internal Platform SDK using the hybrid approach (auto-generated transport layer + hand-written public API). Implement one endpoint (/orders) end-to-end including auth, retries, error handling, and type hints. Present findings in next week's standup.",
+    "id": "TESS-219",
+    "title": "Decide on Elena Marsh offer (Senior Engineer)",
+    "description": "Elena Marsh completed her onsite with strong signal across the board. Grace flagged this needs a fast decision — good candidates like this don't stay open long. Review feedback and decide: extend offer or pass.",
     "status": "todo",
-    "priority": "P3",
+    "priority": "P1",
     "assignee": "Avery Chen",
-    "due_date": "2026-07-25",
-    "created_at": "2026-07-02T11:00:00-07:00",
+    "due_date": "2026-06-26",
+    "created_at": "2026-06-22T15:00:00-07:00",
     "tags": [
-      "feature",
-      "sdk",
-      "prototype",
-      "developer-experience"
+      "hiring",
+      "engineering"
     ],
     "subtasks": [
       {
-        "title": "Set up SDK project structure and build tooling",
+        "title": "Review onsite feedback",
         "done": false
       },
       {
-        "title": "Generate transport layer from OpenAPI spec",
+        "title": "Decide: offer or pass",
         "done": false
       },
       {
-        "title": "Hand-write public Client API for /orders",
-        "done": false
-      },
-      {
-        "title": "Add retry logic with exponential backoff",
-        "done": false
-      },
-      {
-        "title": "Write example usage and README",
+        "title": "If offer: align on comp with Owen",
         "done": false
       }
     ]

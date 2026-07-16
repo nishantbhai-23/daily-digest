@@ -1,15 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [PR #1226] fix: Refactor auth middleware
-From: Chris Huang <chris.huang@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Mon, 22 Jun 2026 14:35:34 -0700
-Message-ID: <178419386407.46576.10815662190835667200@meridianlabs.io>
-In-Reply-To: <178419386406.46576.17267535574452952182@meridianlabs.io>
-References: <178419386406.46576.17267535574452952182@meridianlabs.io>
+Subject: Re: [Inventory Forecasting Model] PR up for review
+From: =?utf-8?q?Tom=C3=A1s_Reyes_=3Ctomas=40tessera=2Eio=3E?=
+To: Avery Chen <avery@tessera.io>
+Date: Sun, 21 Jun 2026 13:00:16 -0700
+Message-ID: <178421232602.54106.15890762736173670092@tessera.io>
+In-Reply-To: <178421232602.54106.17212459893611162887@tessera.io>
+References: <178421232602.54106.17212459893611162887@tessera.io>
 
-VXBkYXRlIG9uIHRoZSBBY21lIENvcnAgc2l0dWF0aW9uOgoKSSBzcG9rZSB3aXRoIHRoZWlyIHRl
-YW0gYW5kIHRoZSBpc3N1ZSBpcyBhIGtub3duIGJ1ZyBmaXhlZCBpbiB0aGUgbmV4dCByZWxlYXNl
-LgoKUHJvcG9zZWQgcmVzb2x1dGlvbjogRGVwbG95aW5nIHRoZSBob3RmaXggdG9uaWdodC4KCkN1
-c3RvbWVyIHNlZW1zIHNhdGlzZmllZCB3aXRoIHRoZSBwbGFuLgpDaHJpcwo=
+QXV0b21hdGVkIG5vdGlmaWNhdGlvbiDigJQgbm8gcmVwbHkgbmVlZGVkLgoKLS0tCkEgZG9jdW1l
+bnQgd2FzIHNpZ25lZCBieSBhbGwgcGFydGllcy4KVG9tw6FzCg==

@@ -1,14 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1310] feat: Refactor auth middleware
-From: Derek Okafor <derek.okafor@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Fri, 19 Jun 2026 14:02:14 -0700
-Message-ID: <178419386406.46576.7902398672295381517@meridianlabs.io>
+Subject: =?utf-8?q?Architecture_decision_=E2=80=94_need_your_input?=
+From: Jordan Liu <jordan@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Fri, 19 Jun 2026 13:56:27 -0700
+Message-ID: <178421232602.54106.10998276079213452607@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgYSBmYWN0b3J5
-IG1ldGhvZCBmb3IgdGhlIHRlc3QgZml4dHVyZXMKLSBUaGUgdGVzdCBjb3ZlcmFnZSBjb3VsZCBi
-ZSBiZXR0ZXIgZm9yIGVkZ2UgY2FzZXMKCk5vdGhpbmcgYmxvY2tpbmcg4oCUIGFwcHJvdmUgb25j
-ZSBhZGRyZXNzZWQuCkRlcmVrCg==
+QXZlcnkg4oCUIG5lZWQgYSBxdWljayBjYWxsIG9uIHRoZSBTT0MgMiB0aW1lbGluZSDigJQgYXVk
+aXRvciB3YW50cyBhIGRlY2lzaW9uIG9uIHNjb3BlLiBOb3RoaW5nIHVyZ2VudCwgdGhpcyB3ZWVr
+IGlzIGZpbmUuCgrigJQgSm9yZGFuCg==

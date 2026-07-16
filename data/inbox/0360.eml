@@ -1,14 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [INCIDENT] Webhook delivery failures to customer endpoints
-From: Lina Zhang <lina.zhang@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Elena Vasquez <elena.vasquez@meridianlabs.io>, Priya Sharma <priya.sharma@meridianlabs.io>
-Date: Wed, 08 Jul 2026 15:44:52 -0700
-Message-ID: <178419386411.46576.12619014349998186991@meridianlabs.io>
+Subject: Re: API integration question
+From: Lindsey Cho <lindsey.cho@veritascomponents.com>
+To: Avery Chen <avery@tessera.io>
+Cc: Priya Iyer <priya@tessera.io>
+Date: Tue, 07 Jul 2026 16:27:51 -0700
+Message-ID: <178421232605.54106.7330501610535361049@tessera.io>
 
-UXVpY2sgdXBkYXRlIG9uIHRoZSBlcnJvciBzcGlrZToKClJvb3QgY2F1c2Ugd2FzIGEgbWlzc2lu
-ZyBjb25uZWN0aW9uIHBvb2wgbGltaXQuIEZpeCBoYXMgYmVlbiBkZXBsb3llZCB0byBzdGFnaW5n
-IGZvciB2ZXJpZmljYXRpb24uCgpQb3N0bW9ydGVtIHNjaGVkdWxlZCBmb3IgbmV4dCBNb25kYXku
-CkxpbmEK
+SGkgQXZlcnksCgpDaGVja2luZyBpbiBvbiB0aGUgQVBJIHJhdGUgbGltaXQgaW5jcmVhc2Ug4oCU
+IG5vdGljZWQgYSBtaXNtYXRjaCBvbiB0aGUgcmVjZW50IHNoaXBtZW50IGNvdW50cywgbWlnaHQg
+anVzdCBiZSBhIHRpbWV6b25lIHRoaW5nLgoKQmVzdCwKTGluZHNleQo=

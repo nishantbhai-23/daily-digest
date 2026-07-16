@@ -1,14 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: =?utf-8?q?=5BCustomer=5D_Acme_Corp_=E2=80=94_Billing_discrepancy?=
-From: =?utf-8?q?Tom=C3=A1s_Herrera_=3Ctomas=2Eherrera=40meridianlabs=2Eio=3E?=
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Sun, 05 Jul 2026 13:03:12 -0700
-Message-ID: <178419386410.46576.3904345783498888376@meridianlabs.io>
+Subject: Design feedback needed
+From: Priya Iyer <priya@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Fri, 03 Jul 2026 08:36:35 -0700
+Message-ID: <178421232605.54106.13900634533778219130@tessera.io>
 
-VXBkYXRlIG9uIHRoZSBHbG9iYWxUZWNoIHNpdHVhdGlvbjoKCkkgc3Bva2Ugd2l0aCB0aGVpciB0
-ZWFtIGFuZCB0aGUgaXNzdWUgaXMgYSBrbm93biBidWcgZml4ZWQgaW4gdGhlIG5leHQgcmVsZWFz
-ZS4KClByb3Bvc2VkIHJlc29sdXRpb246IFdlIHdpbGwgYnVtcCB0aGVpciByYXRlIGxpbWl0cyB0
-ZW1wb3JhcmlseS4KCkN1c3RvbWVyIHNlZW1zIGhhcHB5IGFuZCBhcHByZWNpYXRpdmUgb2YgdGhl
-IHF1aWNrIHJlc3BvbnNlLgpUb23DoXMK
+SGV5IEF2ZXJ5LAoKRm91bmQgYW4gZWRnZSBjYXNlIGluIHRoZSBmb3JlY2FzdGluZyBtb2RlbCBm
+b3Igc2Vhc29uYWwgU0tVcy4KCkxldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIHRha2UgYSBsb29r
+LgoK4oCUIERldm9uClByaXlhCg==

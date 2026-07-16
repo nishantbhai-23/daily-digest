@@ -1,12 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Action items from our chat
-From: Jordan Reeves <jordan.reeves@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Thu, 18 Jun 2026 11:55:42 -0700
-Message-ID: <178419386406.46576.7336182588393932955@meridianlabs.io>
+Subject: =?utf-8?q?Architecture_decision_=E2=80=94_need_your_input?=
+From: Jordan Liu <jordan@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Fri, 19 Jun 2026 11:55:37 -0700
+Message-ID: <178421232602.54106.3588876125163793449@tessera.io>
 
-SGkgQXZlcnksCgpKdXN0IHdhbnRlZCB0byBmb2xsb3cgdXAgb24gdGhlIGludGVydmlldyBwYW5l
-bCBhc3NpZ25tZW50cy4KCkkgdGhpbmsgd2Ugc2hvdWxkIGdldCBpbnB1dCBmcm9tIFByaXlhIGJl
-Zm9yZSBkZWNpZGluZy4gRG9lcyB0aGF0IHdvcmsgZm9yIHlvdT8KCuKAlCBKb3JkYW4K
+QXZlcnkg4oCUIG5lZWQgYSBxdWljayBjYWxsIG9uIGEgc2NhbGluZyBxdWVzdGlvbiBmb3IgdGhl
+IEhhbGJlcmQgZGF0YSB2b2x1bWUuIE5vdGhpbmcgdXJnZW50LCB0aGlzIHdlZWsgaXMgZmluZS4K
+CuKAlCBKb3JkYW4K

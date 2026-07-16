@@ -1,14 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1459] chore: Fix timezone handling in scheduler
-From: Nina Kowalski <nina.kowalski@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Thu, 02 Jul 2026 08:34:52 -0700
-Message-ID: <178419386410.46576.12401713092170714287@meridianlabs.io>
+Subject: Pipeline update
+From: =?utf-8?q?Tom=C3=A1s_Reyes_=3Ctomas=40tessera=2Eio=3E?=
+To: Avery Chen <avery@tessera.io>
+Cc: Zoe Alvarez <zoe@tessera.io>
+Date: Thu, 02 Jul 2026 09:54:20 -0700
+Message-ID: <178421232605.54106.17658235385114004858@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgZGVwZW5kZW5j
-eSBpbmplY3Rpb24gZm9yIHRoZSB0ZXN0IGZpeHR1cmVzCi0gVGhlIGVycm9yIG1lc3NhZ2UgY291
-bGQgYmUgbW9yZSBkZXNjcmlwdGl2ZQoKTm90aGluZyBibG9ja2luZyDigJQgYXBwcm92ZSBvbmNl
-IGFkZHJlc3NlZC4KTmluYQo=
+SGV5IEF2ZXJ5LAoKUGlwZWxpbmUgdGhpcyB3ZWVrOiA0IGRlbW9zLCAzIGluIGxhdGUtc3RhZ2Uu
+IFJhdmkgaXMgY2xvc2luZyBpbiBvbiB0aGUgbWlkLW1hcmtldCBkZWFsIHdlIHRhbGtlZCBhYm91
+dC4KCuKAlCBUb23DoXMK

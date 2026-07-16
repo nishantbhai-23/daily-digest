@@ -1,14 +1,14 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [Atlas Migration] Sprint update
-From: Chris Huang <chris.huang@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Mon, 13 Jul 2026 13:03:59 -0700
-Message-ID: <178419386412.46576.11640522719146598080@meridianlabs.io>
+Subject: Re: API integration question
+From: Ben Schaffer <bschaffer@wsgr.com>
+To: Avery Chen <avery@tessera.io>
+Date: Sat, 11 Jul 2026 13:28:15 -0700
+Message-ID: <178421232606.54106.14709951614284232775@tessera.io>
+In-Reply-To: <178421232606.54106.13344869885358373747@tessera.io>
+References: <178421232606.54106.13344869885358373747@tessera.io>
 
-SGkgdGVhbSwKClF1aWNrIHVwZGF0ZSBvbiB3aGVyZSB3ZSBzdGFuZC4KCldlJ3ZlIGNvbXBsZXRl
-ZCB0aGUgbG9hZCB0ZXN0aW5nIGFuZCBhcmUgb24gdHJhY2sgZm9yIHRoZSBlbmQtb2Ytc3ByaW50
-IGRlYWRsaW5lLgoKUmVtYWluaW5nIGl0ZW1zOgotIFNldCB1cCBtb25pdG9yaW5nIGRhc2hib2Fy
-ZHMKLSBSdW4gcmVncmVzc2lvbiB0ZXN0cwotIFdyaXRlIHJ1bmJvb2sKCkxldCBtZSBrbm93IGlm
-IHlvdSBoYXZlIHF1ZXN0aW9ucy4KCkJlc3QsCkNocmlzCg==
+SGkgQXZlcnksCgpUZWFtIGhhcyBiZWVuIGdldHRpbmcgZ29vZCB1c2Ugb3V0IG9mIHRoZSBhbGVy
+dHMuIE9uZSBxdWVzdGlvbiDigJQgaXMgdGhlcmUgYSB3YXkgdG8gZXhwb3J0IHN1cHBsaWVyIHNj
+b3JlcyB0byBDU1Y/CgpUaGFua3MsCkJlbgo=

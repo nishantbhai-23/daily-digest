@@ -1,14 +1,11 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [SEV-2] Elevated error rates on /api/v2/orders
-From: Nina Kowalski <nina.kowalski@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Mon, 22 Jun 2026 08:30:10 -0700
-Message-ID: <178419386407.46576.2221616486955281163@meridianlabs.io>
+Subject: =?utf-8?q?Expense_report_=E2=80=94_need_receipts?=
+From: Owen Fitzgerald <owen@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Mon, 22 Jun 2026 19:54:25 -0700
+Message-ID: <178421232602.54106.11643881521576166616@tessera.io>
 
-VGVhbSwKCldlJ3JlIHNlZWluZyB0aW1lb3V0IGVycm9ycyBvbiB0aGUgbm90aWZpY2F0aW9uIHdv
-cmtlci4KCioqSW1wYWN0Kio6IFdlYmhvb2sgZGVsaXZlcmllcyBkZWxheWVkIGJ5IDEwKyBtaW4K
-KipTdGFydGVkKio6IH4xIGhvdXJzIGFnbwoqKkN1cnJlbnQgc3RhdHVzKio6IE1pdGlnYXRpb24g
-ZGVwbG95ZWQsIG1vbml0b3JpbmcKCkkndmUgY3JlYXRlZCBhIEppcmEgdGlja2V0LiBXaWxsIHVw
-ZGF0ZSBpbiAzMCBtaW4uCgrigJQgTmluYQo=
+SGkgQXZlcnksCgpQYXlyb2xsIHByb2Nlc3NlcyBGcmlkYXkgYXMgdXN1YWwsIG5vIGFjdGlvbiBu
+ZWVkZWQuCgrigJQgT3dlbgo=

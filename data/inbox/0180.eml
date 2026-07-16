@@ -1,14 +1,11 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [BUG] Auth tokens not refreshing after rotation
-From: Jordan Reeves <jordan.reeves@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Fri, 26 Jun 2026 10:14:01 -0700
-Message-ID: <178419386408.46576.16722837905242502832@meridianlabs.io>
+Subject: =?utf-8?q?Expense_report_=E2=80=94_need_receipts?=
+From: Owen Fitzgerald <owen@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Thu, 25 Jun 2026 10:19:14 -0700
+Message-ID: <178421232603.54106.13703015283242843650@tessera.io>
 
-VGVhbSwKCldlJ3JlIHNlZWluZyB0aW1lb3V0IGVycm9ycyBvbiB0aGUgc2VhcmNoIGNsdXN0ZXIu
-CgoqKkltcGFjdCoqOiBXZWJob29rIGRlbGl2ZXJpZXMgZGVsYXllZCBieSAxMCsgbWluCioqU3Rh
-cnRlZCoqOiB+NCBob3VycyBhZ28KKipDdXJyZW50IHN0YXR1cyoqOiBNaXRpZ2F0aW9uIGRlcGxv
-eWVkLCBtb25pdG9yaW5nCgpJJ3ZlIGNyZWF0ZWQgYSBKaXJhIHRpY2tldC4gV2lsbCB1cGRhdGUg
-aW4gMzAgbWluLgoK4oCUIEpvcmRhbgo=
+SGkgQXZlcnksCgpIZWFsdGggaW5zdXJhbmNlIHJlbmV3YWwgaXMgZHVlIOKAlCBwcmVtaXVtcyBn
+b2luZyB1cCA4JSwgbmVlZCBhIGRlY2lzaW9uIGJ5IG1vbnRoIGVuZC4KCuKAlCBPd2VuCg==

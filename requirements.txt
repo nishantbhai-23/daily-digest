@@ -7,3 +7,7 @@ ollama
 # Optional providers — uncomment as needed:
 # anthropic        # For Claude models
 # google-generativeai  # For Gemini models
+
+# openrouter and deepseek providers need no package — implemented with
+# stdlib urllib. Just set OPENROUTER_API_KEY / DEEPSEEK_API_KEY and pass
+# --provider openrouter / --provider deepseek.

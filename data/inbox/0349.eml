@@ -1,14 +1,11 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1424] fix: Fix N+1 query in dashboard endpoint
-From: Sam O'Brien <sam.obrien@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 07 Jul 2026 08:34:41 -0700
-Message-ID: <178419386411.46576.13854201572151854479@meridianlabs.io>
+Subject: Demo went great today
+From: =?utf-8?q?Tom=C3=A1s_Reyes_=3Ctomas=40tessera=2Eio=3E?=
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 07 Jul 2026 17:32:54 -0700
+Message-ID: <178421232605.54106.6500297940100124807@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgYSBmYWN0b3J5
-IG1ldGhvZCBmb3IgdGhlIHRlc3QgZml4dHVyZXMKLSBUaGUgZXJyb3IgbWVzc2FnZSBjb3VsZCBi
-ZSBtb3JlIGRlc2NyaXB0aXZlCgpOb3RoaW5nIGJsb2NraW5nIOKAlCBhcHByb3ZlIG9uY2UgYWRk
-cmVzc2VkLgpTYW0K
+UXVpY2sgb25lOiBIYWxiZXJkIG1lbnRpb25lZCB0aGV5IG1pZ2h0IHdhbnQgdG8gZXhwYW5kIHRv
+IHRoZWlyIE9oaW8gcGxhbnQgbmV4dCBxdWFydGVyIOKAlCB3b3J0aCBhIGNhbGw/CgpUb23DoXMK

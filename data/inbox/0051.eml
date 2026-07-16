@@ -1,12 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [SEV-2] Memory leak in background worker
-From: Sam O'Brien <sam.obrien@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Thu, 18 Jun 2026 19:50:52 -0700
-Message-ID: <178419386406.46576.4099407711500379642@meridianlabs.io>
+Subject: Re: Candidate pipeline update
+From: Diane Okafor <diane@bramblewoodvc.com>
+To: Avery Chen <avery@tessera.io>
+Date: Thu, 18 Jun 2026 09:20:21 -0700
+Message-ID: <178421232602.54106.5835554705972719676@tessera.io>
+In-Reply-To: <178421232601.54106.5393803089275525566@tessera.io>
+References: <178421232601.54106.5393803089275525566@tessera.io>
 
-UXVpY2sgdXBkYXRlIG9uIHRoZSBtZW1vcnkgbGVhazoKClJvb3QgY2F1c2Ugd2FzIGFuIHVuYm91
-bmRlZCBjYWNoZSBncm93dGguIEZpeCBoYXMgYmVlbiBkZXBsb3llZCB0byBzdGFnaW5nIGZvciB2
-ZXJpZmljYXRpb24uCgpQb3N0bW9ydGVtIHNjaGVkdWxlZCBmb3IgbmV4dCBNb25kYXkuClNhbQo=
+SGkgQXZlcnksCgpGb2xsb3dpbmcgdXAgb24gdGhlIFNTTyBzZXR1cCDigJQgbm90aGluZyB1cmdl
+bnQsIGp1c3Qgd2FudCB0byBjbG9zZSB0aGUgbG9vcC4KCkJlc3QsCkRpYW5lCg==

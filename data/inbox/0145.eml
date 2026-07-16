@@ -1,16 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [Platform SDK] Status update
-From: Chris Huang <chris.huang@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Wed, 24 Jun 2026 14:51:34 -0700
-Message-ID: <178419386408.46576.4799035731427505863@meridianlabs.io>
-In-Reply-To: <178419386407.46576.10533798515954112630@meridianlabs.io>
-References: <178419386407.46576.10533798515954112630@meridianlabs.io>
+Subject: Candidate pipeline update
+From: Jordan Liu <jordan@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Cc: Devon Brooks <devon@tessera.io>, Ravi Chandra <ravi@tessera.io>
+Date: Wed, 24 Jun 2026 14:18:27 -0700
+Message-ID: <178421232603.54106.13964427618036077482@tessera.io>
 
-SGkgQXZlcnksCgpGb2xsb3dpbmcgdXAgb24gb3VyIGRpc2N1c3Npb24gYWJvdXQgdGhlIEFQSSBp
-bnRlZ3JhdGlvbiB3aXRoIENsb3VkTm92YS4KCkkndmUgYXR0YWNoZWQgdGhlIGNvbXBsaWFuY2Ug
-cXVlc3Rpb25uYWlyZS4gS2V5IHBvaW50czoKLSBUaGV5IHN1cHBvcnQgb3VyIFNTTyByZXF1aXJl
-bWVudHMKLSBTTEEgZ3VhcmFudGVlcyA5OS45NSUgdXB0aW1lCgpMZXQgbWUga25vdyBpZiB5b3Ug
-d2FudCB0byBzY2hlZHVsZSBhIGZvbGxvdy11cCBjYWxsLgoKQmVzdCByZWdhcmRzLApDaHJpcwo=
+SGkgQXZlcnksCgpQaXBlbGluZSB1cGRhdGU6IDIgY2FuZGlkYXRlcyBpbiBzY3JlZW5pbmcgZm9y
+IHRoZSBwcm9kdWN0IGRlc2lnbmVyIHJvbGUuIE9uZSBvZmZlciBsaWtlbHkgdG8gZ28gb3V0IHRo
+aXMgd2Vlay4KCuKAlCBHcmFjZQpKb3JkYW4K

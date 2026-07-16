@@ -1,16 +1,14 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [PR #1210] refactor: Fix N+1 query in dashboard endpoint
-From: Raj Mehta <raj.mehta@cybershield.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Wed, 15 Jul 2026 11:32:40 -0700
-Message-ID: <178419386413.46576.12868292599735108743@meridianlabs.io>
-In-Reply-To: <178419386411.46576.342428112100875317@meridianlabs.io>
-References: <178419386411.46576.342428112100875317@meridianlabs.io>
+Subject: Re: forecasting model accuracy
+From: =?utf-8?q?Tom=C3=A1s_Reyes_=3Ctomas=40tessera=2Eio=3E?=
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 14 Jul 2026 09:11:10 -0700
+Message-ID: <178421232607.54106.4645767166840204641@tessera.io>
+In-Reply-To: <178421232606.54106.6133016919806570290@tessera.io>
+References: <178421232606.54106.6133016919806570290@tessera.io>
 
-VGVhbSwKCldlJ3JlIHNlZWluZyBtZW1vcnkgcHJlc3N1cmUgb24gdGhlIGFuYWx5dGljcyBwaXBl
-bGluZS4KCioqSW1wYWN0Kio6IEVudGVycHJpc2UgZGFzaGJvYXJkIGRlZ3JhZGVkCioqU3RhcnRl
-ZCoqOiB+MiBob3VycyBhZ28KKipDdXJyZW50IHN0YXR1cyoqOiBSb290IGNhdXNlIGlkZW50aWZp
-ZWQsIGZpeCBpbiBwcm9ncmVzcwoKSSd2ZSBjcmVhdGVkIGEgSmlyYSB0aWNrZXQuIFdpbGwgdXBk
-YXRlIGluIDMwIG1pbi4KCuKAlCBSYWoK
+SGkgQXZlcnksCgpIZWFsdGggaW5zdXJhbmNlIHJlbmV3YWwgaXMgZHVlIOKAlCBwcmVtaXVtcyBn
+b2luZyB1cCA4JSwgbmVlZCBhIGRlY2lzaW9uIGJ5IG1vbnRoIGVuZC4KCuKAlCBPd2VuClRvbcOh
+cwo=

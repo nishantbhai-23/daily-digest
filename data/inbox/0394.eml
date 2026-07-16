@@ -1,12 +1,14 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [P1] Memory leak in background worker
-From: =?utf-8?q?Tom=C3=A1s_Herrera_=3Ctomas=2Eherrera=40meridianlabs=2Eio=3E?=
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Thu, 09 Jul 2026 08:51:33 -0700
-Message-ID: <178419386411.46576.4801072325058987652@meridianlabs.io>
+Subject: Re: Great catching up last week
+From: Devon Brooks <devon@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Thu, 09 Jul 2026 13:11:30 -0700
+Message-ID: <178421232606.54106.16447466103500818439@tessera.io>
+In-Reply-To: <178421232605.54106.14920159232691594068@tessera.io>
+References: <178421232605.54106.14920159232691594068@tessera.io>
 
-UXVpY2sgdXBkYXRlIG9uIHRoZSBlcnJvciBzcGlrZToKClJvb3QgY2F1c2Ugd2FzIGEgbWlzc2lu
-ZyBjb25uZWN0aW9uIHBvb2wgbGltaXQuIEZpeCBoYXMgYmVlbiBkZXBsb3llZCB0byBwcm9kdWN0
-aW9uLgoKUG9zdG1vcnRlbSBzY2hlZHVsZWQgZm9yIG5leHQgTW9uZGF5LgpUb23DoXMK
+QXZlcnkg4oCUIGhhZCBhIGdyZWF0IGNhbGwgd2l0aCBhIDIwMC1wZXJzb24gbWFudWZhY3R1cmVy
+LCB0aGV5IHdhbnQgYSBwaWxvdC4gTm90IGJsb2NraW5nLCBqdXN0IGZsYWdnaW5nLgoK4oCUIFRv
+bcOhcwpEZXZvbgo=

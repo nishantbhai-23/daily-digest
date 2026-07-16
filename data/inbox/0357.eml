@@ -1,15 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [PR #1443] fix: Fix N+1 query in dashboard endpoint
-From: Raj Mehta <raj.mehta@cybershield.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Lina Zhang <lina.zhang@meridianlabs.io>, Marcus Kim <marcus.kim@meridianlabs.io>, Sam O'Brien <sam.obrien@meridianlabs.io>
-Date: Tue, 07 Jul 2026 11:56:27 -0700
-Message-ID: <178419386411.46576.8352514165578681393@meridianlabs.io>
-In-Reply-To: <178419386411.46576.12910207894079206066@meridianlabs.io>
-References: <178419386411.46576.12910207894079206066@meridianlabs.io>
+Subject: Quick sync notes
+From: Maya Fischer <maya@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 07 Jul 2026 09:42:38 -0700
+Message-ID: <178421232605.54106.13268691645224154572@tessera.io>
 
-QnVpbGQgcGFzc2VkIOKchSBmb3IgY29tbWl0IGNjNTEyNjIgb24gYnJhbmNoIGZlYXR1cmUvYXVy
-b3JhLWFwaS4KCkR1cmF0aW9uOiAxMyBtaW4gMjYgc2VjClRlc3RzOiAyNTEgcGFzc2VkLCAzIGZh
-aWxlZCwgMCBza2lwcGVkCkNvdmVyYWdlOiA4MCUKUmFqCg==
+SGV5IEF2ZXJ5LAoKRm91bmQgYW4gZWRnZSBjYXNlIGluIHRoZSBmb3JlY2FzdGluZyBtb2RlbCBm
+b3Igc2Vhc29uYWwgU0tVcy4KCkxldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIHRha2UgYSBsb29r
+LgoK4oCUIE1heWEK

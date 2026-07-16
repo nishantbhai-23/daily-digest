@@ -1,13 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [INCIDENT] Search indexer stuck in retry loop
-From: Marcus Kim <marcus.kim@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Wed, 08 Jul 2026 09:30:55 -0700
-Message-ID: <178419386411.46576.2805792296790393482@meridianlabs.io>
+Subject: =?utf-8?q?Architecture_decision_=E2=80=94_need_your_input?=
+From: Jordan Liu <jordan@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Cc: =?utf-8?q?Owen_Fitzgerald_=3Cowen=40tessera=2Eio=3E=2C_Tom=C3=A1s_Reyes_=3Ctomas=40tessera=2Eio=3E?=
+Date: Wed, 08 Jul 2026 10:05:04 -0700
+Message-ID: <178421232606.54106.7336891354704693913@tessera.io>
 
-VGVhbSwKCldlJ3JlIHNlZWluZyBtZW1vcnkgcHJlc3N1cmUgb24gdGhlIHNlYXJjaCBjbHVzdGVy
-LgoKKipJbXBhY3QqKjogRW50ZXJwcmlzZSBkYXNoYm9hcmQgZGVncmFkZWQKKipTdGFydGVkKio6
-IH4zIGhvdXJzIGFnbwoqKkN1cnJlbnQgc3RhdHVzKio6IEludmVzdGlnYXRpbmcKCkkndmUgY3Jl
-YXRlZCBhIEppcmEgdGlja2V0LiBXaWxsIHVwZGF0ZSBpbiAzMCBtaW4uCgrigJQgTWFyY3VzCg==
+SGV5IEF2ZXJ5LAoKU09DIDIgY29udHJvbCBtYXBwaW5nIGlzIGFib3V0IDYwJSBkb25lLiBObyBi
+bG9ja2VycyBvbiBteSBlbmQuCgrigJQgSm9yZGFuCg==

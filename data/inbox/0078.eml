@@ -1,14 +1,14 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1488] chore: Fix timezone handling in scheduler
-From: Marcus Kim <marcus.kim@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Fri, 19 Jun 2026 11:30:28 -0700
-Message-ID: <178419386407.46576.7862282101227827160@meridianlabs.io>
+Subject: Re: [Series A] PR up for review
+From: Maya Fischer <maya@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Fri, 19 Jun 2026 08:40:38 -0700
+Message-ID: <178421232602.54106.11100704448688654718@tessera.io>
+In-Reply-To: <178421232601.54106.573354337726030554@tessera.io>
+References: <178421232601.54106.573354337726030554@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgYSBmYWN0b3J5
-IG1ldGhvZCBmb3IgdGhlIGNvbmZpZyBzZXR1cAotIFRoZSB0ZXN0IGNvdmVyYWdlIGNvdWxkIGJl
-IGJldHRlciBmb3IgZWRnZSBjYXNlcwoKTm90aGluZyBibG9ja2luZyDigJQgYXBwcm92ZSBvbmNl
-IGFkZHJlc3NlZC4KTWFyY3VzCg==
+QXZlcnksCgpXZSBzaG91bGQgdGFsayB0aHJvdWdoIG9uYm9hcmRpbmcgZmxvdyBkcm9wLW9mZiDi
+gJQgNDAlIHN0YWxsIGF0IHN0ZXAgMyBzb21ldGltZSB0aGlzIHdlZWsuCgrigJQgUHJpeWEKTWF5
+YQo=

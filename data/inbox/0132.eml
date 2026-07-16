@@ -1,14 +1,14 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1286] refactor: Fix N+1 query in dashboard endpoint
-From: Derek Okafor <derek.okafor@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 23 Jun 2026 08:54:04 -0700
-Message-ID: <178419386407.46576.13167708592885123793@meridianlabs.io>
+Subject: Re: [Inventory Forecasting Model] GTM notes
+From: Grace Lin <grace@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 23 Jun 2026 10:54:42 -0700
+Message-ID: <178421232603.54106.12112639370384293947@tessera.io>
+In-Reply-To: <178421232603.54106.14620355565102609330@tessera.io>
+References: <178421232603.54106.14620355565102609330@tessera.io>
 
-SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
-IGNoYW5jZT8gSXQncyBwcmV0dHkgc21hbGwgKH4xNTAgbGluZXMpLgoKS2V5IGNoYW5nZXM6Ci0g
-VXBkYXRlZCBlcnJvciBoYW5kbGluZwotIEFkZGVkIGEgbWlncmF0aW9uIHNjcmlwdAoKSSd2ZSB0
-ZXN0ZWQgbG9jYWxseSBhbmQgQ0kgaXMgZ3JlZW4uIExldCBtZSBrbm93IGlmIHlvdSBoYXZlIHF1
-ZXN0aW9ucy4KClRoYW5rcyEKRGVyZWsK
+QXZlcnkg4oCUIHF1aWNrIHJlbWluZGVyLCBuZWVkIHJlY2VpcHRzIGZvciB0aGUgdGVhbSBvZmZz
+aXRlIGV4cGVuc2UgcmVwb3J0IGJ5IEZyaWRheSB0byBjbG9zZSB0aGUgYm9va3Mgb24gdGltZS4K
+CuKAlCBPd2VuCkdyYWNlCg==

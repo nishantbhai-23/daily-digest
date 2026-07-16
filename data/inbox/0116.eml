@@ -1,14 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [SEV-2] Dashboard loading timeout for enterprise accounts
-From: Jordan Reeves <jordan.reeves@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 23 Jun 2026 14:50:18 -0700
-Message-ID: <178419386407.46576.2403919673360973183@meridianlabs.io>
+Subject: Re: [Linear] TESS-214 moved to In Progress
+From: Kenji Watanabe <kenji@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Mon, 22 Jun 2026 16:36:42 -0700
+Message-ID: <178421232602.54106.3173079312980574099@tessera.io>
+In-Reply-To: <178421232601.54106.18348979840838400380@tessera.io>
+References: <178421232601.54106.18348979840838400380@tessera.io>
 
-VGVhbSwKCldlJ3JlIHNlZWluZyBtZW1vcnkgcHJlc3N1cmUgb24gdGhlIG5vdGlmaWNhdGlvbiB3
-b3JrZXIuCgoqKkltcGFjdCoqOiB+NSUgb2YgQVBJIHJlcXVlc3RzIGFmZmVjdGVkCioqU3RhcnRl
-ZCoqOiB+MSBob3VycyBhZ28KKipDdXJyZW50IHN0YXR1cyoqOiBNaXRpZ2F0aW9uIGRlcGxveWVk
-LCBtb25pdG9yaW5nCgpJJ3ZlIGNyZWF0ZWQgYSB3YXIgcm9vbSBpbiBTbGFjayAjaW5jaWRlbnQt
-Y2hhbm5lbC4gV2lsbCB1cGRhdGUgaW4gMzAgbWluLgoK4oCUIEpvcmRhbgo=
+SGkgQXZlcnksCgpQYXlyb2xsIHByb2Nlc3NlcyBGcmlkYXkgYXMgdXN1YWwsIG5vIGFjdGlvbiBu
+ZWVkZWQuCgrigJQgT3dlbgpLZW5qaQo=

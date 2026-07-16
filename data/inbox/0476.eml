@@ -1,16 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [PR #1389] chore: Fix timezone handling in scheduler
-From: David Lawson <david.lawson@stripebridge.com>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Sam O'Brien <sam.obrien@meridianlabs.io>, Marcus Kim <marcus.kim@meridianlabs.io>
-Date: Wed, 15 Jul 2026 08:33:00 -0700
-Message-ID: <178419386413.46576.3463264140345875835@meridianlabs.io>
-In-Reply-To: <178419386411.46576.7217698488073493160@meridianlabs.io>
-References: <178419386411.46576.7217698488073493160@meridianlabs.io>
+Subject: Re: onboarding status
+From: Lindsey Cho <lindsey.cho@veritascomponents.com>
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 14 Jul 2026 09:24:31 -0700
+Message-ID: <178421232607.54106.13254835958866208315@tessera.io>
 
-SGkgQXZlcnksCgpZb3VyIGV4cGVuc2UgcmVwb3J0IGZvciB0aGUgU0YgdGVhbSBvZmZzaXRlICgk
-MTI2Mi4wMCkgaGFzIGJlZW4gYXBwcm92ZWQuCgpJZiB5b3UgaGF2ZSBxdWVzdGlvbnMsIHJlcGx5
-IHRvIHRoaXMgZW1haWwgb3IgY29udGFjdCBmaW5hbmNlQG1lcmlkaWFubGFicy5pby4KCuKAlCBG
-aW5hbmNlIFRlYW0KRGF2aWQK
+SGkgQXZlcnksCgpGb2xsb3dpbmcgdXAgb24gdGhlIFNTTyBzZXR1cCDigJQgbm90aWNlZCBhIG1p
+c21hdGNoIG9uIHRoZSByZWNlbnQgc2hpcG1lbnQgY291bnRzLCBtaWdodCBqdXN0IGJlIGEgdGlt
+ZXpvbmUgdGhpbmcuCgpCZXN0LApMaW5kc2V5Cg==

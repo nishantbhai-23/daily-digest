@@ -1,12 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [GitHub] CI failed on main
-From: GitHub <notifications@github.com>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Mon, 13 Jul 2026 09:35:19 -0700
-Message-ID: <178419386412.46576.9371677759095895194@meridianlabs.io>
+Subject: Quick question about data export
+From: Lindsey Cho <lindsey.cho@veritascomponents.com>
+To: Avery Chen <avery@tessera.io>
+Date: Fri, 10 Jul 2026 09:05:27 -0700
+Message-ID: <178421232606.54106.16803532462556290981@tessera.io>
 
-QnVpbGQgcGFzc2VkIOKchSBmb3IgY29tbWl0IGExYjFhODIgb24gYnJhbmNoIGZpeC9yYXRlLWxp
-bWl0ZXIuCgpEdXJhdGlvbjogMyBtaW4gMiBzZWMKVGVzdHM6IDMzNyBwYXNzZWQsIDIgZmFpbGVk
-LCAxIHNraXBwZWQKQ292ZXJhZ2U6IDgyJQpHaXRIdWIK
+SGkgQXZlcnksCgpXYW50ZWQgdG8gZmxhZyBhIHNtYWxsIGRhdGEgZGlzY3JlcGFuY3kg4oCUIG5v
+dGljZWQgYSBtaXNtYXRjaCBvbiB0aGUgcmVjZW50IHNoaXBtZW50IGNvdW50cywgbWlnaHQganVz
+dCBiZSBhIHRpbWV6b25lIHRoaW5nLgoKQmVzdCwKTGluZHNleQo=

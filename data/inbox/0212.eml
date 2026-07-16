@@ -1,14 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1320] feat: Add rate limiting to API gateway
-From: Priya Sharma <priya.sharma@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Mon, 29 Jun 2026 15:04:46 -0700
-Message-ID: <178419386409.46576.10079645432259369781@meridianlabs.io>
+Subject: Design feedback needed
+From: Devon Brooks <devon@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Mon, 29 Jun 2026 09:46:34 -0700
+Message-ID: <178421232604.54106.1362051280148185619@tessera.io>
 
-SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
-IGNoYW5jZT8gSXQncyBhIGxhcmdlciBjaGFuZ2UgYnV0IHdlbGwtc2NvcGVkLgoKS2V5IGNoYW5n
-ZXM6Ci0gQWRkZWQgaW5wdXQgdmFsaWRhdGlvbgotIEFkZGVkIHVuaXQgdGVzdHMKCkkndmUgdGVz
-dGVkIGxvY2FsbHkgYW5kIENJIGlzIGdyZWVuLiBMZXQgbWUga25vdyBpZiB5b3UgaGF2ZSBxdWVz
-dGlvbnMuCgpUaGFua3MhClByaXlhCg==
+SGV5IEF2ZXJ5LAoKUmVkZXNpZ25lZCB0aGUgb25ib2FyZGluZyBjaGVja2xpc3Qgc2NyZWVuIOKA
+lCBtb2NrcyBpbiBGaWdtYS4KCkxldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIHRha2UgYSBsb29r
+LgoK4oCUIEtlbmppCkRldm9uCg==

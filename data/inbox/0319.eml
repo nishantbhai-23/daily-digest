@@ -1,15 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Notes from our sync
-From: Jordan Reeves <jordan.reeves@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Marcus Kim <marcus.kim@meridianlabs.io>, Derek Okafor <derek.okafor@meridianlabs.io>
-Date: Mon, 06 Jul 2026 14:20:45 -0700
-Message-ID: <178419386410.46576.16683660838445758300@meridianlabs.io>
+Subject: [Halberd Integration] PR up for review
+From: Nadia Hassan <nadia@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Cc: Priya Iyer <priya@tessera.io>
+Date: Sat, 04 Jul 2026 14:01:11 -0700
+Message-ID: <178421232605.54106.17850246130528207478@tessera.io>
 
-SGV5IEF2ZXJ5LAoKVGhhbmtzIGZvciB0aGUgZ3JlYXQgY29udmVyc2F0aW9uIHRvZGF5LiBUbyBy
-ZWNhcCB3aGF0IHdlIGRpc2N1c3NlZDoKCjEuIFlvdSB3aWxsIGRyYWZ0IHRoZSBSRkMgZm9yIHRo
-ZSBjYWNoaW5nIGxheWVyCjIuIFdlIHdpbGwgc2V0IHVwIGEgc2hhZG93IG9uLWNhbGwgcm90YXRp
-b24KMy4gUmV2aWV3IHRoZSBwZXJmIGZlZWRiYWNrIGJlZm9yZSBuZXh0IGN5Y2xlCgpMZXQgbWUg
-a25vdyBpZiBJIG1pc3NlZCBhbnl0aGluZy4KCkJlc3QsCkpvcmRhbgo=
+SGV5IEF2ZXJ5LAoKUmVkZXNpZ25lZCB0aGUgb25ib2FyZGluZyBjaGVja2xpc3Qgc2NyZWVuIOKA
+lCBtb2NrcyBpbiBGaWdtYS4KCkxldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIHRha2UgYSBsb29r
+LgoK4oCUIE5hZGlhCg==

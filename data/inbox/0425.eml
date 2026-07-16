@@ -1,15 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1453] refactor: Update SDK client retry logic
-From: Lina Zhang <lina.zhang@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Aisha Patel <aisha.patel@meridianlabs.io>, Ben Torres <ben.torres@meridianlabs.io>, Chris Huang <chris.huang@meridianlabs.io>
-Date: Sun, 12 Jul 2026 10:14:32 -0700
-Message-ID: <178419386412.46576.11780478551795408601@meridianlabs.io>
+Subject: Quick thought on pricing
+From: =?utf-8?q?Tom=C3=A1s_Reyes_=3Ctomas=40tessera=2Eio=3E?=
+To: Avery Chen <avery@tessera.io>
+Date: Fri, 10 Jul 2026 09:15:42 -0700
+Message-ID: <178421232606.54106.11904082836929306499@tessera.io>
 
-SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
-IGNoYW5jZT8gSXQncyBhIGxhcmdlciBjaGFuZ2UgYnV0IHdlbGwtc2NvcGVkLgoKS2V5IGNoYW5n
-ZXM6Ci0gUmVmYWN0b3JlZCB0aGUgc2VydmljZSBsYXllcgotIEFkZGVkIHVuaXQgdGVzdHMKCkkn
-dmUgdGVzdGVkIGxvY2FsbHkgYW5kIENJIGlzIGdyZWVuLiBMZXQgbWUga25vdyBpZiB5b3UgaGF2
-ZSBxdWVzdGlvbnMuCgpUaGFua3MhCkxpbmEK
+SGV5IEF2ZXJ5LAoKUGlwZWxpbmUgdGhpcyB3ZWVrOiA3IGRlbW9zLCAzIGluIGxhdGUtc3RhZ2Uu
+IFJhdmkgaXMgY2xvc2luZyBpbiBvbiB0aGUgbWlkLW1hcmtldCBkZWFsIHdlIHRhbGtlZCBhYm91
+dC4KCuKAlCBUb23DoXMK

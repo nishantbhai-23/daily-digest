@@ -1,13 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [Platform SDK] Milestone reached
-From: Sam O'Brien <sam.obrien@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Fri, 03 Jul 2026 12:43:39 -0700
-Message-ID: <178419386410.46576.3328069531651587388@meridianlabs.io>
+Subject: [Linear] TESS-214 moved to In Progress
+From: Linear <notifications@linear.app>
+To: Avery Chen <avery@tessera.io>
+Cc: Grace Lin <grace@tessera.io>
+Date: Fri, 03 Jul 2026 08:22:20 -0700
+Message-ID: <178421232605.54106.4346671045678961710@tessera.io>
 
-VGVhbSwKCkdyZWF0IG5ld3Mg4oCUIHdlIHNoaXBwZWQgdGhlIGJhdGNoIHByb2Nlc3NpbmcgcGlw
-ZWxpbmUgdG8gY2FuYXJ5IHRvZGF5LiDwn46JCgpFYXJseSBtZXRyaWNzIGxvb2sgZW5jb3VyYWdp
-bmcuIFA5NSBsYXRlbmN5IGlzIGRvd24gMTklIGNvbXBhcmVkIHRvIHRoZSBwcmV2aW91cyB2ZXJz
-aW9uLgoKTmV4dCBzdGVwczogR0Egcm9sbG91dCBuZXh0IHdlZWsuCgpDaGVlcnMsClNhbQo=
+QXV0b21hdGVkIG5vdGlmaWNhdGlvbiDigJQgbm8gcmVwbHkgbmVlZGVkLgoKLS0tCkEgZG9jdW1l
+bnQgd2FzIHNpZ25lZCBieSBhbGwgcGFydGllcy4KTGluZWFyCg==

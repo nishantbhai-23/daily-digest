@@ -1,15 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1226] fix: Refactor auth middleware
-From: Jordan Reeves <jordan.reeves@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Aisha Patel <aisha.patel@meridianlabs.io>
-Date: Wed, 17 Jun 2026 18:38:51 -0700
-Message-ID: <178419386406.46576.17267535574452952182@meridianlabs.io>
+Subject: Re: reference call intro
+From: Ben Schaffer <bschaffer@wsgr.com>
+To: Avery Chen <avery@tessera.io>
+Date: Thu, 18 Jun 2026 11:22:19 -0700
+Message-ID: <178421232602.54106.16642964757507810534@tessera.io>
 
-SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
-IGNoYW5jZT8gSXQncyBhIGxhcmdlciBjaGFuZ2UgYnV0IHdlbGwtc2NvcGVkLgoKS2V5IGNoYW5n
-ZXM6Ci0gQWRkZWQgaW5wdXQgdmFsaWRhdGlvbgotIFVwZGF0ZWQgaW50ZWdyYXRpb24gdGVzdHMK
-CkkndmUgdGVzdGVkIGxvY2FsbHkgYW5kIENJIGlzIGdyZWVuLiBMZXQgbWUga25vdyBpZiB5b3Ug
-aGF2ZSBxdWVzdGlvbnMuCgpUaGFua3MhCkpvcmRhbgo=
+SGkgQXZlcnksCgpGb2xsb3dpbmcgdXAgb24gdGhlIGRpbGlnZW5jZSBjaGVja2xpc3Qg4oCUIGNv
+dWxkIHlvdSBzZW5kIG92ZXIgdGhlIFNBRkUgY29udmVyc2lvbiBzY2hlZHVsZSB3aGVuIHlvdSBn
+ZXQgYSBjaGFuY2U/IFRyeWluZyB0byBrZWVwIHRoZSBwcm9jZXNzIG1vdmluZyBvbiBvdXIgZW5k
+LgoKTm8gcnVzaCwganVzdCBkb24ndCB3YW50IGl0IHRvIHNsaXAuCgpCZXN0LApCZW4K

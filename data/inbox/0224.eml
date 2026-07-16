@@ -1,14 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1480] refactor: Fix timezone handling in scheduler
-From: Ben Torres <ben.torres@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Mon, 29 Jun 2026 10:43:08 -0700
-Message-ID: <178419386409.46576.9101090814341645603@meridianlabs.io>
+Subject: Quick question about supplier risk alerts
+From: Lindsey Cho <lindsey.cho@veritascomponents.com>
+To: Avery Chen <avery@tessera.io>
+Cc: Ravi Chandra <ravi@tessera.io>, Kenji Watanabe <kenji@tessera.io>
+Date: Mon, 29 Jun 2026 10:06:05 -0700
+Message-ID: <178421232604.54106.18223560616600917542@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgYSBidWlsZGVy
-IHBhdHRlcm4gZm9yIHRoZSBjbGllbnQgaW5pdGlhbGl6YXRpb24KLSBUaGUgZXJyb3IgbWVzc2Fn
-ZSBjb3VsZCBiZSBtb3JlIGRlc2NyaXB0aXZlCgpOb3RoaW5nIGJsb2NraW5nIOKAlCBhcHByb3Zl
-IG9uY2UgYWRkcmVzc2VkLgpCZW4K
+SGkgQXZlcnksCgpMb3ZpbmcgdGhlIG5ldyBkYXNoYm9hcmQgc28gZmFyLiBPbmUgcXVlc3Rpb24g
+4oCUIGlzIHRoZXJlIGEgd2F5IHRvIGV4cG9ydCBzdXBwbGllciBzY29yZXMgdG8gQ1NWPwoKVGhh
+bmtzLApMaW5kc2V5Cg==

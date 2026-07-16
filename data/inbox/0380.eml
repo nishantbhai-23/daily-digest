@@ -1,15 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1359] refactor: Fix N+1 query in dashboard endpoint
-From: Jordan Reeves <jordan.reeves@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: =?utf-8?q?Elena_Vasquez_=3Celena=2Evasquez=40meridianlabs=2Eio=3E=2C_Chris_Huang_=3Cchris=2Ehuang=40meridianlabs=2Eio=3E=2C_Tom=C3=A1s_Herrera_=3Ctomas=2Eherrera=40meridianlabs=2Eio=3E?=
-Date: Thu, 09 Jul 2026 15:07:14 -0700
-Message-ID: <178419386411.46576.1627413114245447555@meridianlabs.io>
+Subject: Re: Halberd expansion conversation
+From: =?utf-8?q?Tom=C3=A1s_Reyes_=3Ctomas=40tessera=2Eio=3E?=
+To: Avery Chen <avery@tessera.io>
+Date: Wed, 08 Jul 2026 10:50:14 -0700
+Message-ID: <178421232606.54106.10419869145474830260@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgZGVwZW5kZW5j
-eSBpbmplY3Rpb24gZm9yIHRoZSBjbGllbnQgaW5pdGlhbGl6YXRpb24KLSBUaGUgdGVzdCBjb3Zl
-cmFnZSBjb3VsZCBiZSBiZXR0ZXIgZm9yIGVkZ2UgY2FzZXMKCk5vdGhpbmcgYmxvY2tpbmcg4oCU
-IGFwcHJvdmUgb25jZSBhZGRyZXNzZWQuCkpvcmRhbgo=
+SGV5IEF2ZXJ5LAoKUGlwZWxpbmUgdGhpcyB3ZWVrOiA3IGRlbW9zLCAzIGluIGxhdGUtc3RhZ2Uu
+IFJhdmkgaXMgY2xvc2luZyBpbiBvbiB0aGUgbWlkLW1hcmtldCBkZWFsIHdlIHRhbGtlZCBhYm91
+dC4KCuKAlCBUb23DoXMK

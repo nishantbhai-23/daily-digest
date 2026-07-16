@@ -1,16 +1,14 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [P1] Elevated error rates on /api/v2/orders
-From: David Lawson <david.lawson@stripebridge.com>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 30 Jun 2026 10:19:31 -0700
-Message-ID: <178419386409.46576.6106914400143805496@meridianlabs.io>
-In-Reply-To: <178419386409.46576.9327063868205412468@meridianlabs.io>
-References: <178419386409.46576.9327063868205412468@meridianlabs.io>
+Subject: Re: Cap table question
+From: Kenji Watanabe <kenji@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 30 Jun 2026 12:21:35 -0700
+Message-ID: <178421232604.54106.5177101868604066320@tessera.io>
+In-Reply-To: <178421232603.54106.287024463970845099@tessera.io>
+References: <178421232603.54106.287024463970845099@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgYSBmYWN0b3J5
-IG1ldGhvZCBmb3IgdGhlIGNvbmZpZyBzZXR1cAotIFRoZSB2YXJpYWJsZSBuYW1pbmcgY291bGQg
-YmUgY2xlYXJlcgoKTm90aGluZyBibG9ja2luZyDigJQgYXBwcm92ZSBvbmNlIGFkZHJlc3NlZC4K
-RGF2aWQK
+SGkgQXZlcnksCgpIZWFsdGggaW5zdXJhbmNlIHJlbmV3YWwgaXMgZHVlIOKAlCBwcmVtaXVtcyBn
+b2luZyB1cCA4JSwgbmVlZCBhIGRlY2lzaW9uIGJ5IG1vbnRoIGVuZC4KCuKAlCBPd2VuCktlbmpp
+Cg==

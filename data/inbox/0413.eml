@@ -1,14 +1,15 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1275] feat: Refactor auth middleware
-From: Rachel Nakamura <rachel.nakamura@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Fri, 10 Jul 2026 16:37:13 -0700
-Message-ID: <178419386412.46576.15620292308182327322@meridianlabs.io>
+Subject: Re: Quick question about supplier risk alerts
+From: Devon Brooks <devon@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Cc: Grace Lin <grace@tessera.io>, Priya Iyer <priya@tessera.io>
+Date: Thu, 09 Jul 2026 15:07:58 -0700
+Message-ID: <178421232606.54106.10371349192572894200@tessera.io>
+In-Reply-To: <178421232605.54106.9036357327086893973@tessera.io>
+References: <178421232605.54106.9036357327086893973@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgYSBidWlsZGVy
-IHBhdHRlcm4gZm9yIHRoZSBjbGllbnQgaW5pdGlhbGl6YXRpb24KLSBUaGUgdGVzdCBjb3ZlcmFn
-ZSBjb3VsZCBiZSBiZXR0ZXIgZm9yIGVkZ2UgY2FzZXMKCk5vdGhpbmcgYmxvY2tpbmcg4oCUIGFw
-cHJvdmUgb25jZSBhZGRyZXNzZWQuClJhY2hlbAo=
+SGkgQXZlcnksCgpJIGhhdmUgYSBWUCBvZiBTYWxlcyBjYW5kaWRhdGUgd2hvIEkgdGhpbmsgd291
+bGQgYmUgYSBncmVhdCBmaXQgZm9yIFRlc3NlcmEgZ2l2ZW4geW91ciBzdGFnZS4gV291bGQgeW91
+IGhhdmUgMTUgbWludXRlcyB0aGlzIHdlZWsgdG8gZGlzY3Vzcz8KCkJlc3QsCkRldm9uCg==

@@ -1,14 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1407] chore: Refactor auth middleware
-From: Chris Huang <chris.huang@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 30 Jun 2026 15:02:44 -0700
-Message-ID: <178419386409.46576.13779660710512050465@meridianlabs.io>
+Subject: Monthly burn update
+From: Owen Fitzgerald <owen@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 30 Jun 2026 09:39:02 -0700
+Message-ID: <178421232604.54106.654747961409476127@tessera.io>
 
-SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
-IGNoYW5jZT8gSXQncyBwcmV0dHkgc21hbGwgKH4xNTAgbGluZXMpLgoKS2V5IGNoYW5nZXM6Ci0g
-UmVmYWN0b3JlZCB0aGUgc2VydmljZSBsYXllcgotIEFkZGVkIGEgbWlncmF0aW9uIHNjcmlwdAoK
-SSd2ZSB0ZXN0ZWQgbG9jYWxseSBhbmQgQ0kgaXMgZ3JlZW4uIExldCBtZSBrbm93IGlmIHlvdSBo
-YXZlIHF1ZXN0aW9ucy4KClRoYW5rcyEKQ2hyaXMK
+QXZlcnkg4oCUIHF1aWNrIHJlbWluZGVyLCBuZWVkIHJlY2VpcHRzIGZvciB0aGUgY29uZmVyZW5j
+ZSB0cmlwIGV4cGVuc2UgcmVwb3J0IGJ5IE1vbmRheSB0byBjbG9zZSB0aGUgYm9va3Mgb24gdGlt
+ZS4KCuKAlCBPd2VuCg==

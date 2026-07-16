@@ -1,17 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [Atlas Migration] Milestone reached
-From: Raj Mehta <raj.mehta@cybershield.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Marcus Kim <marcus.kim@meridianlabs.io>, Nina Kowalski <nina.kowalski@meridianlabs.io>, Priya Sharma <priya.sharma@meridianlabs.io>
-Date: Mon, 13 Jul 2026 14:38:36 -0700
-Message-ID: <178419386412.46576.4801707725600347774@meridianlabs.io>
-In-Reply-To: <178419386412.46576.16536310924121537748@meridianlabs.io>
-References: <178419386412.46576.16536310924121537748@meridianlabs.io>
+Subject: =?utf-8?q?Re=3A_Architecture_decision_=E2=80=94_need_your_input?=
+From: Zoe Alvarez <zoe@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Mon, 13 Jul 2026 13:35:26 -0700
+Message-ID: <178421232607.54106.12781749751335192520@tessera.io>
+In-Reply-To: <178421232606.54106.7336891354704693913@tessera.io>
+References: <178421232606.54106.7336891354704693913@tessera.io>
 
-SGV5IEF2ZXJ5LAoKVGhhbmtzIGZvciB0aGUgZ3JlYXQgY29udmVyc2F0aW9uIHRvZGF5LiBUbyBy
-ZWNhcCB3aGF0IHdlIGRpc2N1c3NlZDoKCjEuIFdlIHdpbGwgcmV2aXNpdCB0aGUgcHJvbW90aW9u
-IGNyaXRlcmlhIG5leHQgbW9udGgKMi4gV2Ugd2lsbCBzZXQgdXAgYSBzaGFkb3cgb24tY2FsbCBy
-b3RhdGlvbgozLiBSZXZpZXcgdGhlIHBlcmYgZmVlZGJhY2sgYmVmb3JlIG5leHQgY3ljbGUKCkxl
-dCBtZSBrbm93IGlmIEkgbWlzc2VkIGFueXRoaW5nLgoKQmVzdCwKSm9yZGFuClJhago=
+SGV5IEF2ZXJ5LAoKUHVzaGVkIGEgZml4IGZvciB0aGUgZmxha3kgaW52ZW50b3J5IHN5bmMgam9i
+LgoKTGV0IG1lIGtub3cgaWYgeW91IHdhbnQgdG8gdGFrZSBhIGxvb2suCgrigJQgTWF5YQpab2UK

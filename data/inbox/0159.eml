@@ -1,14 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1267] refactor: Fix N+1 query in dashboard endpoint
-From: Ben Torres <ben.torres@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Wed, 24 Jun 2026 16:10:03 -0700
-Message-ID: <178419386408.46576.16998396164354348487@meridianlabs.io>
+Subject: =?utf-8?q?Placement_opportunity_=E2=80=94_Series_A_companies?=
+From: Trent Bailey <trent@apextechrecruiting.com>
+To: Avery Chen <avery@tessera.io>
+Date: Wed, 24 Jun 2026 19:50:08 -0700
+Message-ID: <178421232603.54106.17759304116027354372@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgZGVwZW5kZW5j
-eSBpbmplY3Rpb24gZm9yIHRoZSBjb25maWcgc2V0dXAKLSBUaGUgZXJyb3IgbWVzc2FnZSBjb3Vs
-ZCBiZSBtb3JlIGRlc2NyaXB0aXZlCgpOb3RoaW5nIGJsb2NraW5nIOKAlCBhcHByb3ZlIG9uY2Ug
-YWRkcmVzc2VkLgpCZW4K
+SGkgQXZlcnksCgpJIGhhdmUgYSBTdGFmZiBFbmdpbmVlciBjYW5kaWRhdGUgd2hvIEkgdGhpbmsg
+d291bGQgYmUgYSBncmVhdCBmaXQgZm9yIFRlc3NlcmEgZ2l2ZW4geW91ciBzdGFnZS4gV291bGQg
+eW91IGhhdmUgMTUgbWludXRlcyB0aGlzIHdlZWsgdG8gZGlzY3Vzcz8KCkJlc3QsClRyZW50Cg==

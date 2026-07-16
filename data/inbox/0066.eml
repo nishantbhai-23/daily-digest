@@ -1,14 +1,11 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1255] chore: Fix timezone handling in scheduler
-From: Marcus Kim <marcus.kim@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Thu, 18 Jun 2026 10:40:37 -0700
-Message-ID: <178419386406.46576.193725272761652268@meridianlabs.io>
+Subject: Payroll runs Friday
+From: Owen Fitzgerald <owen@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Thu, 18 Jun 2026 13:30:30 -0700
+Message-ID: <178421232602.54106.16109939998287901711@tessera.io>
 
-SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
-IGNoYW5jZT8gSXQncyBhIG1lZGl1bS1zaXplZCByZWZhY3Rvci4KCktleSBjaGFuZ2VzOgotIEFk
-ZGVkIGlucHV0IHZhbGlkYXRpb24KLSBBZGRlZCB1bml0IHRlc3RzCgpJJ3ZlIHRlc3RlZCBsb2Nh
-bGx5IGFuZCBDSSBpcyBncmVlbi4gTGV0IG1lIGtub3cgaWYgeW91IGhhdmUgcXVlc3Rpb25zLgoK
-VGhhbmtzIQpNYXJjdXMK
+SGkgQXZlcnksCgpIZWFsdGggaW5zdXJhbmNlIHJlbmV3YWwgaXMgZHVlIOKAlCBwcmVtaXVtcyBn
+b2luZyB1cCA4JSwgbmVlZCBhIGRlY2lzaW9uIGJ5IG1vbnRoIGVuZC4KCuKAlCBPd2VuCg==

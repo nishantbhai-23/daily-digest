@@ -1,23 +1,22 @@
 # Weekly Priorities — July 7–11, 2026
 
 ## 🔴 Must Do
-- [x] Finalize Aurora API caching RFC and send for review
-- [ ] Fix P1 bug: auth token rotation failing for SSO users (PLAT-489)
-- [ ] Prep Demo Day presentation (Thursday)
-- [ ] Review Tomás's PR for batch endpoint error handling
+- [ ] Decide multi-warehouse approach with Priya/Jordan
+- [ ] Send Diane the Q2 board update (overdue)
+- [ ] Grant Marcus data room access + send latest metrics
+- [ ] Respond to Grace on Elena Marsh — move to offer or pass
 
 ## 🟡 Should Do
-- [ ] Pair with Priya on Atlas Migration schema conflicts
-- [ ] Write unit tests for rate limiter edge cases
-- [ ] Update API docs with new rate limit behavior
-- [ ] Respond to CloudNova integration questions (David's email)
+- [ ] Finish cap table (fully diluted) with Owen
+- [ ] Book reference calls for Marcus (Halberd, Northstar, Veritas)
+- [ ] Sign the SAFE amendment redline from Ben
+- [ ] Follow up with Tomás on SupplyLens pricing pressure
 
 ## 🟢 Nice to Have
-- [ ] Prototype L1 in-process cache for hot endpoints
-- [ ] Read the distributed systems paper Lina shared
-- [ ] Start drafting the rate limiting blog post
+- [ ] Take Diane up on investor intro offer
+- [ ] Read the SOC 2 auditor's control mapping doc
+- [ ] Draft Halberd SLA one-pager (or confirm Zoe is doing it)
 
 ## 📝 Notes
-- Aisha is on PTO Monday — pick up any urgent Customer Portal bugs
-- Wednesday: try to protect focus time (no meetings after standup)
-- Jordan mentioned skip-level with Rachel might happen this week
+- Tuesday/Thursday mornings are protected — don't let anything creep in
+- Halberd renewal conversation needs a closer look, tone shifted slightly

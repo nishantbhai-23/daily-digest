@@ -1,14 +1,13 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1248] refactor: Update SDK client retry logic
-From: Priya Sharma <priya.sharma@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Thu, 18 Jun 2026 08:05:05 -0700
-Message-ID: <178419386406.46576.13433802150495644025@meridianlabs.io>
+Subject: Quick sync notes
+From: Maya Fischer <maya@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Cc: Jordan Liu <jordan@tessera.io>
+Date: Fri, 19 Jun 2026 09:36:19 -0700
+Message-ID: <178421232602.54106.13244389715255620322@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgZGVwZW5kZW5j
-eSBpbmplY3Rpb24gZm9yIHRoZSBjbGllbnQgaW5pdGlhbGl6YXRpb24KLSBUaGUgdGVzdCBjb3Zl
-cmFnZSBjb3VsZCBiZSBiZXR0ZXIgZm9yIGVkZ2UgY2FzZXMKCk5vdGhpbmcgYmxvY2tpbmcg4oCU
-IGFwcHJvdmUgb25jZSBhZGRyZXNzZWQuClByaXlhCg==
+SGV5IEF2ZXJ5LAoKUmVkZXNpZ25lZCB0aGUgb25ib2FyZGluZyBjaGVja2xpc3Qgc2NyZWVuIOKA
+lCBtb2NrcyBpbiBGaWdtYS4KCkxldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIHRha2UgYSBsb29r
+LgoK4oCUIFByaXlhCk1heWEK

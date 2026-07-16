@@ -1,12 +1,11 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [Slack] New message in #platform-eng
-From: PagerDuty <noreply@pagerduty.com>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Wed, 24 Jun 2026 12:58:41 -0700
-Message-ID: <178419386408.46576.13307400296266582092@meridianlabs.io>
+Subject: Design feedback needed
+From: Nadia Hassan <nadia@tessera.io>
+To: Avery Chen <avery@tessera.io>
+Date: Wed, 24 Jun 2026 19:11:34 -0700
+Message-ID: <178421232603.54106.13224414466577018914@tessera.io>
 
-QnVpbGQgZmFpbGVkIOKdjCBmb3IgY29tbWl0IDU0ZDE2OWMgb24gYnJhbmNoIHJlZmFjdG9yL2F1
-dGgtbWlkZGxld2FyZS4KCkR1cmF0aW9uOiAxMSBtaW4gOCBzZWMKVGVzdHM6IDM0NyBwYXNzZWQs
-IDMgZmFpbGVkLCAxIHNraXBwZWQKQ292ZXJhZ2U6IDgzJQpQYWdlckR1dHkK
+QXZlcnksCgpXZSBzaG91bGQgdGFsayB0aHJvdWdoIHRoZSBkYXRhIG1vZGVsIGZvciBtdWx0aS13
+YXJlaG91c2Ugc3VwcG9ydCBzb21ldGltZSB0aGlzIHdlZWsuCgrigJQgUHJpeWEKTmFkaWEK

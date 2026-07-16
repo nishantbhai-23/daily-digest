@@ -6,9 +6,16 @@ Business logic calls chat() or chat_json() without knowing
 which provider is behind it.
 
 Supported providers:
-    - ollama:    Local models via Ollama (llama3.1, mistral, qwen, etc.)
-    - anthropic: Claude models via Anthropic API
-    - google:    Gemini models via Google Generative AI API
+    - ollama:     Local models via Ollama (llama3.1, mistral, qwen, etc.)
+    - anthropic:  Claude models via Anthropic API
+    - google:     Gemini models via Google Generative AI API
+    - openrouter: Any model available via OpenRouter (openrouter.ai) — useful
+                  for fast, large-context, cheap cloud models when a local
+                  model's context window or single-slot concurrency is a
+                  bottleneck.
+    - deepseek:   DeepSeek models (deepseek-chat, deepseek-reasoner) via a
+                  direct DeepSeek API connection — very low cost, dedicated
+                  rate limits (not a shared aggregator pool).
 
 Usage:
     from llm import create_llm
@@ -19,8 +26,54 @@ Usage:
 """
 
 import json
+import os
 import re
+import time
+import urllib.error
+import urllib.request
 from abc import ABC, abstractmethod
+
+
+def call_with_retry(fn, *args, max_retries: int = 3, base_delay: float = 2.0, retry_on=(Exception,), **kwargs):
+    """Call fn(*args, **kwargs) with exponential backoff retry.
+
+    A single transient LLM failure (timeout, malformed JSON, a schema
+    validation error raised by the caller) shouldn't silently drop a day's
+    data — this retries before giving up. Callers that need schema
+    validation on top of a raw chat_json() call should wrap both in a local
+    closure and pass that in, so a validation failure also triggers a retry:
+
+        def _call():
+            result = llm.chat_json(messages=...)
+            errors = validate_schema(result, SCHEMA)
+            if errors:
+                raise ValueError(f"Invalid MAP output: {errors}")
+            return result
+
+        delta = call_with_retry(_call)
+
+    Args:
+        fn: Callable to invoke.
+        max_retries: Total attempts before giving up (>= 1).
+        base_delay: Seconds to wait before the first retry; doubles each
+            subsequent attempt.
+        retry_on: Exception types that trigger a retry.
+
+    Returns:
+        Whatever fn(*args, **kwargs) returns.
+
+    Raises:
+        The last exception encountered, if every attempt fails.
+    """
+    last_error = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            return fn(*args, **kwargs)
+        except retry_on as e:
+            last_error = e
+            if attempt < max_retries:
+                time.sleep(base_delay * (2 ** (attempt - 1)))
+    raise last_error
 
 
 class BaseLLM(ABC):
@@ -273,12 +326,122 @@ class GoogleLLM(BaseLLM):
         return json.loads(response.text)
 
 
+# ─── OpenAI-Compatible REST Providers (OpenRouter, DeepSeek, ...) ────────────
+
+try:
+    import ssl
+    import certifi
+    _SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    # certifi not installed — fall back to Python's default SSL context.
+    # (On some macOS Python.org installs, this default lacks a working CA
+    # bundle; installing certifi is the portable fix, no system changes needed.)
+    _SSL_CONTEXT = None
+
+
+class _OpenAICompatibleLLM(BaseLLM):
+    """Base class for providers exposing an OpenAI-style /chat/completions
+    endpoint (OpenRouter, DeepSeek, and similar). Implemented with stdlib
+    urllib — no extra package dependency. Uses certifi's CA bundle for TLS
+    verification when available, since some Python.org macOS installs don't
+    wire up to the system trust store.
+
+    Subclasses set API_URL, API_KEY_ENV, and PROVIDER_NAME/KEY_URL (used only
+    in the missing-key error message).
+    """
+
+    API_URL: str = ""
+    API_KEY_ENV: str = ""
+    PROVIDER_NAME: str = ""
+    KEY_URL: str = ""
+
+    def __init__(self, model: str, **kwargs):
+        super().__init__(model, **kwargs)
+        api_key = os.environ.get(self.API_KEY_ENV)
+        if not api_key:
+            raise ValueError(
+                f"{self.API_KEY_ENV} environment variable is not set.\n"
+                f"Get a key at: {self.KEY_URL}"
+            )
+        self._api_key = api_key
+
+    def _post(self, payload: dict) -> dict:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            self.API_URL,
+            data=data,
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=120, context=_SSL_CONTEXT) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"{self.PROVIDER_NAME} API error {e.code}: {body}") from e
+
+    def chat(self, messages: list[dict], **kwargs) -> str:
+        response = self._post({
+            "model": self.model,
+            "messages": messages,
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+        })
+        return response["choices"][0]["message"]["content"]
+
+    def chat_json(self, messages: list[dict], **kwargs) -> dict:
+        """Requests the provider's JSON object response format when supported."""
+        response = self._post({
+            "model": self.model,
+            "messages": messages,
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+            "response_format": {"type": "json_object"},
+        })
+        content = response["choices"][0]["message"]["content"]
+        cleaned = self._extract_json(content)
+        return json.loads(cleaned)
+
+
+class OpenRouterLLM(_OpenAICompatibleLLM):
+    """LLM provider for models routed through OpenRouter (openrouter.ai).
+
+    Requires: OPENROUTER_API_KEY environment variable.
+    """
+
+    API_URL = "https://openrouter.ai/api/v1/chat/completions"
+    API_KEY_ENV = "OPENROUTER_API_KEY"
+    PROVIDER_NAME = "OpenRouter"
+    KEY_URL = "https://openrouter.ai/keys"
+
+
+class DeepSeekLLM(_OpenAICompatibleLLM):
+    """LLM provider for DeepSeek models via the DeepSeek API (deepseek.com).
+
+    Requires: DEEPSEEK_API_KEY environment variable.
+    Model names: "deepseek-chat" (DeepSeek-V3, general purpose) or
+    "deepseek-reasoner" (DeepSeek-R1, reasoning model). A direct, dedicated
+    connection — not routed through any third-party aggregator's shared
+    rate limits or credit pool.
+    """
+
+    API_URL = "https://api.deepseek.com/chat/completions"
+    API_KEY_ENV = "DEEPSEEK_API_KEY"
+    PROVIDER_NAME = "DeepSeek"
+    KEY_URL = "https://platform.deepseek.com/api_keys"
+
+
 # ─── Factory ──────────────────────────────────────────────────────────────────
 
 PROVIDERS = {
     "ollama": OllamaLLM,
     "anthropic": AnthropicLLM,
     "google": GoogleLLM,
+    "openrouter": OpenRouterLLM,
+    "deepseek": DeepSeekLLM,
 }
 
 

@@ -1,13 +1,12 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [Atlas Migration] Weekly progress
-From: Elena Vasquez <elena.vasquez@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Fri, 19 Jun 2026 12:53:42 -0700
-Message-ID: <178419386407.46576.4886854760503780702@meridianlabs.io>
+Subject: Cap table question
+From: Diane Okafor <diane@bramblewoodvc.com>
+To: Avery Chen <avery@tessera.io>
+Date: Fri, 19 Jun 2026 15:11:30 -0700
+Message-ID: <178421232602.54106.4426239965841440326@tessera.io>
 
-VGVhbSwKCkdyZWF0IG5ld3Mg4oCUIHdlIHNoaXBwZWQgdGhlIFNTTyBpbnRlZ3JhdGlvbiB0byBz
-dGFnaW5nIHRvZGF5LiDwn46JCgpFYXJseSBtZXRyaWNzIGxvb2sgcHJvbWlzaW5nLiBQOTUgbGF0
-ZW5jeSBpcyBkb3duIDI3JSBjb21wYXJlZCB0byB0aGUgcHJldmlvdXMgdmVyc2lvbi4KCk5leHQg
-c3RlcHM6IHdyaXRlIHRoZSBhbm5vdW5jZW1lbnQgYmxvZyBwb3N0LgoKQ2hlZXJzLApFbGVuYQo=
+QXZlcnksCgpRdWljayBvbmUg4oCUIGNhbiB5b3UgaW50cm8gbWUgdG8gTGluZHNleSBhdCBWZXJp
+dGFzIGZvciBhIHJlZmVyZW5jZSBjYWxsPyBUcnlpbmcgdG8gY2xvc2Ugb3V0IGRpbGlnZW5jZSBv
+biB0aGUgY3VzdG9tZXIgc2lkZSB0aGlzIHdlZWsuCgpUaGFua3MsCkRpYW5lCg==

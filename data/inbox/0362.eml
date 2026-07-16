@@ -1,14 +1,15 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1389] chore: Fix timezone handling in scheduler
-From: Derek Okafor <derek.okafor@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Wed, 08 Jul 2026 08:27:48 -0700
-Message-ID: <178419386411.46576.7217698488073493160@meridianlabs.io>
+Subject: Re: [Series A] GTM notes
+From: Derek Osei <derek.osei@northstarfoods.com>
+To: Avery Chen <avery@tessera.io>
+Date: Tue, 07 Jul 2026 09:50:50 -0700
+Message-ID: <178421232605.54106.2893471760372882690@tessera.io>
+In-Reply-To: <178421232605.54106.14180636454118654449@tessera.io>
+References: <178421232605.54106.14180636454118654449@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgYSBidWlsZGVy
-IHBhdHRlcm4gZm9yIHRoZSBjb25maWcgc2V0dXAKLSBUaGUgdGVzdCBjb3ZlcmFnZSBjb3VsZCBi
-ZSBiZXR0ZXIgZm9yIGVkZ2UgY2FzZXMKCk5vdGhpbmcgYmxvY2tpbmcg4oCUIGFwcHJvdmUgb25j
-ZSBhZGRyZXNzZWQuCkRlcmVrCg==
+SGkgQXZlcnksCgpObyB1cmdlbmN5IGF0IGFsbCwgYnV0IEkgcmVhbGl6ZWQgSSBoYXZlbid0IHNl
+ZW4gYSB3cml0dGVuIHVwZGF0ZSBzaW5jZSBNYXJjaC4gV2hlbmV2ZXIgeW91IGhhdmUgMjAgbWlu
+dXRlcyDigJQgZXZlbiBidWxsZXQgcG9pbnRzIGFyZSBmaW5lLgoKSG9wZSB0aGUgcmFpc2UgcHJv
+Y2VzcyBpcyBnb2luZyB3ZWxsLgoKRGlhbmUKRGVyZWsK

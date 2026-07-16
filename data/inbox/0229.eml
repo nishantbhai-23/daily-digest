@@ -1,15 +1,11 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: [PR #1484] refactor: Fix N+1 query in dashboard endpoint
-From: Jordan Reeves <jordan.reeves@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Cc: Ben Torres <ben.torres@meridianlabs.io>, Nina Kowalski <nina.kowalski@meridianlabs.io>, Aisha Patel <aisha.patel@meridianlabs.io>
+Subject: This week in SaaStr: benchmarks you should know
+From: Notion <updates@makenotion.com>
+To: Avery Chen <avery@tessera.io>
 Date: Tue, 30 Jun 2026 09:20:38 -0700
-Message-ID: <178419386409.46576.608437523380612602@meridianlabs.io>
+Message-ID: <178421232604.54106.8659249207180202667@tessera.io>
 
-SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
-IGNoYW5jZT8gSXQncyBwcmV0dHkgc21hbGwgKH4xNTAgbGluZXMpLgoKS2V5IGNoYW5nZXM6Ci0g
-VXBkYXRlZCBlcnJvciBoYW5kbGluZwotIFVwZGF0ZWQgaW50ZWdyYXRpb24gdGVzdHMKCkkndmUg
-dGVzdGVkIGxvY2FsbHkgYW5kIENJIGlzIGdyZWVuLiBMZXQgbWUga25vdyBpZiB5b3UgaGF2ZSBx
-dWVzdGlvbnMuCgpUaGFua3MhCkpvcmRhbgo=
+SW4gdGhpcyBpc3N1ZTogaG93IHRvcCBmb3VuZGVycyB0aGluayBhYm91dCBwcmljaW5nLgoKUmVh
+ZCBtb3JlIG9uIG91ciBzaXRlIOKGkgpOb3Rpb24K

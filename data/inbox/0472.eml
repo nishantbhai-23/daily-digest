@@ -1,16 +1,14 @@
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Subject: Re: [BUG] Elevated error rates on /api/v2/orders
-From: Marcus Kim <marcus.kim@meridianlabs.io>
-To: Avery Chen <avery.chen@meridianlabs.io>
-Date: Tue, 14 Jul 2026 10:12:27 -0700
-Message-ID: <178419386412.46576.17972650243204546794@meridianlabs.io>
-In-Reply-To: <178419386411.46576.16164856579562758764@meridianlabs.io>
-References: <178419386411.46576.16164856579562758764@meridianlabs.io>
+Subject: Re: Sprint notes
+From: Lindsey Cho <lindsey.cho@veritascomponents.com>
+To: Avery Chen <avery@tessera.io>
+Date: Mon, 13 Jul 2026 09:09:27 -0700
+Message-ID: <178421232607.54106.10566270029384349515@tessera.io>
+In-Reply-To: <178421232606.54106.7640352957470956735@tessera.io>
+References: <178421232606.54106.7640352957470956735@tessera.io>
 
-QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
-Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgZGVwZW5kZW5j
-eSBpbmplY3Rpb24gZm9yIHRoZSB0ZXN0IGZpeHR1cmVzCi0gVGhlIHZhcmlhYmxlIG5hbWluZyBj
-b3VsZCBiZSBjbGVhcmVyCgpOb3RoaW5nIGJsb2NraW5nIOKAlCBhcHByb3ZlIG9uY2UgYWRkcmVz
-c2VkLgpNYXJjdXMK
+SGV5IEF2ZXJ5LAoKRm91bmQgYW4gZWRnZSBjYXNlIGluIHRoZSBmb3JlY2FzdGluZyBtb2RlbCBm
+b3Igc2Vhc29uYWwgU0tVcy4KCkxldCBtZSBrbm93IGlmIHlvdSB3YW50IHRvIHRha2UgYSBsb29r
+LgoK4oCUIE5hZGlhCkxpbmRzZXkK
