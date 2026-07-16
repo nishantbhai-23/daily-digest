@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [P1] Auth tokens not refreshing after rotation
+From: Derek Okafor <derek.okafor@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Thu, 02 Jul 2026 15:54:08 -0700
+Message-ID: <178419386409.46576.8933293787495497378@meridianlabs.io>
+
+VGVhbSwKCldlJ3JlIHNlZWluZyBpbmNyZWFzZWQgbGF0ZW5jeSBvbiB0aGUgb3JkZXJzIHNlcnZp
+Y2UuCgoqKkltcGFjdCoqOiBFbnRlcnByaXNlIGRhc2hib2FyZCBkZWdyYWRlZAoqKlN0YXJ0ZWQq
+KjogfjMgaG91cnMgYWdvCioqQ3VycmVudCBzdGF0dXMqKjogTWl0aWdhdGlvbiBkZXBsb3llZCwg
+bW9uaXRvcmluZwoKSSd2ZSBjcmVhdGVkIGEgUGFnZXJEdXR5IGluY2lkZW50LiBXaWxsIHVwZGF0
+ZSBpbiAzMCBtaW4uCgrigJQgRGVyZWsK

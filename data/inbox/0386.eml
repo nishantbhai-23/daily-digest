@@ -1,0 +1,15 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [BUG] Elevated error rates on /api/v2/orders
+From: Rachel Nakamura <rachel.nakamura@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Cc: Chris Huang <chris.huang@meridianlabs.io>, Lina Zhang <lina.zhang@meridianlabs.io>
+Date: Thu, 09 Jul 2026 15:25:07 -0700
+Message-ID: <178419386411.46576.16164856579562758764@meridianlabs.io>
+
+VGVhbSwKCldlJ3JlIHNlZWluZyBpbmNyZWFzZWQgbGF0ZW5jeSBvbiB0aGUgc2VhcmNoIGNsdXN0
+ZXIuCgoqKkltcGFjdCoqOiBFbnRlcnByaXNlIGRhc2hib2FyZCBkZWdyYWRlZAoqKlN0YXJ0ZWQq
+KjogfjEgaG91cnMgYWdvCioqQ3VycmVudCBzdGF0dXMqKjogUm9vdCBjYXVzZSBpZGVudGlmaWVk
+LCBmaXggaW4gcHJvZ3Jlc3MKCkkndmUgY3JlYXRlZCBhIHdhciByb29tIGluIFNsYWNrICNpbmNp
+ZGVudC1jaGFubmVsLiBXaWxsIHVwZGF0ZSBpbiAzMCBtaW4uCgrigJQgUmFjaGVsCg==

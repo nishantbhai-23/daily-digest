@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [P1] Elevated error rates on /api/v2/orders
+From: Derek Okafor <derek.okafor@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Wed, 17 Jun 2026 10:08:40 -0700
+Message-ID: <178419386406.46576.18198923678678575624@meridianlabs.io>
+
+VGVhbSwKCldlJ3JlIHNlZWluZyBpbmNyZWFzZWQgbGF0ZW5jeSBvbiB0aGUgbm90aWZpY2F0aW9u
+IHdvcmtlci4KCioqSW1wYWN0Kio6IH41JSBvZiBBUEkgcmVxdWVzdHMgYWZmZWN0ZWQKKipTdGFy
+dGVkKio6IH4zIGhvdXJzIGFnbwoqKkN1cnJlbnQgc3RhdHVzKio6IEludmVzdGlnYXRpbmcKCkkn
+dmUgY3JlYXRlZCBhIFBhZ2VyRHV0eSBpbmNpZGVudC4gV2lsbCB1cGRhdGUgaW4gMzAgbWluLgoK
+4oCUIERlcmVrCg==

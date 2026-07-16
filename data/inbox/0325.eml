@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [BUG] Dashboard loading timeout for enterprise accounts
+From: Nina Kowalski <nina.kowalski@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Mon, 06 Jul 2026 13:37:40 -0700
+Message-ID: <178419386410.46576.16246375819572873495@meridianlabs.io>
+
+VGVhbSwKCldlJ3JlIHNlZWluZyBlbGV2YXRlZCA1MDBzIG9uIHRoZSBzZWFyY2ggY2x1c3Rlci4K
+CioqSW1wYWN0Kio6IFdlYmhvb2sgZGVsaXZlcmllcyBkZWxheWVkIGJ5IDEwKyBtaW4KKipTdGFy
+dGVkKio6IH4xIGhvdXJzIGFnbwoqKkN1cnJlbnQgc3RhdHVzKio6IEludmVzdGlnYXRpbmcKCkkn
+dmUgY3JlYXRlZCBhIFBhZ2VyRHV0eSBpbmNpZGVudC4gV2lsbCB1cGRhdGUgaW4gMzAgbWluLgoK
+4oCUIE5pbmEK

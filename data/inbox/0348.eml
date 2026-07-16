@@ -1,0 +1,15 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [P1] Memory leak in background worker
+From: Marcus Kim <marcus.kim@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Cc: Lina Zhang <lina.zhang@meridianlabs.io>, Priya Sharma <priya.sharma@meridianlabs.io>, Nina Kowalski <nina.kowalski@meridianlabs.io>
+Date: Tue, 07 Jul 2026 12:24:42 -0700
+Message-ID: <178419386411.46576.17050360467107884513@meridianlabs.io>
+
+VGVhbSwKCldlJ3JlIHNlZWluZyB0aW1lb3V0IGVycm9ycyBvbiB0aGUgc2VhcmNoIGNsdXN0ZXIu
+CgoqKkltcGFjdCoqOiB+NSUgb2YgQVBJIHJlcXVlc3RzIGFmZmVjdGVkCioqU3RhcnRlZCoqOiB+
+MSBob3VycyBhZ28KKipDdXJyZW50IHN0YXR1cyoqOiBNaXRpZ2F0aW9uIGRlcGxveWVkLCBtb25p
+dG9yaW5nCgpJJ3ZlIGNyZWF0ZWQgYSBKaXJhIHRpY2tldC4gV2lsbCB1cGRhdGUgaW4gMzAgbWlu
+LgoK4oCUIE1hcmN1cwo=

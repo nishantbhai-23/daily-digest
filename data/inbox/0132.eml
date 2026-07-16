@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1286] refactor: Fix N+1 query in dashboard endpoint
+From: Derek Okafor <derek.okafor@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Tue, 23 Jun 2026 08:54:04 -0700
+Message-ID: <178419386407.46576.13167708592885123793@meridianlabs.io>
+
+SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
+IGNoYW5jZT8gSXQncyBwcmV0dHkgc21hbGwgKH4xNTAgbGluZXMpLgoKS2V5IGNoYW5nZXM6Ci0g
+VXBkYXRlZCBlcnJvciBoYW5kbGluZwotIEFkZGVkIGEgbWlncmF0aW9uIHNjcmlwdAoKSSd2ZSB0
+ZXN0ZWQgbG9jYWxseSBhbmQgQ0kgaXMgZ3JlZW4uIExldCBtZSBrbm93IGlmIHlvdSBoYXZlIHF1
+ZXN0aW9ucy4KClRoYW5rcyEKRGVyZWsK

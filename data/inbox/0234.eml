@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1407] chore: Refactor auth middleware
+From: Chris Huang <chris.huang@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Tue, 30 Jun 2026 15:02:44 -0700
+Message-ID: <178419386409.46576.13779660710512050465@meridianlabs.io>
+
+SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
+IGNoYW5jZT8gSXQncyBwcmV0dHkgc21hbGwgKH4xNTAgbGluZXMpLgoKS2V5IGNoYW5nZXM6Ci0g
+UmVmYWN0b3JlZCB0aGUgc2VydmljZSBsYXllcgotIEFkZGVkIGEgbWlncmF0aW9uIHNjcmlwdAoK
+SSd2ZSB0ZXN0ZWQgbG9jYWxseSBhbmQgQ0kgaXMgZ3JlZW4uIExldCBtZSBrbm93IGlmIHlvdSBo
+YXZlIHF1ZXN0aW9ucy4KClRoYW5rcyEKQ2hyaXMK

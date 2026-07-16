@@ -1,0 +1,12 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [SEV-2] Memory leak in background worker
+From: Sam O'Brien <sam.obrien@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Thu, 18 Jun 2026 19:50:52 -0700
+Message-ID: <178419386406.46576.4099407711500379642@meridianlabs.io>
+
+UXVpY2sgdXBkYXRlIG9uIHRoZSBtZW1vcnkgbGVhazoKClJvb3QgY2F1c2Ugd2FzIGFuIHVuYm91
+bmRlZCBjYWNoZSBncm93dGguIEZpeCBoYXMgYmVlbiBkZXBsb3llZCB0byBzdGFnaW5nIGZvciB2
+ZXJpZmljYXRpb24uCgpQb3N0bW9ydGVtIHNjaGVkdWxlZCBmb3IgbmV4dCBNb25kYXkuClNhbQo=

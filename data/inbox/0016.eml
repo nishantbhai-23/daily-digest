@@ -1,0 +1,12 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [BUG] Webhook delivery failures to customer endpoints
+From: Marcus Kim <marcus.kim@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Tue, 16 Jun 2026 14:19:29 -0700
+Message-ID: <178419386406.46576.1567527399934173257@meridianlabs.io>
+
+UXVpY2sgdXBkYXRlIG9uIHRoZSBlcnJvciBzcGlrZToKClJvb3QgY2F1c2Ugd2FzIGFuIHVuYm91
+bmRlZCBjYWNoZSBncm93dGguIEZpeCBoYXMgYmVlbiBkZXBsb3llZCB0byBwcm9kdWN0aW9uLgoK
+UG9zdG1vcnRlbSBzY2hlZHVsZWQgZm9yIEZyaWRheS4KTWFyY3VzCg==

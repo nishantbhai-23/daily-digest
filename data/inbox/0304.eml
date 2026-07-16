@@ -1,0 +1,15 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: Re: [PR #1320] feat: Add rate limiting to API gateway
+From: Fatima Al-Rashid <fatima.alrashid@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Sat, 04 Jul 2026 11:47:36 -0700
+Message-ID: <178419386410.46576.1100052328072184801@meridianlabs.io>
+In-Reply-To: <178419386409.46576.10079645432259369781@meridianlabs.io>
+References: <178419386409.46576.10079645432259369781@meridianlabs.io>
+
+SGV5IGFsbCwKCldhbnRlZCB0byBmbGFnIHRoYXQgd2UgaGl0IGEgc25hZyB3aXRoIGZsYWt5IGlu
+dGVncmF0aW9uIHRlc3RzLiBJIGhhdmUgY3JlYXRlZCBhIHRpY2tldCBhbmQgd2Ugd2lsbCBkaXNj
+dXNzIGluIHN0YW5kdXAuCgpFVEEgZm9yIHJlc29sdXRpb246IHRvbW9ycm93IG1vcm5pbmcuCgri
+gJQgRmF0aW1hCg==

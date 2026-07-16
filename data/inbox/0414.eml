@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [INCIDENT] Auth tokens not refreshing after rotation
+From: Fatima Al-Rashid <fatima.alrashid@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Fri, 10 Jul 2026 10:01:05 -0700
+Message-ID: <178419386412.46576.13049940982138752492@meridianlabs.io>
+
+VGVhbSwKCldlJ3JlIHNlZWluZyBlbGV2YXRlZCA1MDBzIG9uIHRoZSBhbmFseXRpY3MgcGlwZWxp
+bmUuCgoqKkltcGFjdCoqOiBFbnRlcnByaXNlIGRhc2hib2FyZCBkZWdyYWRlZAoqKlN0YXJ0ZWQq
+KjogfjEgaG91cnMgYWdvCioqQ3VycmVudCBzdGF0dXMqKjogTWl0aWdhdGlvbiBkZXBsb3llZCwg
+bW9uaXRvcmluZwoKSSd2ZSBjcmVhdGVkIGEgd2FyIHJvb20gaW4gU2xhY2sgI2luY2lkZW50LWNo
+YW5uZWwuIFdpbGwgdXBkYXRlIGluIDMwIG1pbi4KCuKAlCBGYXRpbWEK

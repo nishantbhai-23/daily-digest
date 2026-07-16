@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1493] fix: Update SDK client retry logic
+From: Ben Torres <ben.torres@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Fri, 03 Jul 2026 09:34:43 -0700
+Message-ID: <178419386410.46576.5826640652442016751@meridianlabs.io>
+
+SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
+IGNoYW5jZT8gSXQncyBhIG1lZGl1bS1zaXplZCByZWZhY3Rvci4KCktleSBjaGFuZ2VzOgotIFVw
+ZGF0ZWQgZXJyb3IgaGFuZGxpbmcKLSBVcGRhdGVkIGludGVncmF0aW9uIHRlc3RzCgpJJ3ZlIHRl
+c3RlZCBsb2NhbGx5IGFuZCBDSSBpcyBncmVlbi4gTGV0IG1lIGtub3cgaWYgeW91IGhhdmUgcXVl
+c3Rpb25zLgoKVGhhbmtzIQpCZW4K

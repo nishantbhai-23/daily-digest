@@ -1,0 +1,15 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1226] fix: Refactor auth middleware
+From: Jordan Reeves <jordan.reeves@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Cc: Aisha Patel <aisha.patel@meridianlabs.io>
+Date: Wed, 17 Jun 2026 18:38:51 -0700
+Message-ID: <178419386406.46576.17267535574452952182@meridianlabs.io>
+
+SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
+IGNoYW5jZT8gSXQncyBhIGxhcmdlciBjaGFuZ2UgYnV0IHdlbGwtc2NvcGVkLgoKS2V5IGNoYW5n
+ZXM6Ci0gQWRkZWQgaW5wdXQgdmFsaWRhdGlvbgotIFVwZGF0ZWQgaW50ZWdyYXRpb24gdGVzdHMK
+CkkndmUgdGVzdGVkIGxvY2FsbHkgYW5kIENJIGlzIGdyZWVuLiBMZXQgbWUga25vdyBpZiB5b3Ug
+aGF2ZSBxdWVzdGlvbnMuCgpUaGFua3MhCkpvcmRhbgo=

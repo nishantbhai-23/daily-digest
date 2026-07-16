@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1337] feat: Refactor auth middleware
+From: Elena Vasquez <elena.vasquez@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Fri, 10 Jul 2026 16:51:41 -0700
+Message-ID: <178419386412.46576.13741895274222957785@meridianlabs.io>
+
+SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
+IGNoYW5jZT8gSXQncyBwcmV0dHkgc21hbGwgKH4xNTAgbGluZXMpLgoKS2V5IGNoYW5nZXM6Ci0g
+VXBkYXRlZCBlcnJvciBoYW5kbGluZwotIEFkZGVkIGEgbWlncmF0aW9uIHNjcmlwdAoKSSd2ZSB0
+ZXN0ZWQgbG9jYWxseSBhbmQgQ0kgaXMgZ3JlZW4uIExldCBtZSBrbm93IGlmIHlvdSBoYXZlIHF1
+ZXN0aW9ucy4KClRoYW5rcyEKRWxlbmEK

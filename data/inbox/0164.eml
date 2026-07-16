@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1400] refactor: Fix timezone handling in scheduler
+From: Ben Torres <ben.torres@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Thu, 25 Jun 2026 13:33:56 -0700
+Message-ID: <178419386408.46576.4090104191097558488@meridianlabs.io>
+
+QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
+Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgZGVwZW5kZW5j
+eSBpbmplY3Rpb24gZm9yIHRoZSBjbGllbnQgaW5pdGlhbGl6YXRpb24KLSBUaGUgZXJyb3IgbWVz
+c2FnZSBjb3VsZCBiZSBtb3JlIGRlc2NyaXB0aXZlCgpOb3RoaW5nIGJsb2NraW5nIOKAlCBhcHBy
+b3ZlIG9uY2UgYWRkcmVzc2VkLgpCZW4K

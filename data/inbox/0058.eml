@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1339] fix: Refactor auth middleware
+From: Marcus Kim <marcus.kim@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Thu, 18 Jun 2026 15:14:55 -0700
+Message-ID: <178419386406.46576.9039266605006551955@meridianlabs.io>
+
+SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
+IGNoYW5jZT8gSXQncyBhIG1lZGl1bS1zaXplZCByZWZhY3Rvci4KCktleSBjaGFuZ2VzOgotIFJl
+ZmFjdG9yZWQgdGhlIHNlcnZpY2UgbGF5ZXIKLSBBZGRlZCBhIG1pZ3JhdGlvbiBzY3JpcHQKCkkn
+dmUgdGVzdGVkIGxvY2FsbHkgYW5kIENJIGlzIGdyZWVuLiBMZXQgbWUga25vdyBpZiB5b3UgaGF2
+ZSBxdWVzdGlvbnMuCgpUaGFua3MhCk1hcmN1cwo=

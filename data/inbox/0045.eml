@@ -1,0 +1,16 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: Re: [PR #1309] chore: Migrate to new ORM syntax
+From: Jordan Reeves <jordan.reeves@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Wed, 17 Jun 2026 08:43:53 -0700
+Message-ID: <178419386406.46576.14192125543336631825@meridianlabs.io>
+In-Reply-To: <178419386406.46576.7259988493051846218@meridianlabs.io>
+References: <178419386406.46576.7259988493051846218@meridianlabs.io>
+
+VXBkYXRlIG9uIHRoZSBHbG9iYWxUZWNoIHNpdHVhdGlvbjoKCkkgc3Bva2Ugd2l0aCB0aGVpciB0
+ZWFtIGFuZCB0aGUgaXNzdWUgaXMgYSBrbm93biBidWcgZml4ZWQgaW4gdGhlIG5leHQgcmVsZWFz
+ZS4KClByb3Bvc2VkIHJlc29sdXRpb246IERlcGxveWluZyB0aGUgaG90Zml4IHRvbmlnaHQuCgpD
+dXN0b21lciBzZWVtcyBoYXBweSBhbmQgYXBwcmVjaWF0aXZlIG9mIHRoZSBxdWljayByZXNwb25z
+ZS4KSm9yZGFuCg==

@@ -1,0 +1,12 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [INCIDENT] Webhook delivery failures to customer endpoints
+From: Ben Torres <ben.torres@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Wed, 08 Jul 2026 14:30:57 -0700
+Message-ID: <178419386411.46576.10216355624949397935@meridianlabs.io>
+
+UXVpY2sgdXBkYXRlIG9uIHRoZSB0aW1lb3V0IGlzc3VlOgoKUm9vdCBjYXVzZSB3YXMgYW4gdW5i
+b3VuZGVkIGNhY2hlIGdyb3d0aC4gRml4IGhhcyBiZWVuIGRlcGxveWVkIHRvIHByb2R1Y3Rpb24u
+CgpQb3N0bW9ydGVtIHNjaGVkdWxlZCBmb3IgVGh1cnNkYXkuCkJlbgo=

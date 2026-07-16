@@ -1,0 +1,977 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Meridian Labs//Daily Digest Generator//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Avery Chen's Calendar
+X-WR-TIMEZONE:America/Los_Angeles
+BEGIN:VEVENT
+UID:standup-0@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260616T090000
+DTEND:20260616T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-jordan-0@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260616T110000
+DTEND:20260616T113000
+SUMMARY:1:1 with Jordan Reeves
+STATUS:CONFIRMED
+DESCRIPTION:Career growth, project updates, blockers
+LOCATION:Zoom — Private
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-1@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260617T090000
+DTEND:20260617T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-tomas-1@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260617T140000
+DTEND:20260617T143000
+SUMMARY:1:1 with Tomás Herrera
+STATUS:CONFIRMED
+DESCRIPTION:Check-in, code review feedback, growth areas
+LOCATION:Zoom — Private
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-1@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260617T130000
+DTEND:20260617T150000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-2@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260618T090000
+DTEND:20260618T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-aisha-2@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260618T140000
+DTEND:20260618T143000
+SUMMARY:1:1 with Aisha Patel
+STATUS:CONFIRMED
+DESCRIPTION:Check-in, frontend architecture, project priorities
+LOCATION:Zoom — Private
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-2@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260618T150000
+DTEND:20260618T170000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-2@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260618T120000
+DTEND:20260618T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:all-hands-2@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260618T160000
+DTEND:20260618T170000
+SUMMARY:Meridian Labs All Hands
+STATUS:CONFIRMED
+DESCRIPTION:Company updates, product demos, Q&A with leadership
+LOCATION:Main Stage / Zoom
+ATTENDEE;CN=Oliver Grant;PARTSTAT=ACCEPTED:mailto:oliver.grant@meridianlabs.io
+ATTENDEE;CN=Rachel Nakamura;PARTSTAT=ACCEPTED:mailto:rachel.nakamura@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-3@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260619T090000
+DTEND:20260619T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-retro-3@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260619T150000
+DTEND:20260619T160000
+SUMMARY:Sprint Retro
+STATUS:CONFIRMED
+DESCRIPTION:What went well, what didn't, action items
+LOCATION:Conference Room — Atlas
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+ATTENDEE;CN=Sam O'Brien;PARTSTAT=ACCEPTED:mailto:sam.obrien@meridianlabs.io
+ATTENDEE;CN=Lina Zhang;PARTSTAT=ACCEPTED:mailto:lina.zhang@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:declined-3@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260619T100000
+DTEND:20260619T120000
+SUMMARY:Cross-functional Sync: Growth x Platform
+STATUS:CANCELLED
+ATTENDEE;CN=Avery Chen;PARTSTAT=DECLINED:mailto:avery.chen@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-6@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260622T090000
+DTEND:20260622T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-planning-6@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260622T100000
+DTEND:20260622T110000
+SUMMARY:Sprint Planning
+STATUS:CONFIRMED
+DESCRIPTION:Review backlog, assign stories, set sprint goals
+LOCATION:Conference Room — Atlas
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+ATTENDEE;CN=Sam O'Brien;PARTSTAT=ACCEPTED:mailto:sam.obrien@meridianlabs.io
+ATTENDEE;CN=Lina Zhang;PARTSTAT=ACCEPTED:mailto:lina.zhang@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-6@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260622T120000
+DTEND:20260622T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-7@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260623T090000
+DTEND:20260623T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-jordan-7@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260623T110000
+DTEND:20260623T113000
+SUMMARY:1:1 with Jordan Reeves
+STATUS:CONFIRMED
+DESCRIPTION:Career growth, project updates, blockers
+LOCATION:Zoom — Private
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-7@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260623T160000
+DTEND:20260623T180000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:review-7@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260623T110000
+DTEND:20260623T120000
+SUMMARY:Design Review: Customer Portal v2
+STATUS:CONFIRMED
+DESCRIPTION:Cross-functional review session
+LOCATION:Conference Room — Horizon
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Fatima Al-Rashid;PARTSTAT=ACCEPTED:mailto:fatima.alrashid@meridianlabs.io
+ATTENDEE;CN=Rachel Nakamura;PARTSTAT=ACCEPTED:mailto:rachel.nakamura@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-8@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260624T090000
+DTEND:20260624T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-tomas-8@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260624T140000
+DTEND:20260624T143000
+SUMMARY:1:1 with Tomás Herrera
+STATUS:CONFIRMED
+DESCRIPTION:Check-in, code review feedback, growth areas
+LOCATION:Zoom — Private
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-8@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260624T130000
+DTEND:20260624T150000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-8@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260624T120000
+DTEND:20260624T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-9@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260625T090000
+DTEND:20260625T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-aisha-9@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260625T140000
+DTEND:20260625T143000
+SUMMARY:1:1 with Aisha Patel
+STATUS:CONFIRMED
+DESCRIPTION:Check-in, frontend architecture, project priorities
+LOCATION:Zoom — Private
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-9@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260625T160000
+DTEND:20260625T180000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-9@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260625T120000
+DTEND:20260625T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-10@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260626T090000
+DTEND:20260626T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-retro-10@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260626T150000
+DTEND:20260626T160000
+SUMMARY:Sprint Retro
+STATUS:CONFIRMED
+DESCRIPTION:What went well, what didn't, action items
+LOCATION:Conference Room — Atlas
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+ATTENDEE;CN=Sam O'Brien;PARTSTAT=ACCEPTED:mailto:sam.obrien@meridianlabs.io
+ATTENDEE;CN=Lina Zhang;PARTSTAT=ACCEPTED:mailto:lina.zhang@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-10@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260626T120000
+DTEND:20260626T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-13@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260629T090000
+DTEND:20260629T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-planning-13@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260629T100000
+DTEND:20260629T110000
+SUMMARY:Sprint Planning
+STATUS:CONFIRMED
+DESCRIPTION:Review backlog, assign stories, set sprint goals
+LOCATION:Conference Room — Atlas
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+ATTENDEE;CN=Sam O'Brien;PARTSTAT=ACCEPTED:mailto:sam.obrien@meridianlabs.io
+ATTENDEE;CN=Lina Zhang;PARTSTAT=ACCEPTED:mailto:lina.zhang@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-13@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260629T120000
+DTEND:20260629T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-14@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260630T090000
+DTEND:20260630T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-jordan-14@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260630T110000
+DTEND:20260630T113000
+SUMMARY:1:1 with Jordan Reeves
+STATUS:CONFIRMED
+DESCRIPTION:Career growth, project updates, blockers
+LOCATION:Zoom — Private
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-14@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260630T160000
+DTEND:20260630T180000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-14@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260630T120000
+DTEND:20260630T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:external-14@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260630T140000
+DTEND:20260630T160000
+SUMMARY:Vendor Call: StripeBridge API Review
+STATUS:CONFIRMED
+LOCATION:Zoom — External
+ATTENDEE;CN=David Lawson;PARTSTAT=ACCEPTED:mailto:david.lawson@stripebridge.com
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-15@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260701T090000
+DTEND:20260701T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-tomas-15@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260701T140000
+DTEND:20260701T143000
+SUMMARY:1:1 with Tomás Herrera
+STATUS:CONFIRMED
+DESCRIPTION:Check-in, code review feedback, growth areas
+LOCATION:Zoom — Private
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-15@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260701T120000
+DTEND:20260701T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-16@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260702T090000
+DTEND:20260702T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-aisha-16@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260702T140000
+DTEND:20260702T143000
+SUMMARY:1:1 with Aisha Patel
+STATUS:CONFIRMED
+DESCRIPTION:Check-in, frontend architecture, project priorities
+LOCATION:Zoom — Private
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-16@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260702T120000
+DTEND:20260702T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:all-hands-16@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260702T160000
+DTEND:20260702T170000
+SUMMARY:Meridian Labs All Hands
+STATUS:CONFIRMED
+DESCRIPTION:Company updates, product demos, Q&A with leadership
+LOCATION:Main Stage / Zoom
+ATTENDEE;CN=Oliver Grant;PARTSTAT=ACCEPTED:mailto:oliver.grant@meridianlabs.io
+ATTENDEE;CN=Rachel Nakamura;PARTSTAT=ACCEPTED:mailto:rachel.nakamura@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:review-16@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260702T110000
+DTEND:20260702T120000
+SUMMARY:Architecture Review: Project Aurora
+STATUS:CONFIRMED
+DESCRIPTION:Cross-functional review session
+LOCATION:Conference Room — Horizon
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+ATTENDEE;CN=Sam O'Brien;PARTSTAT=ACCEPTED:mailto:sam.obrien@meridianlabs.io
+ATTENDEE;CN=Fatima Al-Rashid;PARTSTAT=ACCEPTED:mailto:fatima.alrashid@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Lina Zhang;PARTSTAT=ACCEPTED:mailto:lina.zhang@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-17@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260703T090000
+DTEND:20260703T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-retro-17@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260703T150000
+DTEND:20260703T160000
+SUMMARY:Sprint Retro
+STATUS:CONFIRMED
+DESCRIPTION:What went well, what didn't, action items
+LOCATION:Conference Room — Atlas
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+ATTENDEE;CN=Sam O'Brien;PARTSTAT=ACCEPTED:mailto:sam.obrien@meridianlabs.io
+ATTENDEE;CN=Lina Zhang;PARTSTAT=ACCEPTED:mailto:lina.zhang@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-17@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260703T120000
+DTEND:20260703T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-20@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260706T090000
+DTEND:20260706T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-planning-20@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260706T100000
+DTEND:20260706T110000
+SUMMARY:Sprint Planning
+STATUS:CONFIRMED
+DESCRIPTION:Review backlog, assign stories, set sprint goals
+LOCATION:Conference Room — Atlas
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+ATTENDEE;CN=Sam O'Brien;PARTSTAT=ACCEPTED:mailto:sam.obrien@meridianlabs.io
+ATTENDEE;CN=Lina Zhang;PARTSTAT=ACCEPTED:mailto:lina.zhang@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-20@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260706T120000
+DTEND:20260706T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-21@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260707T090000
+DTEND:20260707T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-jordan-21@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260707T110000
+DTEND:20260707T113000
+SUMMARY:1:1 with Jordan Reeves
+STATUS:CONFIRMED
+DESCRIPTION:Career growth, project updates, blockers
+LOCATION:Zoom — Private
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-21@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260707T130000
+DTEND:20260707T150000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:declined-21@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260707T110000
+DTEND:20260707T110000
+SUMMARY:Optional: Tech Talks — Rust in Production
+STATUS:CANCELLED
+ATTENDEE;CN=Avery Chen;PARTSTAT=DECLINED:mailto:avery.chen@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-22@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260708T090000
+DTEND:20260708T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-tomas-22@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260708T140000
+DTEND:20260708T143000
+SUMMARY:1:1 with Tomás Herrera
+STATUS:CONFIRMED
+DESCRIPTION:Check-in, code review feedback, growth areas
+LOCATION:Zoom — Private
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-22@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260708T150000
+DTEND:20260708T170000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:external-22@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260708T140000
+DTEND:20260708T120000
+SUMMARY:Security Assessment: CyberShield
+STATUS:CONFIRMED
+LOCATION:Zoom — External
+ATTENDEE;CN=Raj Mehta;PARTSTAT=ACCEPTED:mailto:raj.mehta@cybershield.io
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-23@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260709T090000
+DTEND:20260709T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-aisha-23@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260709T140000
+DTEND:20260709T143000
+SUMMARY:1:1 with Aisha Patel
+STATUS:CONFIRMED
+DESCRIPTION:Check-in, frontend architecture, project priorities
+LOCATION:Zoom — Private
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-23@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260709T130000
+DTEND:20260709T150000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-23@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260709T120000
+DTEND:20260709T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-24@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260710T090000
+DTEND:20260710T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-retro-24@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260710T150000
+DTEND:20260710T160000
+SUMMARY:Sprint Retro
+STATUS:CONFIRMED
+DESCRIPTION:What went well, what didn't, action items
+LOCATION:Conference Room — Atlas
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+ATTENDEE;CN=Sam O'Brien;PARTSTAT=ACCEPTED:mailto:sam.obrien@meridianlabs.io
+ATTENDEE;CN=Lina Zhang;PARTSTAT=ACCEPTED:mailto:lina.zhang@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-24@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260710T120000
+DTEND:20260710T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-27@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260713T090000
+DTEND:20260713T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:sprint-planning-27@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260713T100000
+DTEND:20260713T110000
+SUMMARY:Sprint Planning
+STATUS:CONFIRMED
+DESCRIPTION:Review backlog, assign stories, set sprint goals
+LOCATION:Conference Room — Atlas
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+ATTENDEE;CN=Sam O'Brien;PARTSTAT=ACCEPTED:mailto:sam.obrien@meridianlabs.io
+ATTENDEE;CN=Lina Zhang;PARTSTAT=ACCEPTED:mailto:lina.zhang@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-27@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260713T120000
+DTEND:20260713T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-28@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260714T090000
+DTEND:20260714T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-jordan-28@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260714T110000
+DTEND:20260714T113000
+SUMMARY:1:1 with Jordan Reeves
+STATUS:CONFIRMED
+DESCRIPTION:Career growth, project updates, blockers
+LOCATION:Zoom — Private
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-28@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260714T160000
+DTEND:20260714T180000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-28@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260714T120000
+DTEND:20260714T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:standup-29@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260715T090000
+DTEND:20260715T091500
+SUMMARY:Platform Standup
+STATUS:CONFIRMED
+DESCRIPTION:Daily sync — blockers, progress, priorities
+LOCATION:Zoom — Platform Room
+ATTENDEE;CN=Jordan Reeves;PARTSTAT=ACCEPTED:mailto:jordan.reeves@meridianlabs.io
+ATTENDEE;CN=Priya Sharma;PARTSTAT=ACCEPTED:mailto:priya.sharma@meridianlabs.io
+ATTENDEE;CN=Marcus Kim;PARTSTAT=ACCEPTED:mailto:marcus.kim@meridianlabs.io
+ATTENDEE;CN=Elena Vasquez;PARTSTAT=ACCEPTED:mailto:elena.vasquez@meridianlabs.io
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+ATTENDEE;CN=Aisha Patel;PARTSTAT=ACCEPTED:mailto:aisha.patel@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:one-on-one-tomas-29@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260715T140000
+DTEND:20260715T143000
+SUMMARY:1:1 with Tomás Herrera
+STATUS:CONFIRMED
+DESCRIPTION:Check-in, code review feedback, growth areas
+LOCATION:Zoom — Private
+ATTENDEE;CN=Tomás Herrera;PARTSTAT=ACCEPTED:mailto:tomas.herrera@meridianlabs.io
+END:VEVENT
+BEGIN:VEVENT
+UID:focus-29@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260715T160000
+DTEND:20260715T180000
+SUMMARY:🔒 Focus Time — Deep Work
+STATUS:CONFIRMED
+DESCRIPTION:Protected time for coding, design docs, or research. No meetings.
+END:VEVENT
+BEGIN:VEVENT
+UID:lunch-29@meridianlabs.io
+DTSTAMP:20260716T092424Z
+DTSTART:20260715T120000
+DTEND:20260715T130000
+SUMMARY:Lunch Break
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR

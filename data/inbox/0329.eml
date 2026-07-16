@@ -1,0 +1,15 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: Re: [P1] Memory leak in background worker
+From: Raj Mehta <raj.mehta@cybershield.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Cc: Ben Torres <ben.torres@meridianlabs.io>, Priya Sharma <priya.sharma@meridianlabs.io>, Nina Kowalski <nina.kowalski@meridianlabs.io>
+Date: Mon, 06 Jul 2026 15:34:44 -0700
+Message-ID: <178419386410.46576.10726287327055823410@meridianlabs.io>
+In-Reply-To: <178419386410.46576.4904625402631963253@meridianlabs.io>
+References: <178419386410.46576.4904625402631963253@meridianlabs.io>
+
+SGkgQXZlcnksCgpKdXN0IHdhbnRlZCB0byBmb2xsb3cgdXAgb24gdGhlIGludGVydmlldyBwYW5l
+bCBhc3NpZ25tZW50cy4KCkkgdGhpbmsgd2Ugc2hvdWxkIHRpbWVib3ggdGhpcyB0byAyIHdlZWtz
+LiBEb2VzIHRoYXQgd29yayBmb3IgeW91PwoK4oCUIEpvcmRhbgpSYWoK

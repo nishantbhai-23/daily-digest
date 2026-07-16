@@ -1,0 +1,15 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1354] feat: Refactor auth middleware
+From: Priya Sharma <priya.sharma@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Cc: =?utf-8?q?Ben_Torres_=3Cben=2Etorres=40meridianlabs=2Eio=3E=2C_Tom=C3=A1s_Herrera_=3Ctomas=2Eherrera=40meridianlabs=2Eio=3E?=
+Date: Fri, 03 Jul 2026 08:22:09 -0700
+Message-ID: <178419386410.46576.10652042712656072020@meridianlabs.io>
+
+SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
+IGNoYW5jZT8gSXQncyBwcmV0dHkgc21hbGwgKH4xNTAgbGluZXMpLgoKS2V5IGNoYW5nZXM6Ci0g
+QWRkZWQgaW5wdXQgdmFsaWRhdGlvbgotIFVwZGF0ZWQgaW50ZWdyYXRpb24gdGVzdHMKCkkndmUg
+dGVzdGVkIGxvY2FsbHkgYW5kIENJIGlzIGdyZWVuLiBMZXQgbWUga25vdyBpZiB5b3UgaGF2ZSBx
+dWVzdGlvbnMuCgpUaGFua3MhClByaXlhCg==

@@ -1,0 +1,13 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [INCIDENT] Search indexer stuck in retry loop
+From: Marcus Kim <marcus.kim@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Wed, 08 Jul 2026 09:30:55 -0700
+Message-ID: <178419386411.46576.2805792296790393482@meridianlabs.io>
+
+VGVhbSwKCldlJ3JlIHNlZWluZyBtZW1vcnkgcHJlc3N1cmUgb24gdGhlIHNlYXJjaCBjbHVzdGVy
+LgoKKipJbXBhY3QqKjogRW50ZXJwcmlzZSBkYXNoYm9hcmQgZGVncmFkZWQKKipTdGFydGVkKio6
+IH4zIGhvdXJzIGFnbwoqKkN1cnJlbnQgc3RhdHVzKio6IEludmVzdGlnYXRpbmcKCkkndmUgY3Jl
+YXRlZCBhIEppcmEgdGlja2V0LiBXaWxsIHVwZGF0ZSBpbiAzMCBtaW4uCgrigJQgTWFyY3VzCg==

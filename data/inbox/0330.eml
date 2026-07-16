@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [SEV-2] Elevated error rates on /api/v2/orders
+From: Ben Torres <ben.torres@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Mon, 06 Jul 2026 15:49:52 -0700
+Message-ID: <178419386410.46576.9585143758698969149@meridianlabs.io>
+
+VGVhbSwKCldlJ3JlIHNlZWluZyBtZW1vcnkgcHJlc3N1cmUgb24gdGhlIG5vdGlmaWNhdGlvbiB3
+b3JrZXIuCgoqKkltcGFjdCoqOiBXZWJob29rIGRlbGl2ZXJpZXMgZGVsYXllZCBieSAxMCsgbWlu
+CioqU3RhcnRlZCoqOiB+MSBob3VycyBhZ28KKipDdXJyZW50IHN0YXR1cyoqOiBNaXRpZ2F0aW9u
+IGRlcGxveWVkLCBtb25pdG9yaW5nCgpJJ3ZlIGNyZWF0ZWQgYSB3YXIgcm9vbSBpbiBTbGFjayAj
+aW5jaWRlbnQtY2hhbm5lbC4gV2lsbCB1cGRhdGUgaW4gMzAgbWluLgoK4oCUIEJlbgo=

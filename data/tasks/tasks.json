@@ -1,0 +1,185 @@
+[
+  {
+    "id": "PLAT-489",
+    "title": "Fix auth token rotation for SSO users",
+    "description": "SSO users are experiencing auth failures after token rotation. The refresh token flow doesn't account for the SAML assertion expiry, causing a 401 loop. Need to update the token refresh logic to re-initiate SAML flow when the assertion is expired.",
+    "status": "in-progress",
+    "priority": "P1",
+    "assignee": "Avery Chen",
+    "due_date": "2026-07-11",
+    "created_at": "2026-07-07T09:15:00-07:00",
+    "tags": [
+      "bug",
+      "auth",
+      "sso",
+      "project-aurora"
+    ],
+    "subtasks": [
+      {
+        "title": "Reproduce the issue with test SSO provider",
+        "done": true
+      },
+      {
+        "title": "Update token refresh logic for SAML assertions",
+        "done": false
+      },
+      {
+        "title": "Add integration tests for SSO token rotation",
+        "done": false
+      },
+      {
+        "title": "Deploy fix to staging and verify",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": "PLAT-501",
+    "title": "Implement L2 Redis cache for Aurora API",
+    "description": "As outlined in the caching RFC, implement the distributed Redis cache layer (L2) for Aurora API read endpoints. This includes setting up the Redis cluster connection, implementing write-through invalidation, and adding cache hit/miss metrics to Datadog.",
+    "status": "in-progress",
+    "priority": "P2",
+    "assignee": "Avery Chen",
+    "due_date": "2026-07-18",
+    "created_at": "2026-06-26T14:30:00-07:00",
+    "tags": [
+      "feature",
+      "caching",
+      "redis",
+      "project-aurora"
+    ],
+    "subtasks": [
+      {
+        "title": "Set up Redis 7 cluster configuration",
+        "done": true
+      },
+      {
+        "title": "Implement cache read/write for /orders endpoint",
+        "done": true
+      },
+      {
+        "title": "Add write-through invalidation on mutations",
+        "done": false
+      },
+      {
+        "title": "Add Datadog metrics (hit rate, latency, evictions)",
+        "done": false
+      },
+      {
+        "title": "Load test with cache enabled vs disabled",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": "PLAT-510",
+    "title": "Write Aurora API customer migration guide",
+    "description": "Write a customer-facing migration guide for transitioning from Aurora API v1 to v2. Include endpoint mapping, breaking changes, new authentication flow, code examples in Python and JavaScript, and a FAQ section. Coordinate with Nina (tech writer) and Marcus (PM) for review.",
+    "status": "todo",
+    "priority": "P2",
+    "assignee": "Avery Chen",
+    "due_date": "2026-07-21",
+    "created_at": "2026-07-08T10:00:00-07:00",
+    "tags": [
+      "docs",
+      "migration",
+      "project-aurora",
+      "customer-facing"
+    ],
+    "subtasks": [
+      {
+        "title": "Outline migration guide structure",
+        "done": false
+      },
+      {
+        "title": "Document breaking changes and endpoint mapping",
+        "done": false
+      },
+      {
+        "title": "Write code examples (Python + JS)",
+        "done": false
+      },
+      {
+        "title": "Review with Nina and Marcus",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": "PLAT-515",
+    "title": "Add connection pool saturation monitor",
+    "description": "Post-incident action item: add a Datadog monitor that alerts when database connection pool utilization exceeds 80%. This should trigger a PagerDuty notification to the on-call engineer. Also add a dashboard panel showing connection pool usage over time.",
+    "status": "blocked",
+    "priority": "P1",
+    "assignee": "Avery Chen",
+    "due_date": "2026-07-14",
+    "created_at": "2026-07-10T16:00:00-07:00",
+    "tags": [
+      "observability",
+      "incident-followup",
+      "datadog",
+      "reliability"
+    ],
+    "blocked_by": "Waiting for Sam to provision Datadog API key with write access to monitors",
+    "subtasks": [
+      {
+        "title": "Define alert thresholds (warning: 70%, critical: 85%)",
+        "done": true
+      },
+      {
+        "title": "Create Datadog monitor via Terraform",
+        "done": false
+      },
+      {
+        "title": "Configure PagerDuty integration",
+        "done": false
+      },
+      {
+        "title": "Add dashboard panel for connection pool metrics",
+        "done": false
+      },
+      {
+        "title": "Test alert with synthetic load",
+        "done": false
+      }
+    ]
+  },
+  {
+    "id": "PLAT-520",
+    "title": "Prototype Platform SDK (hybrid approach)",
+    "description": "Build a proof-of-concept for the internal Platform SDK using the hybrid approach (auto-generated transport layer + hand-written public API). Implement one endpoint (/orders) end-to-end including auth, retries, error handling, and type hints. Present findings in next week's standup.",
+    "status": "todo",
+    "priority": "P3",
+    "assignee": "Avery Chen",
+    "due_date": "2026-07-25",
+    "created_at": "2026-07-02T11:00:00-07:00",
+    "tags": [
+      "feature",
+      "sdk",
+      "prototype",
+      "developer-experience"
+    ],
+    "subtasks": [
+      {
+        "title": "Set up SDK project structure and build tooling",
+        "done": false
+      },
+      {
+        "title": "Generate transport layer from OpenAPI spec",
+        "done": false
+      },
+      {
+        "title": "Hand-write public Client API for /orders",
+        "done": false
+      },
+      {
+        "title": "Add retry logic with exponential backoff",
+        "done": false
+      },
+      {
+        "title": "Write example usage and README",
+        "done": false
+      }
+    ]
+  }
+]

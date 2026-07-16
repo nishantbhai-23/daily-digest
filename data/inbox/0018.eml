@@ -1,0 +1,13 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [P1] Search indexer stuck in retry loop
+From: Nina Kowalski <nina.kowalski@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Tue, 16 Jun 2026 10:43:40 -0700
+Message-ID: <178419386406.46576.11738718583051180378@meridianlabs.io>
+
+VGVhbSwKCldlJ3JlIHNlZWluZyBlbGV2YXRlZCA1MDBzIG9uIHRoZSBhbmFseXRpY3MgcGlwZWxp
+bmUuCgoqKkltcGFjdCoqOiBFbnRlcnByaXNlIGRhc2hib2FyZCBkZWdyYWRlZAoqKlN0YXJ0ZWQq
+KjogfjEgaG91cnMgYWdvCioqQ3VycmVudCBzdGF0dXMqKjogSW52ZXN0aWdhdGluZwoKSSd2ZSBj
+cmVhdGVkIGEgSmlyYSB0aWNrZXQuIFdpbGwgdXBkYXRlIGluIDMwIG1pbi4KCuKAlCBOaW5hCg==

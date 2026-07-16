@@ -1,0 +1,15 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1437] refactor: Migrate to new ORM syntax
+From: Elena Vasquez <elena.vasquez@meridianlabs.io>
+To: Avery Chen <avery.chen@meridianlabs.io>
+Cc: Sam O'Brien <sam.obrien@meridianlabs.io>
+Date: Thu, 25 Jun 2026 15:20:09 -0700
+Message-ID: <178419386408.46576.3917280655196923887@meridianlabs.io>
+
+SGV5IEF2ZXJ5LAoKQ2FuIHlvdSB0YWtlIGEgbG9vayBhdCB0aGlzIFBSIHdoZW4geW91IGdldCBh
+IGNoYW5jZT8gSXQncyBwcmV0dHkgc21hbGwgKH4xNTAgbGluZXMpLgoKS2V5IGNoYW5nZXM6Ci0g
+QWRkZWQgaW5wdXQgdmFsaWRhdGlvbgotIEFkZGVkIHVuaXQgdGVzdHMKCkkndmUgdGVzdGVkIGxv
+Y2FsbHkgYW5kIENJIGlzIGdyZWVuLiBMZXQgbWUga25vdyBpZiB5b3UgaGF2ZSBxdWVzdGlvbnMu
+CgpUaGFua3MhCkVsZW5hCg==

@@ -1,0 +1,14 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Subject: [PR #1290] fix: Fix timezone handling in scheduler
+From: =?utf-8?q?Tom=C3=A1s_Herrera_=3Ctomas=2Eherrera=40meridianlabs=2Eio=3E?=
+To: Avery Chen <avery.chen@meridianlabs.io>
+Date: Tue, 07 Jul 2026 10:51:56 -0700
+Message-ID: <178419386411.46576.1998592499710149554@meridianlabs.io>
+
+QXZlcnkg4oCUIGxlZnQgYSBmZXcgY29tbWVudHMgb24geW91ciBQUi4KCk92ZXJhbGwgbG9va3Mg
+Z29vZCEgQSBjb3VwbGUgb2Ygc3VnZ2VzdGlvbnM6Ci0gQ29uc2lkZXIgdXNpbmcgZGVwZW5kZW5j
+eSBpbmplY3Rpb24gZm9yIHRoZSBjb25maWcgc2V0dXAKLSBUaGUgZXJyb3IgbWVzc2FnZSBjb3Vs
+ZCBiZSBtb3JlIGRlc2NyaXB0aXZlCgpOb3RoaW5nIGJsb2NraW5nIOKAlCBhcHByb3ZlIG9uY2Ug
+YWRkcmVzc2VkLgpUb23DoXMK
