@@ -35,7 +35,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
-from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger
+from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today
 from llm import create_llm, call_with_retry
 from notes_parser import load_notes
 from persona import load_persona
@@ -118,6 +118,10 @@ def build_reduce_system_prompt(persona_text: str) -> str:
         "covering up to a 30-day window. This complements separate email and "
         "calendar digests — focus only on what's recorded in notes, don't try to "
         "cover inbox or schedule content.\n\n"
+        "You will be given today's actual date — use it as ground truth for anything "
+        "date-relative. Do not infer today's date from the ledger content itself (e.g. "
+        "the earliest or most recent note present) — that has produced wrong dates "
+        "before.\n\n"
         "Synthesize this into a concise digest covering:\n\n"
         "## 1. DECISIONS ON RECORD\n"
         "What's actually been decided, per the notes — not proposed, decided.\n\n"
@@ -361,7 +365,7 @@ def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
             llm.chat,
             messages=[
                 {"role": "system", "content": reduce_system_prompt},
-                {"role": "user", "content": f"Chronological Notes Ledger:\n\n{ledger_context}"},
+                {"role": "user", "content": f"TODAY'S DATE: {format_today()}\n\n---\n\nChronological Notes Ledger:\n\n{ledger_context}"},
             ],
         )
     except Exception as e:

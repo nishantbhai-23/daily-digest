@@ -32,7 +32,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 from email_parser import load_inbox, group_by_date
-from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger
+from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today
 from llm import create_llm, call_with_retry
 from persona import load_persona
 
@@ -112,6 +112,10 @@ def build_reduce_system_prompt(persona_text: str) -> str:
         "daily email summaries covering up to a 30-day window. This complements a "
         "separate calendar digest — focus on email content and threads, not the "
         "operator's schedule.\n\n"
+        "You will be given today's actual date — use it as ground truth for anything "
+        "date-relative (\"today\", \"this week\", deadlines). Do not infer today's date "
+        "from the ledger content itself (e.g. the earliest or most recent day present) "
+        "— that has produced wrong dates before.\n\n"
         "Per the profile, a great digest answers three questions in under 90 seconds:\n\n"
         "## 1. WHAT NEEDS ME TODAY\n"
         "Not what's interesting — what requires the operator's judgment, signature, or "
@@ -516,6 +520,8 @@ def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
                 {
                     "role": "user",
                     "content": (
+                        f"TODAY'S DATE: {format_today()}\n\n"
+                        f"---\n\n"
                         f"DETERMINISTIC SENDER STALENESS (ground truth — computed in code, "
                         f"not inferred; use this directly for 'what am I about to drop', "
                         f"don't try to re-derive quietness from the ledger below):\n\n"

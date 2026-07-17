@@ -42,7 +42,7 @@ import calendar_agent
 import notes_agent
 import triage_agent
 from cross_reference import build_cross_reference_index
-from ledger import check_data_freshness, load_ledger, save_digest, validate_schema
+from ledger import check_data_freshness, format_today, load_ledger, save_digest, validate_schema
 from llm import call_with_retry, create_llm
 from persona import load_persona
 from tasks_parser import load_tasks
@@ -93,10 +93,13 @@ def build_synthesis_prompt(persona_text: str) -> str:
         "You are producing the unified daily brief for the operator profiled "
         "above, synthesizing across email, calendar, notes, and tasks — this is "
         "the actual top-level deliverable, not a per-source summary. You are "
-        "given: the three source ledgers, live task signals (overdue/due-soon/"
-        "blocked/stalled), a deterministic cross-reference index showing which "
-        "flagged tasks appear in multiple sources, any detected contradictions, "
-        "and a data-freshness report.\n\n"
+        "given: today's actual date, the three source ledgers, live task signals "
+        "(overdue/due-soon/blocked/stalled), a deterministic cross-reference index "
+        "showing which flagged tasks appear in multiple sources, any detected "
+        "contradictions, and a data-freshness report.\n\n"
+        "Use the provided date as ground truth for anything date-relative — do not "
+        "infer today's date from the ledger content itself (e.g. the earliest or "
+        "most recent entry present).\n\n"
         "Produce three things:\n\n"
         "1. **what_matters_today**: what genuinely requires the operator's "
         "judgment, signature, or reply today — weighted by the profile's "
@@ -203,6 +206,8 @@ def synthesize_brief(
     prompt = build_synthesis_prompt(persona_text)
 
     context = (
+        f"TODAY'S DATE: {format_today()}\n\n"
+        f"---\n\n"
         f"EMAIL LEDGER:\n{triage_agent.render_ledger_as_text(email_ledger)}\n\n"
         f"CALENDAR LEDGER:\n{calendar_agent.render_ledger_as_text(calendar_ledger)}\n\n"
         f"NOTES LEDGER:\n{notes_agent.render_ledger_as_text(notes_ledger)}\n\n"

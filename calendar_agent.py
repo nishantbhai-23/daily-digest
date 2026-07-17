@@ -34,7 +34,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from calendar_parser import load_calendar, group_by_date
-from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger
+from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today
 from llm import create_llm, call_with_retry
 from persona import load_persona
 
@@ -116,6 +116,10 @@ def build_reduce_system_prompt(persona_text: str) -> str:
         "signals (deterministic stats + qualitative flags) covering up to a 30-day "
         "window. This complements a separate email digest — focus only on schedule and "
         "time, don't try to cover email content.\n\n"
+        "You will be given today's actual date — use it as ground truth for anything "
+        "date-relative (\"today\", \"coming up\"). Do not infer today's date from the "
+        "ledger content itself (e.g. the earliest or most recent day present) — that "
+        "has produced wrong dates before.\n\n"
         "Synthesize this into a concise digest covering:\n\n"
         "## 1. TODAY'S SCHEDULE — WHAT NEEDS PREP\n"
         "Meetings today or coming up that need something prepared beforehand.\n\n"
@@ -441,7 +445,7 @@ def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
             llm.chat,
             messages=[
                 {"role": "system", "content": reduce_system_prompt},
-                {"role": "user", "content": f"Chronological Calendar Ledger:\n\n{ledger_context}"},
+                {"role": "user", "content": f"TODAY'S DATE: {format_today()}\n\n---\n\nChronological Calendar Ledger:\n\n{ledger_context}"},
             ],
         )
     except Exception as e:

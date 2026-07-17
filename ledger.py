@@ -115,6 +115,23 @@ def save_digest(content: str, current_path: str, history_dir: str) -> str:
 # ─── Data Freshness ───────────────────────────────────────────────────────────
 
 
+def format_today(reference_date=None) -> str:
+    """Return an explicit "today" string for injection into REDUCE/synthesis
+    prompts as ground truth.
+
+    Nothing in the persona or ledgers tells the model what today's actual
+    date is — persona.md describes the *concept* of "today" but can't
+    contain a literal date since it's a static file reused every run. Left
+    ungrounded, REDUCE calls have been observed guessing "today" from
+    whatever dates happen to appear in the ledger (the first entry, or the
+    most recent one) instead of the real date. Same category of fix as
+    check_data_freshness: compute the fact in code, inject it as text,
+    don't leave it to inference.
+    """
+    reference_date = reference_date or datetime.now().date()
+    return f"{reference_date.isoformat()} ({reference_date.strftime('%A')})"
+
+
 def check_data_freshness(ledgers: dict, reference_date=None, stale_after_days: int = 1) -> dict:
     """Check how current each source's ledger is, relative to today.
 
