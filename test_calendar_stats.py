@@ -87,6 +87,15 @@ class TestExclusions(unittest.TestCase):
         self.assertEqual(stats["meeting_count"], 0)
         self.assertEqual(stats["declined_or_cancelled_count"], 1)
 
+    def test_cancelled_event_listed_by_name_not_just_counted(self):
+        events = [
+            _event("Optional: Panel invite", "2026-07-07T10:00", "2026-07-07T11:00", status="CANCELLED"),
+        ]
+        stats = compute_day_stats(events)
+        self.assertEqual(len(stats["declined_or_cancelled"]), 1)
+        self.assertEqual(stats["declined_or_cancelled"][0]["summary"], "Optional: Panel invite")
+        self.assertEqual(stats["declined_or_cancelled"][0]["date"], "2026-07-07")
+
     def test_lunch_excluded_from_meeting_count(self):
         events = [_event("Lunch Break", "2026-07-07T12:00", "2026-07-07T13:00")]
         stats = compute_day_stats(events)

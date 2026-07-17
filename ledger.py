@@ -112,6 +112,44 @@ def save_digest(content: str, current_path: str, history_dir: str) -> str:
     return history_path
 
 
+# ─── Data Freshness ───────────────────────────────────────────────────────────
+
+
+def check_data_freshness(ledgers: dict, reference_date=None, stale_after_days: int = 1) -> dict:
+    """Check how current each source's ledger is, relative to today.
+
+    Deterministic date math — per the profile's honesty rules ("if the
+    inbox data is older than 24 hours, say so"), staleness should be
+    reported directly, not left for an LLM to notice or silently ignored.
+
+    Args:
+        ledgers: {"email": email_ledger, "calendar": calendar_ledger, ...}
+        reference_date: "Today" for the comparison; defaults to real now().
+        stale_after_days: entries older than this (relative to today) are
+            flagged as stale.
+
+    Returns:
+        {source_name: {"most_recent_day": "YYYY-MM-DD" | None,
+                        "days_stale": int | None, "is_stale": bool}}
+    """
+    reference_date = reference_date or datetime.now().date()
+
+    result = {}
+    for name, entries in ledgers.items():
+        if not entries:
+            result[name] = {"most_recent_day": None, "days_stale": None, "is_stale": True}
+            continue
+        most_recent = max(_chronological_key(e) for e in entries)
+        most_recent_date = datetime.strptime(most_recent, "%Y-%m-%d").date()
+        days_stale = (reference_date - most_recent_date).days
+        result[name] = {
+            "most_recent_day": most_recent,
+            "days_stale": days_stale,
+            "is_stale": days_stale > stale_after_days,
+        }
+    return result
+
+
 # ─── Ledger Compaction ─────────────────────────────────────────────────────────
 
 

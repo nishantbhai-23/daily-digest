@@ -212,6 +212,15 @@ def compute_day_stats(events: list[dict]) -> dict:
     for m in meetings:
         hours_by_category[_categorize(m)] += _duration_hours(m)
 
+    declined_or_cancelled_list = [
+        {
+            "summary": e["summary"],
+            "date": e["start"].date().isoformat() if e.get("start") else "unknown",
+            "status": e.get("status", "CANCELLED"),
+        }
+        for e in declined_or_cancelled
+    ]
+
     return {
         "meeting_count": len(meetings),
         "meeting_hours": round(meeting_hours, 2),
@@ -221,6 +230,7 @@ def compute_day_stats(events: list[dict]) -> dict:
         "deep_work_conflicts": deep_work_conflicts,
         "back_to_back_count": back_to_back_count,
         "declined_or_cancelled_count": len(declined_or_cancelled),
+        "declined_or_cancelled": declined_or_cancelled_list,
         "meeting_hours_by_category": {k: round(v, 2) for k, v in hours_by_category.items()},
     }
 
@@ -368,6 +378,10 @@ def _render_calendar_stats(stats: dict, indent: str = "") -> list[str]:
         lines.append(
             f"{indent}  - DEEP WORK CONFLICT: '{conflict['summary']}' at "
             f"{conflict['start']} ({conflict['overlap_hours']}h overlap)"
+        )
+    for declined in stats.get("declined_or_cancelled", []):
+        lines.append(
+            f"{indent}  - DECLINED/CANCELLED: '{declined['summary']}' on {declined['date']}"
         )
     return lines
 
