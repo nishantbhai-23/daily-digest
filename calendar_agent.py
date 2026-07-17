@@ -37,6 +37,7 @@ from calendar_parser import load_calendar, group_by_date
 from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today
 from llm import create_llm, call_with_retry
 from persona import load_persona
+from tenant_config import load_tenant_config
 
 
 # ─── Path Configuration ──────────────────────────────────────────────────────
@@ -75,26 +76,61 @@ COMPACT_SYSTEM_PROMPT = (
 # ─── Prompt Builders (persona-injected) ───────────────────────────────────────
 
 
-def build_map_system_prompt(persona_text: str) -> str:
+def build_map_system_prompt(persona_text: str, use_persona: bool = True) -> str:
+    """Build the MAP system prompt.
+
+    Args:
+        persona_text: The operator profile text.
+        use_persona: When False, family-detection and notable-event weighting
+            fall back to generic structural heuristics (attendees outside the
+            company domain, personal-sounding titles) instead of persona-
+            informed judgment (e.g. knowing a specific name is family). The
+            schema stays identical either way — envelope consistency for
+            downstream code (cross_reference.py, render_ledger_as_text)
+            matters more than which mode produced a given ledger entry.
+            REDUCE always gets full persona regardless (see
+            tenant_config.py's "use_persona_in_map").
+    """
+    if use_persona:
+        header = f"{persona_text}\n\n---\n\n"
+        role = "You are a calendar triage node for the operator profiled above. "
+        family_instruction = (
+            "2. **Family calendar items**: Any event that looks like it was added by or "
+            "concerns the operator's partner or family (per the profile above), especially "
+            "ones that collide with a work meeting — these matter more than anything else "
+            "on the calendar, per the profile.\n"
+        )
+        notable_instruction = (
+            "4. **Notable events**: One-off events (investor calls, board meetings, "
+            "external calls) worth a one-line flag, weighted using the people/priority "
+            "guidance in the profile above.\n\n"
+        )
+    else:
+        header = ""
+        role = "You are a calendar extraction node. "
+        family_instruction = (
+            "2. **Family calendar items**: Any event that structurally looks personal or "
+            "non-business (attendees outside the company's email domain, personal-sounding "
+            "titles), especially ones that collide with a work meeting.\n"
+        )
+        notable_instruction = (
+            "4. **Notable events**: One-off events (investor calls, board meetings, "
+            "external calls) worth a one-line flag.\n\n"
+        )
+
     return (
-        f"{persona_text}\n\n"
-        "---\n\n"
-        "You are a calendar triage node for the operator profiled above. You will "
-        "receive one day's calendar events, plus deterministic stats already computed "
-        "in code (meeting load, focus-time protection, deep-work overrides, "
+        f"{header}"
+        f"{role}"
+        "You will receive one day's calendar events, plus deterministic stats already "
+        "computed in code (meeting load, focus-time protection, deep-work overrides, "
         "back-to-back streaks — do not recompute these, they're ground truth). Your job "
         "is the layer arithmetic can't do:\n\n"
         "1. **Meetings needing prep**: Based on the summary/description/attendees, "
         "which meetings need the operator to prepare something beforehand?\n"
-        "2. **Family calendar items**: Any event that looks like it was added by or "
-        "concerns the operator's partner or family (per the profile above), especially "
-        "ones that collide with a work meeting — these matter more than anything else "
-        "on the calendar, per the profile.\n"
+        f"{family_instruction}"
         "3. **Pattern flags**: Anything that looks like drift from a normal pattern — "
         "e.g. a direct report's 1:1 cadence slipping, an unusual gap or cluster.\n"
-        "4. **Notable events**: One-off events (investor calls, board meetings, "
-        "external calls) worth a one-line flag, weighted using the people/priority "
-        "guidance in the profile above.\n\n"
+        f"{notable_instruction}"
         "Output strictly valid JSON matching this schema:\n"
         "{\n"
         '  "meetings_needing_prep": [{"summary": "...", "why": "..."}],\n'
@@ -497,7 +533,8 @@ def main():
     print(f"   Workers: {args.workers}\n")
 
     persona_text = load_persona()
-    map_system_prompt = build_map_system_prompt(persona_text)
+    config = load_tenant_config()
+    map_system_prompt = build_map_system_prompt(persona_text, use_persona=config.get("use_persona_in_map", True))
     reduce_system_prompt = build_reduce_system_prompt(persona_text)
 
     llm = create_llm(provider=args.provider, model=args.model, temperature=args.temperature)

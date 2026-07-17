@@ -39,6 +39,7 @@ from ledger import load_ledger, save_ledger, save_digest, validate_schema, compa
 from llm import create_llm, call_with_retry
 from notes_parser import load_notes
 from persona import load_persona
+from tenant_config import load_tenant_config
 
 
 # ─── Path Configuration ──────────────────────────────────────────────────────
@@ -56,6 +57,14 @@ COUNT_KEY = "item_count"
 MAP_SCHEMA = {
     "decisions": ["description", "priority"],
     "open_items_still_relevant": ["text", "priority"],
+    "key_people": ["name"],
+}
+
+# Used when tenant_config's "use_persona_in_map" is False — no priority field,
+# since assigning P0-P4 requires the persona's people-priority list.
+MAP_SCHEMA_NO_PERSONA = {
+    "decisions": ["description"],
+    "open_items_still_relevant": ["text"],
     "key_people": ["name"],
 }
 
@@ -77,20 +86,40 @@ COMPACT_SYSTEM_PROMPT = (
 # ─── Prompt Builders (persona-injected) ───────────────────────────────────────
 
 
-def build_map_system_prompt(persona_text: str) -> str:
+def build_map_system_prompt(persona_text: str, use_persona: bool = True) -> str:
+    """Build the MAP system prompt.
+
+    Args:
+        persona_text: The operator profile text.
+        use_persona: When False, drops priority tagging (needs the persona's
+            people-priority list) — decisions/open-items still get extracted
+            and judged for relevance, just not priority-weighted. REDUCE
+            always gets full persona regardless (see tenant_config.py's
+            "use_persona_in_map").
+    """
+    priority_field = ', "priority": "P0-P4"' if use_persona else ""
+    decisions_instruction = (
+        "2. **Decisions**: decisions actually recorded as made in this note (not "
+        "open questions)" + (", weighted using the profile's people-priority list.\n" if use_persona else ".\n")
+    )
+
+    header = f"{persona_text}\n\n---\n\n" if use_persona else ""
+    role = (
+        "You are a notes triage node for the operator profiled above. "
+        if use_persona else "You are a notes extraction node. "
+    )
+
     return (
-        f"{persona_text}\n\n"
-        "---\n\n"
-        "You are a notes triage node for the operator profiled above. You will "
-        "receive one note (a meeting note, RFC, decision log, checklist, or call "
+        f"{header}"
+        f"{role}"
+        "You will receive one note (a meeting note, RFC, decision log, checklist, or call "
         "summary), plus deterministic checklist stats already computed in code "
         "(open/done counts, days each open item has gone unchecked — do not "
         "recompute these, they're ground truth). Your job is the layer arithmetic "
         "can't do:\n\n"
         "1. **Note type**: classify as one of standup, one_on_one, rfc_design_doc, "
         "decision_log, checklist, call_notes, or other.\n"
-        "2. **Decisions**: decisions actually recorded as made in this note (not "
-        "open questions), weighted using the profile's people-priority list.\n"
+        f"{decisions_instruction}"
         "3. **Open items still relevant**: of the open checklist items given to you, "
         "which ones still matter given how much time has passed and the note's "
         "content — an old item can be superseded or no longer relevant; use "
@@ -100,8 +129,8 @@ def build_map_system_prompt(persona_text: str) -> str:
         "Output strictly valid JSON matching this schema:\n"
         "{\n"
         '  "note_type": "...",\n'
-        '  "decisions": [{"description": "...", "priority": "P0-P4"}],\n'
-        '  "open_items_still_relevant": [{"text": "...", "why": "...", "priority": "P0-P4"}],\n'
+        f'  "decisions": [{{"description": "..."{priority_field}}}],\n'
+        f'  "open_items_still_relevant": [{{"text": "...", "why": "..."{priority_field}}}],\n'
         '  "key_people": [{"name": "...", "context": "..."}]\n'
         "}\n\n"
         "If a category has no entries, use an empty array. Do not write any markdown "
@@ -197,7 +226,7 @@ def format_note(note: dict, stats: dict) -> str:
 # ─── MAP Phase ────────────────────────────────────────────────────────────────
 
 
-def _map_single_note(llm, note: dict, map_system_prompt: str) -> dict | None:
+def _map_single_note(llm, note: dict, map_system_prompt: str, map_schema: dict) -> dict | None:
     """Process a single note through the LLM. Thread-safe.
 
     Returns:
@@ -214,7 +243,7 @@ def _map_single_note(llm, note: dict, map_system_prompt: str) -> dict | None:
                 {"role": "user", "content": context},
             ]
         )
-        errors = validate_schema(delta, MAP_SCHEMA)
+        errors = validate_schema(delta, map_schema)
         if errors:
             raise ValueError(f"Invalid MAP output: {errors}")
         return delta
@@ -236,7 +265,7 @@ def _map_single_note(llm, note: dict, map_system_prompt: str) -> dict | None:
         return None
 
 
-def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
+def run_map_phase(llm, map_system_prompt: str, map_schema: dict, max_workers: int = 4) -> bool:
     """MAP: Process notes one-by-one into structured signal deltas."""
     map_start = time.time()
     print("🚀 Starting Notes MAP Phase...")
@@ -273,7 +302,7 @@ def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
     succeeded = 0
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_note = {
-            executor.submit(_map_single_note, llm, note, map_system_prompt): note
+            executor.submit(_map_single_note, llm, note, map_system_prompt, map_schema): note
             for note in notes_to_process
         }
         for future in as_completed(future_to_note):
@@ -417,7 +446,11 @@ def main():
     print(f"   Workers: {args.workers}\n")
 
     persona_text = load_persona()
-    map_system_prompt = build_map_system_prompt(persona_text)
+    config = load_tenant_config()
+    use_persona = config.get("use_persona_in_map", True)
+
+    map_system_prompt = build_map_system_prompt(persona_text, use_persona=use_persona)
+    map_schema = MAP_SCHEMA if use_persona else MAP_SCHEMA_NO_PERSONA
     reduce_system_prompt = build_reduce_system_prompt(persona_text)
 
     llm = create_llm(provider=args.provider, model=args.model, temperature=args.temperature)
@@ -427,9 +460,9 @@ def main():
     if args.reduce_only:
         run_reduce_phase(llm, reduce_system_prompt)
     elif args.map_only:
-        run_map_phase(llm, map_system_prompt, max_workers=args.workers)
+        run_map_phase(llm, map_system_prompt, map_schema, max_workers=args.workers)
     else:
-        map_success = run_map_phase(llm, map_system_prompt, max_workers=args.workers)
+        map_success = run_map_phase(llm, map_system_prompt, map_schema, max_workers=args.workers)
         if map_success:
             run_reduce_phase(llm, reduce_system_prompt)
 

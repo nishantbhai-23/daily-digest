@@ -35,6 +35,7 @@ from email_parser import load_inbox, group_by_date
 from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today
 from llm import create_llm, call_with_retry
 from persona import load_persona
+from tenant_config import load_tenant_config
 
 
 # ─── Path Configuration ──────────────────────────────────────────────────────
@@ -51,6 +52,15 @@ MAP_SCHEMA = {
     "deadlines": ["description", "priority"],
     "decisions": ["description", "priority"],
     "action_items": ["description", "priority"],
+    "thread_progressions": ["thread", "progression"],
+}
+
+# Used when tenant_config's "use_persona_in_map" is False — no priority field,
+# since assigning P0-P4 requires the persona's people-priority list.
+MAP_SCHEMA_NO_PERSONA = {
+    "deadlines": ["description"],
+    "decisions": ["description"],
+    "action_items": ["description"],
     "thread_progressions": ["thread", "progression"],
 }
 
@@ -73,31 +83,67 @@ COMPACT_SYSTEM_PROMPT = (
 # ─── Prompt Builders (persona-injected) ───────────────────────────────────────
 
 
-def build_map_system_prompt(persona_text: str) -> str:
+def build_map_system_prompt(persona_text: str, use_persona: bool = True) -> str:
+    """Build the MAP system prompt.
+
+    Args:
+        persona_text: The operator profile text.
+        use_persona: When False, produces a persona-free extraction-only
+            prompt — no priority tagging, no persona-driven noise judgment.
+            REDUCE always gets full persona regardless and does its own
+            priority-weighting reasoning over the resulting ledger, so this
+            only changes what MAP itself is asked to judge (see
+            tenant_config.py's "use_persona_in_map").
+    """
+    priority_field = ', "priority": "P0-P4"' if use_persona else ""
+    schema = (
+        "{\n"
+        f'  "deadlines": [{{"description": "...", "date": "...", "source_subject": "..."{priority_field}}}],\n'
+        f'  "decisions": [{{"description": "...", "source_subject": "..."{priority_field}}}],\n'
+        f'  "action_items": [{{"description": "...", "owner": "...", "source_subject": "..."{priority_field}}}],\n'
+        '  "thread_progressions": [{"thread": "...", "progression": "..."}]\n'
+        "}\n\n"
+    )
+
+    if use_persona:
+        header = f"{persona_text}\n\n---\n\n"
+        role = (
+            "You are an email triage node for the operator profiled above. You will "
+            "receive a batch of emails from a single day. Extract the following signals, "
+            "using the profile's \"People who matter\" priority weighting (P0-P4) as your "
+            "default for each item — override based on content when the email itself "
+            "signals otherwise:\n\n"
+        )
+        noise_instruction = (
+            "Do NOT extract signals from newsletters, marketing email, automated "
+            "notifications, or threads whose only content is 'FYI' — per the profile, "
+            "these should not be surfaced at all.\n\n"
+        )
+    else:
+        header = ""
+        role = (
+            "You are an email extraction node. You will receive a batch of emails from a "
+            "single day. Extract the following signals — structural extraction only, not "
+            "judgment about importance or priority:\n\n"
+        )
+        noise_instruction = (
+            "Do NOT extract signals from newsletters, marketing email, automated "
+            "notifications, or threads whose only content is 'FYI' — these are never "
+            "actionable signal regardless of recipient.\n\n"
+        )
+
     return (
-        f"{persona_text}\n\n"
-        "---\n\n"
-        "You are an email triage node for the operator profiled above. You will "
-        "receive a batch of emails from a single day. Extract the following signals, "
-        "using the profile's \"People who matter\" priority weighting (P0-P4) as your "
-        "default for each item — override based on content when the email itself "
-        "signals otherwise:\n\n"
+        f"{header}"
+        f"{role}"
         "1. **Deadlines**: Any hard deadlines mentioned or implied (include dates).\n"
         "2. **Decisions**: Critical decisions that were reached or proposed.\n"
         "3. **Action items**: Tasks assigned to or promised by anyone (include who).\n"
         "4. **Thread progressions**: For ongoing conversation threads, note how "
-        "the thread advanced (e.g., 'Halberd renewal conversation shifted from routine "
+        "the thread advanced (e.g., 'a vendor renewal conversation moved from routine "
         "check-in to a budget concern').\n\n"
-        "Do NOT extract signals from newsletters, marketing email, automated "
-        "notifications, or threads whose only content is 'FYI' — per the profile, "
-        "these should not be surfaced at all.\n\n"
+        f"{noise_instruction}"
         "Output strictly valid JSON matching this schema:\n"
-        "{\n"
-        '  "deadlines": [{"description": "...", "date": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
-        '  "decisions": [{"description": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
-        '  "action_items": [{"description": "...", "owner": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
-        '  "thread_progressions": [{"thread": "...", "progression": "..."}]\n'
-        "}\n\n"
+        f"{schema}"
         "If a category has no entries for the day, use an empty array. Do not write any "
         "markdown wrappers, conversational pleasantries, or extra text."
     )
@@ -184,6 +230,21 @@ def format_email_batch(emails: list[dict]) -> str:
 _FROM_HEADER_RE = re.compile(r'^"?([^"<]*)"?\s*<?([\w.+-]+@[\w.-]+)?>?$')
 
 
+def _parse_from_header(from_header: str) -> tuple[str, str]:
+    """Parse a "Name <email>" From header into (name, lowercased email).
+
+    Falls back to the raw header string for both if it doesn't match the
+    expected shape, rather than raising — callers already treat "unknown"
+    senders as a valid (if degenerate) case.
+    """
+    from_header = (from_header or "").strip()
+    match = _FROM_HEADER_RE.match(from_header)
+    if match and match.group(2):
+        name = (match.group(1) or "").strip() or match.group(2)
+        return name, match.group(2).lower()
+    return from_header or "unknown", (from_header or "unknown").lower()
+
+
 def compute_sender_staleness(emails: list[dict], quiet_threshold_days: int = 3) -> list[dict]:
     """Track last-contact date per sender and flag who's gone quiet.
 
@@ -214,13 +275,7 @@ def compute_sender_staleness(emails: list[dict], quiet_threshold_days: int = 3) 
         if day == "unknown":
             continue
 
-        match = _FROM_HEADER_RE.match(em.get("from", "").strip())
-        if match and match.group(2):
-            name = (match.group(1) or "").strip() or match.group(2)
-            email_addr = match.group(2).lower()
-        else:
-            name = em.get("from", "unknown")
-            email_addr = em.get("from", "unknown").lower()
+        name, email_addr = _parse_from_header(em.get("from", ""))
 
         entry = activity.setdefault(
             email_addr, {"name": name, "count": 0, "first_seen": day, "last_seen": day}
@@ -279,8 +334,7 @@ def compute_day_email_stats(batch: list[dict]) -> dict:
     senders = set()
     reply_count = 0
     for em in batch:
-        match = _FROM_HEADER_RE.match(em.get("from", "").strip())
-        email_addr = match.group(2).lower() if match and match.group(2) else em.get("from", "").lower()
+        _, email_addr = _parse_from_header(em.get("from", ""))
         senders.add(email_addr)
         if em.get("subject", "").strip().lower().startswith(("re:", "fwd:", "fw:")):
             reply_count += 1
@@ -295,10 +349,47 @@ def compute_day_email_stats(batch: list[dict]) -> dict:
     }
 
 
+# ─── Pre-MAP Noise Filter ──────────────────────────────────────────────────────
+# Tenant-configured senders/domains never reach an LLM call at all — strictly
+# better than asking the model to notice and discard them per day, which costs
+# the same tokens either way. The MAP prompt's "don't extract newsletters"
+# instruction stays as a secondary defense for content-based noise a sender
+# list can't catch (a legitimate sender's FYI-only thread); the two are
+# complementary, not redundant.
+
+
+def filter_blocked_senders(emails: list[dict], config: dict) -> list[dict]:
+    """Drop emails from tenant-configured blocked senders/domains.
+
+    Args:
+        emails: Parsed email dicts (must have 'from').
+        config: Tenant config dict (see tenant_config.py) — reads
+            config["map_noise_filter"]["blocked_senders"/"blocked_domains"].
+
+    Returns:
+        Emails with blocked senders/domains removed.
+    """
+    noise_filter = config.get("map_noise_filter", {})
+    blocked_senders = {s.lower() for s in noise_filter.get("blocked_senders", [])}
+    blocked_domains = {d.lower() for d in noise_filter.get("blocked_domains", [])}
+
+    if not blocked_senders and not blocked_domains:
+        return emails
+
+    kept = []
+    for em in emails:
+        _, email_addr = _parse_from_header(em.get("from", ""))
+        domain = email_addr.rsplit("@", 1)[-1] if "@" in email_addr else ""
+        if email_addr in blocked_senders or domain in blocked_domains:
+            continue
+        kept.append(em)
+    return kept
+
+
 # ─── MAP Phase ────────────────────────────────────────────────────────────────
 
 
-def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str) -> dict | None:
+def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str, map_schema: dict) -> dict | None:
     """Process a single day's emails through the LLM. Thread-safe.
 
     Returns:
@@ -315,7 +406,7 @@ def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str) ->
                 {"role": "user", "content": f"Emails for {day}:\n\n{context}"},
             ]
         )
-        errors = validate_schema(delta, MAP_SCHEMA)
+        errors = validate_schema(delta, map_schema)
         if errors:
             raise ValueError(f"Invalid MAP output: {errors}")
         return delta
@@ -336,7 +427,7 @@ def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str) ->
         return None
 
 
-def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
+def run_map_phase(llm, map_system_prompt: str, map_schema: dict, config: dict, max_workers: int = 4) -> bool:
     """MAP: Process emails day-by-day into structured signal deltas.
 
     Uses ThreadPoolExecutor for concurrent processing — each day's
@@ -346,7 +437,13 @@ def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
 
     Args:
         llm: A BaseLLM instance from the abstraction layer.
-        map_system_prompt: The persona-injected MAP system prompt.
+        map_system_prompt: The MAP system prompt (persona-injected or not,
+            per config["use_persona_in_map"] — selected by the caller).
+        map_schema: Schema to validate MAP output against — varies with
+            map_system_prompt, since the persona-off prompt doesn't ask for
+            a priority field (see build_map_system_prompt).
+        config: Tenant config (see tenant_config.py) — used here for the
+            pre-MAP noise filter.
         max_workers: Number of concurrent threads (default: 4).
 
     Returns:
@@ -364,6 +461,12 @@ def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
         return False
     parse_time = time.time() - t0
     print(f"   Found {len(emails)} emails. (parsed in {parse_time:.1f}s)")
+
+    # Deterministic pre-MAP filter — blocked senders never reach an LLM call.
+    before_count = len(emails)
+    emails = filter_blocked_senders(emails, config)
+    if before_count != len(emails):
+        print(f"   🧹 Filtered {before_count - len(emails)} emails from blocked senders.")
 
     # Group by date for day-by-day processing
     daily_batches = group_by_date(emails)
@@ -402,7 +505,7 @@ def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
     succeeded = 0
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_day = {
-            executor.submit(_map_single_day, llm, day, batch, map_system_prompt): day
+            executor.submit(_map_single_day, llm, day, batch, map_system_prompt, map_schema): day
             for day, batch in days_to_process
         }
         for future in as_completed(future_to_day):
@@ -610,7 +713,11 @@ def main():
     print(f"   Workers: {args.workers}\n")
 
     persona_text = load_persona()
-    map_system_prompt = build_map_system_prompt(persona_text)
+    config = load_tenant_config()
+    use_persona = config.get("use_persona_in_map", True)
+
+    map_system_prompt = build_map_system_prompt(persona_text, use_persona=use_persona)
+    map_schema = MAP_SCHEMA if use_persona else MAP_SCHEMA_NO_PERSONA
     reduce_system_prompt = build_reduce_system_prompt(persona_text)
 
     llm = create_llm(
@@ -624,10 +731,10 @@ def main():
     if args.reduce_only:
         run_reduce_phase(llm, reduce_system_prompt)
     elif args.map_only:
-        run_map_phase(llm, map_system_prompt, max_workers=args.workers)
+        run_map_phase(llm, map_system_prompt, map_schema, config, max_workers=args.workers)
     else:
         # Full pipeline: MAP → REDUCE
-        map_success = run_map_phase(llm, map_system_prompt, max_workers=args.workers)
+        map_success = run_map_phase(llm, map_system_prompt, map_schema, config, max_workers=args.workers)
         if map_success:
             run_reduce_phase(llm, reduce_system_prompt)
 

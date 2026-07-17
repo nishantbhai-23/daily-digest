@@ -48,7 +48,7 @@ def eval_email_scenarios(llm, persona_text: str) -> list[tuple]:
         if not batch:
             results.append((scenario["name"], False, "no emails found for that day — regenerate data?"))
             continue
-        entry = triage_agent._map_single_day(llm, scenario["day"], batch, prompt)
+        entry = triage_agent._map_single_day(llm, scenario["day"], batch, prompt, triage_agent.MAP_SCHEMA)
         if entry is None:
             results.append((scenario["name"], False, "MAP call failed after retries"))
             continue
@@ -88,7 +88,7 @@ def eval_notes_scenarios(llm, persona_text: str) -> list[tuple]:
         if note is None:
             results.append((scenario["name"], False, "note not found — regenerate data?"))
             continue
-        entry = notes_agent._map_single_note(llm, note, prompt)
+        entry = notes_agent._map_single_note(llm, note, prompt, notes_agent.MAP_SCHEMA)
         if entry is None:
             results.append((scenario["name"], False, "MAP call failed after retries"))
             continue

@@ -36,3 +36,6 @@ output/
 
 # macOS system files
 .DS_Store
+
+# Design documents
+docs/

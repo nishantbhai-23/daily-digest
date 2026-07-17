@@ -35,6 +35,7 @@ Usage:
 
 import argparse
 import json
+import re
 import os
 import time
 
@@ -45,6 +46,7 @@ from cross_reference import build_cross_reference_index
 from ledger import check_data_freshness, format_today, load_ledger, save_digest, validate_schema
 from llm import call_with_retry, create_llm
 from persona import load_persona
+from tenant_config import load_tenant_config
 from tasks_parser import load_tasks
 from tasks_signals import compute_task_signals, format_task_signals
 
@@ -136,10 +138,9 @@ def build_draft_prompt(persona_text: str) -> str:
         "---\n\n"
         "You are drafting quick replies for the operator profiled above, for "
         "items already identified as dispatchable in under a minute. Follow the "
-        "profile's tone rules exactly: short (three sentences is normal, one is "
-        "great), lowercase or no greeting, sign off with 'Avery' or nothing, no "
-        "'I hope this email finds you well', no 'circling back', no 'just "
-        "wanted to'. Warmth comes from specificity, not adjectives.\n\n"
+        "profile's tone rules exactly, including greeting and sign-off style, as "
+        "specified in the profile above — don't invent your own phrasing for "
+        "these. Warmth comes from specificity, not adjectives.\n\n"
         "Output strictly valid JSON matching this schema:\n"
         "{\n"
         '  "drafts": [{"id": "...", "draft_text": "..."}]\n'
@@ -238,19 +239,46 @@ def synthesize_brief(
 # ─── Stage 3: Draft Generation ────────────────────────────────────────────────
 
 
-def generate_drafts(llm, dispatchable_items: list[dict], persona_text: str) -> dict:
-    """Filters out anything sourced from Sam Park in code before the call is
-    even made — per the profile's explicit rule ("for Sam: don't draft,
-    surface and let me write"), enforced deterministically rather than
-    trusted to the prompt alone.
+def build_never_draft_patterns(never_draft_contacts: list[dict]) -> list[re.Pattern]:
+    """Compile match patterns for tenant-configured "never draft" contacts.
+
+    Matches on individual name parts (first/last), not just the full name as
+    one substring — LLM-generated summary/context prose is far more likely
+    to say just "Sam" than "Sam Park" or the literal email address. Word-
+    boundary regex avoids a short name part false-positiving inside an
+    unrelated word (e.g. "sam" inside "samsung").
     """
-    draftable = [
-        item for item in dispatchable_items
-        if "sam park" not in (item.get("summary", "") + item.get("context", "")).lower()
-    ]
+    patterns = []
+    for contact in never_draft_contacts:
+        for part in contact.get("name", "").split():
+            if len(part) >= 3:
+                patterns.append(re.compile(r"\b" + re.escape(part.lower()) + r"\b"))
+        email = contact.get("email", "")
+        if email:
+            patterns.append(re.compile(re.escape(email.lower())))
+    return patterns
+
+
+def mentions_blocked_contact(item: dict, patterns: list[re.Pattern]) -> bool:
+    """Check whether a dispatchable item's summary/context matches any
+    never-draft-contact pattern (see build_never_draft_patterns)."""
+    text = (item.get("summary", "") + " " + item.get("context", "")).lower()
+    return any(pattern.search(text) for pattern in patterns)
+
+
+def generate_drafts(llm, dispatchable_items: list[dict], persona_text: str, config: dict) -> dict:
+    """Filters out anything sourced from a tenant-configured "never draft"
+    contact in code before the call is even made — enforced deterministically
+    rather than trusted to the prompt alone. Generalized from a Sam-Park-
+    specific hardcoded check to config["never_draft_contacts"] (see
+    tenant_config.py) so this works for any tenant's own such rule, not just
+    this persona's.
+    """
+    patterns = build_never_draft_patterns(config.get("never_draft_contacts", []))
+    draftable = [item for item in dispatchable_items if not mentions_blocked_contact(item, patterns)]
 
     if not draftable:
-        print("   ℹ️  No draftable items (after filtering Sam Park) — skipping draft generation.")
+        print("   ℹ️  No draftable items (after filtering never-draft contacts) — skipping draft generation.")
         return {"drafts": []}
 
     prompt = build_draft_prompt(persona_text)
@@ -343,6 +371,7 @@ def main():
 
     print(f"🤖 Initializing LLM: {args.provider}/{args.model}\n")
     persona_text = load_persona()
+    config = load_tenant_config()
     llm = create_llm(provider=args.provider, model=args.model, temperature=args.temperature)
 
     total_start = time.time()
@@ -377,7 +406,7 @@ def main():
     print(f"   {len(synthesis.get('dispatchable_items', []))} dispatchable item(s) identified.")
 
     print("✍️  Stage 3 — draft generation...")
-    drafts = generate_drafts(llm, synthesis.get("dispatchable_items", []), persona_text)
+    drafts = generate_drafts(llm, synthesis.get("dispatchable_items", []), persona_text, config)
     print(f"   {len(drafts.get('drafts', []))} draft(s) written.")
 
     brief = assemble_brief(synthesis, drafts, freshness)

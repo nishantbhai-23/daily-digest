@@ -1,0 +1,20 @@
+{
+  "use_persona_in_map": true,
+  "never_draft_contacts": [{"name": "Sam Park", "email": "sam.park@gmail.com"}],
+  "map_noise_filter": {
+    "blocked_senders": [
+      "notifications@ashbyhq.com",
+      "no-reply@ramp.com",
+      "notify@ironcladapp.com",
+      "calendar-notification@google.com",
+      "team@makenotion.com",
+      "notifications@linear.app",
+      "ben@stratechery.com",
+      "news@lennysnewsletter.com",
+      "news@saastr.com",
+      "growth@ramp.com",
+      "updates@makenotion.com"
+    ],
+    "blocked_domains": []
+  }
+}
