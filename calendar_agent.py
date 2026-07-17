@@ -34,7 +34,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from calendar_parser import load_calendar, group_by_date
-from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today
+from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window
 from llm import create_llm, call_with_retry
 from persona import load_persona
 from tenant_config import load_tenant_config
@@ -299,8 +299,13 @@ def format_event_batch(events: list[dict]) -> str:
 # ─── MAP Phase ────────────────────────────────────────────────────────────────
 
 
-def _map_single_day(llm, day: str, events: list[dict], map_system_prompt: str) -> dict | None:
+def _map_single_day(llm, day: str, events: list[dict], map_system_prompt: str, hot: bool = False) -> dict | None:
     """Process a single day's calendar events. Thread-safe.
+
+    Args:
+        hot: Marks this entry as sourced from --hot-input — see
+            triage_agent.py's `_map_single_day` for the full rationale;
+            same convention, mirrored here for the calendar side.
 
     Returns:
         A ledger entry dict on success, None on failure.
@@ -331,21 +336,39 @@ def _map_single_day(llm, day: str, events: list[dict], map_system_prompt: str) -
     try:
         delta = call_with_retry(_call)
         elapsed = time.time() - start
-        print(f"   ✅ {day} — {len(events)} events — {elapsed:.1f}s")
-        return {
+        hot_tag = " 🔥" if hot else ""
+        print(f"   ✅ {day} — {len(events)} events — {elapsed:.1f}s{hot_tag}")
+        entry = {
             "day": day,
             COUNT_KEY: len(events),
             "stats": stats,
             "delta": delta,
         }
+        if hot:
+            entry["hot"] = True
+        return entry
     except Exception as e:
         elapsed = time.time() - start
         print(f"   ⚠️  {day} — FAILED after retries ({elapsed:.1f}s): {e}")
         return None
 
 
-def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
-    """MAP: Process calendar events day-by-day into structured signal deltas."""
+def run_map_phase(
+    llm,
+    map_system_prompt: str,
+    max_workers: int = 4,
+    digest_days: int | None = None,
+    holdout_days: int | None = None,
+    hot_input: str | None = None,
+) -> bool:
+    """MAP: Process calendar events day-by-day into structured signal deltas.
+
+    Args:
+        digest_days, holdout_days, hot_input: See triage_agent.py's
+            run_map_phase — same flags, same semantics, mirrored here.
+            hot_input points at a single additional .ics file rather than a
+            directory, since calendar data is one file, not one-file-per-item.
+    """
     map_start = time.time()
     print("🚀 Starting Calendar MAP Phase...")
 
@@ -358,8 +381,30 @@ def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
     parse_time = time.time() - t0
     print(f"   Found {len(events)} events. (parsed in {parse_time:.1f}s)")
 
+    if hot_input:
+        hot_events = load_calendar(hot_input)
+        if not hot_events:
+            print(f"   ⚠️  No events found under --hot-input '{hot_input}'.")
+        else:
+            for e in hot_events:
+                e["_hot"] = True
+            print(f"   🔥 Loaded {len(hot_events)} hot event(s) from {hot_input}.")
+            events = events + hot_events
+
     daily_batches = group_by_date(events)
     print(f"   Spanning {len(daily_batches)} days.\n")
+
+    before_days = len(daily_batches)
+    daily_batches, held_out_days = apply_digest_window(daily_batches, digest_days, holdout_days)
+    if digest_days is not None and digest_days < before_days:
+        print(f"   ✂️  --digest-days {digest_days}: using the most recent {digest_days} day(s).")
+    if holdout_days:
+        if held_out_days:
+            print(f"   🧊 --holdout-days {holdout_days}: holding out {held_out_days} for a later hot pass.")
+        else:
+            print(f"   ⚠️  --holdout-days {holdout_days} >= {len(daily_batches)} available days; holding out nothing.")
+
+    hot_days = {day for day, batch in daily_batches.items() if any(e.get("_hot") for e in batch)}
 
     ledger, processed_days = load_ledger(LEDGER_FILE)
     if processed_days:
@@ -382,7 +427,7 @@ def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
     succeeded = 0
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_day = {
-            executor.submit(_map_single_day, llm, day, batch, map_system_prompt): day
+            executor.submit(_map_single_day, llm, day, batch, map_system_prompt, day in hot_days): day
             for day, batch in days_to_process
         }
         for future in as_completed(future_to_day):
@@ -438,7 +483,8 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
     lines = []
     for entry in ledger:
         label = f"Week of {entry['day']}" if entry.get("compacted") else entry["day"]
-        lines.append(f"### {label} ({entry.get(COUNT_KEY, 0)} events)")
+        hot_suffix = " [JUST ARRIVED]" if entry.get("hot") else ""
+        lines.append(f"### {label} ({entry.get(COUNT_KEY, 0)} events){hot_suffix}")
 
         if entry.get("stats"):
             lines.extend(_render_calendar_stats(entry["stats"]))
@@ -522,6 +568,9 @@ def parse_args():
     parser.add_argument("--map-only", action="store_true", help="Run only the MAP phase (extract signals from calendar)")
     parser.add_argument("--reduce-only", action="store_true", help="Run only the REDUCE phase (synthesize existing ledger)")
     parser.add_argument("--workers", type=int, default=4, help="Number of concurrent workers for MAP phase (default: 4)")
+    parser.add_argument("--digest-days", type=int, default=None, help="Cap the digest to the most recent N days found in the calendar (default: all)")
+    parser.add_argument("--holdout-days", type=int, default=None, help="Hold out the most recent N days from this run so a later run (without this flag) picks them up as a 'hot' pass")
+    parser.add_argument("--hot-input", default=None, help="Path to an additional .ics file to process as newly-arrived 'hot' data")
     return parser.parse_args()
 
 
@@ -541,12 +590,19 @@ def main():
 
     total_start = time.time()
 
+    map_kwargs = dict(
+        max_workers=args.workers,
+        digest_days=args.digest_days,
+        holdout_days=args.holdout_days,
+        hot_input=args.hot_input,
+    )
+
     if args.reduce_only:
         run_reduce_phase(llm, reduce_system_prompt)
     elif args.map_only:
-        run_map_phase(llm, map_system_prompt, max_workers=args.workers)
+        run_map_phase(llm, map_system_prompt, **map_kwargs)
     else:
-        map_success = run_map_phase(llm, map_system_prompt, max_workers=args.workers)
+        map_success = run_map_phase(llm, map_system_prompt, **map_kwargs)
         if map_success:
             run_reduce_phase(llm, reduce_system_prompt)
 

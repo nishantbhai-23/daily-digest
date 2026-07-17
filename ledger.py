@@ -115,6 +115,49 @@ def save_digest(content: str, current_path: str, history_dir: str) -> str:
 # ─── Data Freshness ───────────────────────────────────────────────────────────
 
 
+def apply_digest_window(
+    daily_batches: dict,
+    digest_days: int | None = None,
+    holdout_days: int | None = None,
+) -> tuple[dict, list[str]]:
+    """Apply the --digest-days / --holdout-days windowing shared by
+    triage_agent.py and calendar_agent.py's MAP phase.
+
+    Both agents' `group_by_date` already returns a chronologically sorted
+    {day: batch} dict, which makes both flags a pure slicing problem rather
+    than anything requiring new pipeline logic:
+
+    - digest_days caps a cold run to the most recent N days present in the
+      loaded data — "how big a digest" control. None means no cap (process
+      everything found, today's existing default behavior).
+    - holdout_days excludes the most recent N days from what this run even
+      sees — they're not marked "already processed," just not included, so
+      a later run without this flag picks them up as new days through the
+      normal incremental ledger diff. This is what lets the existing
+      synthetic dataset simulate a hot pass with no new data: cold now, hot
+      later, same command minus this one flag.
+
+    If both are set, digest_days bounds the window first and holdout_days
+    carves the tail off of that result.
+
+    Returns:
+        (windowed_batches, held_out_day_keys) — the second element is purely
+        for caller-side logging (which days got excluded), always [] unless
+        holdout_days actually removed something.
+    """
+    if digest_days is not None:
+        daily_batches = dict(list(daily_batches.items())[-digest_days:])
+
+    held_out_days: list[str] = []
+    if holdout_days:
+        items = list(daily_batches.items())
+        if holdout_days < len(items):
+            held_out_days = [day for day, _ in items[-holdout_days:]]
+            daily_batches = dict(items[:-holdout_days])
+
+    return daily_batches, held_out_days
+
+
 def format_today(reference_date=None) -> str:
     """Return an explicit "today" string for injection into REDUCE/synthesis
     prompts as ground truth.

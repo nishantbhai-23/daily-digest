@@ -79,6 +79,12 @@ def build_contradiction_prompt(persona_text: str) -> str:
         "dates, different owners, different decisions) — not just that they "
         "both mention the same thing, which is normal and not a contradiction "
         "by itself.\n\n"
+        "Only report a contradiction you can point to directly in the excerpts "
+        "given for that specific task — never infer one from thematic "
+        "similarity to something else you recall, and never combine an excerpt "
+        "from one task with your general knowledge of a similar situation. If "
+        "the excerpts for a task don't actually contain enough to say two "
+        "sources conflict, leave it out rather than guessing.\n\n"
         "Output strictly valid JSON matching this schema:\n"
         "{\n"
         '  "contradictions": [{"entity": "...", "sources": ["email", "notes"], "description": "..."}]\n'
@@ -153,6 +159,59 @@ def build_draft_prompt(persona_text: str) -> str:
 # ─── Stage 1: Contradiction Detection ─────────────────────────────────────────
 
 
+def _resolve_entity(entity: str, multi_source: dict) -> dict | None:
+    """Match a claimed contradiction's 'entity' field against multi_source.
+
+    The prompt doesn't dictate whether the model should echo the task_id
+    (the dict key it was shown) or the task's title field back — both are
+    visible to it in the JSON context. Accepts either, case-insensitively,
+    rather than silently failing to resolve legitimate claims just because
+    the model picked the other valid label.
+    """
+    if entity in multi_source:
+        return multi_source[entity]
+    entity_lower = entity.strip().lower()
+    for data in multi_source.values():
+        if data.get("title", "").strip().lower() == entity_lower:
+            return data
+    return None
+
+
+def _ground_contradictions(contradictions: list, multi_source: dict) -> list:
+    """Drop contradiction claims whose entity/sources were never actually
+    presented together — the deterministic half of closing gap #4 in
+    docs/ERROR_HANDLING.md (schema validation checks shape, not truth).
+
+    This does not fact-check a claim's *content* — that would mean
+    re-deriving the same judgment call the LLM was asked to make. It only
+    checks the structural precondition for the claim to be possible at all:
+    the entity must be one of the candidates actually given to the model,
+    and the claimed sources must be a subset of where that entity was
+    actually seen (per cross_reference.py's mentioned_in). A claim that
+    fails this check referenced a source/entity pairing that was never
+    shown together, which is either a hallucination or, defensively, worth
+    treating the same as one either way.
+    """
+    grounded = []
+    for c in contradictions:
+        entity = c.get("entity", "")
+        claimed_sources = set(c.get("sources", []))
+        match = _resolve_entity(entity, multi_source)
+        if match is None:
+            print(f"   ⚠️  Dropping ungrounded contradiction — unknown entity {entity!r}")
+            continue
+        actual_sources = {m["source"] for m in match["mentioned_in"]}
+        if not claimed_sources or not claimed_sources.issubset(actual_sources):
+            print(
+                f"   ⚠️  Dropping ungrounded contradiction for {entity!r} — "
+                f"claimed sources {sorted(claimed_sources)} not all present "
+                f"in actual mentions {sorted(actual_sources)}"
+            )
+            continue
+        grounded.append(c)
+    return grounded
+
+
 def detect_contradictions(llm, cross_ref_index: dict, persona_text: str) -> dict:
     """Only checks tasks that appear in 2+ distinct sources — a task
     mentioned twice within the same source has nothing to contradict
@@ -184,10 +243,16 @@ def detect_contradictions(llm, cross_ref_index: dict, persona_text: str) -> dict
         return result
 
     try:
-        return call_with_retry(_call)
+        result = call_with_retry(_call)
     except Exception as e:
         print(f"   ⚠️  Contradiction detection failed after retries: {e}")
         return {"contradictions": []}
+
+    grounded = _ground_contradictions(result.get("contradictions", []), multi_source)
+    dropped = len(result.get("contradictions", [])) - len(grounded)
+    if dropped:
+        print(f"   ℹ️  Grounding check dropped {dropped} ungrounded contradiction(s).")
+    return {"contradictions": grounded}
 
 
 # ─── Stage 2: Unified Synthesis ───────────────────────────────────────────────

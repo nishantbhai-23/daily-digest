@@ -34,6 +34,43 @@ import urllib.request
 from abc import ABC, abstractmethod
 
 
+class TerminalLLMError(Exception):
+    """An LLM API error that retrying cannot fix — bad request, auth
+    failure, permission denied, or no billing balance. Raised by providers
+    that can confidently classify their own errors (see
+    _raise_classified below); call_with_retry re-raises this immediately
+    instead of burning the remaining attempts (and, on a paid API, money)
+    on a call that was never going to succeed.
+
+    Confirmed necessary, not speculative: this session hit a 402
+    "Insufficient Balance" from both OpenRouter and DeepSeek, and the
+    previous retry logic retried each one 3 times before giving up —
+    ~6 seconds and 3 wasted requests on an error attempt 2 or 3 could never
+    fix (see docs/ERROR_HANDLING.md gap #2).
+    """
+
+
+# HTTP-status-like codes that are confidently non-retryable regardless of
+# provider: bad request, auth failure, permission denied, no billing
+# balance. 429 (rate limit) is deliberately NOT here — it's usually
+# transient and retrying is the correct default — even though this
+# session's one observed 429 (Google, zero free-tier quota) was actually
+# permanent. That ambiguity is real and unresolved; see docs/ERROR_HANDLING.md.
+_TERMINAL_HTTP_CODES = {400, 401, 402, 403}
+
+
+def _raise_classified(message: str, status_code, cause: Exception):
+    """Raise TerminalLLMError for a confidently non-retryable status code,
+    or RuntimeError (the default retryable type) otherwise — always chained
+    from the real underlying exception via `from cause`, so nothing about
+    the original error (type, traceback) is lost either way. Shared by
+    every provider's error handling so the classification policy lives in
+    one place instead of being reimplemented per provider.
+    """
+    error_cls = TerminalLLMError if status_code in _TERMINAL_HTTP_CODES else RuntimeError
+    raise error_cls(message) from cause
+
+
 def call_with_retry(fn, *args, max_retries: int = 3, base_delay: float = 2.0, retry_on=(Exception,), **kwargs):
     """Call fn(*args, **kwargs) with exponential backoff retry.
 
@@ -63,17 +100,24 @@ def call_with_retry(fn, *args, max_retries: int = 3, base_delay: float = 2.0, re
         Whatever fn(*args, **kwargs) returns.
 
     Raises:
-        The last exception encountered, if every attempt fails.
+        TerminalLLMError immediately, without retrying, if the call raises
+        one. Otherwise the last exception encountered, if every attempt
+        fails.
     """
     last_error = None
     for attempt in range(1, max_retries + 1):
         try:
             return fn(*args, **kwargs)
+        except TerminalLLMError:
+            raise
         except retry_on as e:
             last_error = e
             if attempt < max_retries:
                 time.sleep(base_delay * (2 ** (attempt - 1)))
     raise last_error
+
+
+DEFAULT_TIMEOUT_SECONDS = 120
 
 
 class BaseLLM(ABC):
@@ -84,10 +128,16 @@ class BaseLLM(ABC):
     but subclasses can override it for native JSON mode support.
     """
 
-    def __init__(self, model: str, temperature: float = 0.0, max_tokens: int = 4096):
+    def __init__(self, model: str, temperature: float = 0.0, max_tokens: int = 4096, timeout: float = DEFAULT_TIMEOUT_SECONDS):
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
+        # Every provider must actually apply this — a call with no timeout
+        # can hang indefinitely with nothing in this codebase able to
+        # interrupt it. Confirmed root cause of multi-thousand-second stalls
+        # observed on local Ollama before this was added (see
+        # docs/ERROR_HANDLING.md).
+        self.timeout = timeout
 
     @abstractmethod
     def chat(self, messages: list[dict], **kwargs) -> str:
@@ -166,7 +216,12 @@ class OllamaLLM(BaseLLM):
         try:
             import ollama
 
-            self._client = ollama
+            # The bare module-level ollama.chat() has no way to set a
+            # timeout at all — confirmed by inspecting the installed
+            # package's signature. An explicit Client forwards **kwargs
+            # (including timeout) straight to its underlying httpx.Client,
+            # which does support it.
+            self._client = ollama.Client(timeout=self.timeout)
         except ImportError:
             raise ImportError(
                 "The 'ollama' package is required for the Ollama provider.\n"
@@ -208,7 +263,7 @@ class AnthropicLLM(BaseLLM):
         try:
             import anthropic
 
-            self._client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY
+            self._client = anthropic.Anthropic(timeout=self.timeout)  # reads ANTHROPIC_API_KEY
         except ImportError:
             raise ImportError(
                 "The 'anthropic' package is required for the Anthropic provider.\n"
@@ -227,7 +282,17 @@ class AnthropicLLM(BaseLLM):
         if system_content:
             api_kwargs["system"] = system_content
 
-        response = self._client.messages.create(**api_kwargs)
+        try:
+            response = self._client.messages.create(**api_kwargs)
+        except Exception as e:
+            # anthropic.APIStatusError exposes .status_code — duck-typed via
+            # getattr rather than importing anthropic's exception classes
+            # directly (the package isn't guaranteed installed at import
+            # time for this module; not directly verified in this dev
+            # environment since 'anthropic' wasn't installed to check
+            # against, based on the SDK's documented, stable public API).
+            status_code = getattr(e, "status_code", None)
+            _raise_classified(f"Anthropic API error: {e}", status_code, e)
         return response.content[0].text
 
     def chat_json(self, messages: list[dict], **kwargs) -> dict:
@@ -299,6 +364,22 @@ class GoogleLLM(BaseLLM):
 
         return self._genai.GenerativeModel(**model_kwargs)
 
+    def _generate(self, model, gemini_history: list[dict]):
+        """generate_content wrapped with error classification — shared by
+        chat() and chat_json() so the try/except isn't duplicated. Google's
+        SDK raises google.api_core.exceptions.GoogleAPICallError subclasses,
+        each carrying a `.code` class attribute matching HTTP-status
+        semantics (verified directly: PermissionDenied=403,
+        InvalidArgument=400, Unauthenticated=401, ResourceExhausted=429) —
+        duck-typed via getattr so this doesn't need a hard import of
+        google.api_core just to check it.
+        """
+        try:
+            return model.generate_content(gemini_history, request_options={"timeout": self.timeout})
+        except Exception as e:
+            status_code = getattr(e, "code", None)
+            _raise_classified(f"Google API error: {e}", status_code, e)
+
     def chat(self, messages: list[dict], **kwargs) -> str:
         system_content, chat_messages = self._split_system(messages)
         model = self._create_model(system_content=system_content)
@@ -309,7 +390,7 @@ class GoogleLLM(BaseLLM):
             role = "user" if msg["role"] == "user" else "model"
             gemini_history.append({"role": role, "parts": [msg["content"]]})
 
-        response = model.generate_content(gemini_history)
+        response = self._generate(model, gemini_history)
         return response.text
 
     def chat_json(self, messages: list[dict], **kwargs) -> dict:
@@ -322,7 +403,7 @@ class GoogleLLM(BaseLLM):
             role = "user" if msg["role"] == "user" else "model"
             gemini_history.append({"role": role, "parts": [msg["content"]]})
 
-        response = model.generate_content(gemini_history)
+        response = self._generate(model, gemini_history)
         return json.loads(response.text)
 
 
@@ -377,11 +458,12 @@ class _OpenAICompatibleLLM(BaseLLM):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=120, context=_SSL_CONTEXT) as resp:
+            with urllib.request.urlopen(req, timeout=self.timeout, context=_SSL_CONTEXT) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"{self.PROVIDER_NAME} API error {e.code}: {body}") from e
+            message = f"{self.PROVIDER_NAME} API error {e.code}: {body}"
+            _raise_classified(message, e.code, e)
 
     def chat(self, messages: list[dict], **kwargs) -> str:
         response = self._post({

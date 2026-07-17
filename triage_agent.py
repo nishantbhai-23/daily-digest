@@ -32,7 +32,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 from email_parser import load_inbox, group_by_date
-from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today
+from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window
 from llm import create_llm, call_with_retry
 from persona import load_persona
 from tenant_config import load_tenant_config
@@ -389,8 +389,16 @@ def filter_blocked_senders(emails: list[dict], config: dict) -> list[dict]:
 # ─── MAP Phase ────────────────────────────────────────────────────────────────
 
 
-def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str, map_schema: dict) -> dict | None:
+def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str, map_schema: dict, hot: bool = False) -> dict | None:
     """Process a single day's emails through the LLM. Thread-safe.
+
+    Args:
+        hot: Marks this entry as sourced from --hot-input — i.e. data meant
+            to represent what "just came in" on top of an already-digested
+            cold window, rather than part of the historical backfill. Purely
+            a label for downstream transparency (render_ledger_as_text,
+            eventually the digest's own honesty framing); doesn't change how
+            the day itself is processed.
 
     Returns:
         A ledger entry dict on success, None on failure.
@@ -414,20 +422,33 @@ def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str, ma
     try:
         structured_delta = call_with_retry(_call)
         elapsed = time.time() - start
-        print(f"   ✅ {day} — {len(batch)} emails — {elapsed:.1f}s")
-        return {
+        hot_tag = " 🔥" if hot else ""
+        print(f"   ✅ {day} — {len(batch)} emails — {elapsed:.1f}s{hot_tag}")
+        entry = {
             "day": day,
             COUNT_KEY: len(batch),
             "stats": stats,
             "delta": structured_delta,
         }
+        if hot:
+            entry["hot"] = True
+        return entry
     except Exception as e:
         elapsed = time.time() - start
         print(f"   ⚠️  {day} — FAILED after retries ({elapsed:.1f}s): {e}")
         return None
 
 
-def run_map_phase(llm, map_system_prompt: str, map_schema: dict, config: dict, max_workers: int = 4) -> bool:
+def run_map_phase(
+    llm,
+    map_system_prompt: str,
+    map_schema: dict,
+    config: dict,
+    max_workers: int = 4,
+    digest_days: int | None = None,
+    holdout_days: int | None = None,
+    hot_input: str | None = None,
+) -> bool:
     """MAP: Process emails day-by-day into structured signal deltas.
 
     Uses ThreadPoolExecutor for concurrent processing — each day's
@@ -445,6 +466,20 @@ def run_map_phase(llm, map_system_prompt: str, map_schema: dict, config: dict, m
         config: Tenant config (see tenant_config.py) — used here for the
             pre-MAP noise filter.
         max_workers: Number of concurrent threads (default: 4).
+        digest_days: If set, cap a cold run to the most recent N days found
+            in the inbox — "how big a digest" control. None processes
+            everything found (existing behavior).
+        holdout_days: If set, hold out the most recent N days from this run
+            entirely — they're simply not seen, not marked processed — so a
+            later run (without this flag) picks them up as new days through
+            the normal incremental diff below. Lets the existing synthetic
+            dataset simulate a "hot" pass without any new data: cold now,
+            hot later, same command minus this flag.
+        hot_input: Path to a directory of additional .eml files representing
+            data that "just arrived" — parsed the same way as INBOX_DIR and
+            merged in before day-grouping, so it naturally lands in its own
+            day bucket and flows through the same incremental MAP path.
+            Entries built from this data are tagged `"hot": True`.
 
     Returns:
         True if processing succeeded, False otherwise.
@@ -468,9 +503,35 @@ def run_map_phase(llm, map_system_prompt: str, map_schema: dict, config: dict, m
     if before_count != len(emails):
         print(f"   🧹 Filtered {before_count - len(emails)} emails from blocked senders.")
 
+    if hot_input:
+        hot_emails = load_inbox(hot_input)
+        if not hot_emails:
+            print(f"   ⚠️  No emails found under --hot-input '{hot_input}'.")
+        else:
+            for e in hot_emails:
+                e["_hot"] = True
+            print(f"   🔥 Loaded {len(hot_emails)} hot email(s) from {hot_input}.")
+            emails = emails + hot_emails
+
     # Group by date for day-by-day processing
     daily_batches = group_by_date(emails)
     print(f"   Spanning {len(daily_batches)} days.\n")
+
+    before_days = len(daily_batches)
+    daily_batches, held_out_days = apply_digest_window(daily_batches, digest_days, holdout_days)
+    if digest_days is not None and digest_days < before_days:
+        print(f"   ✂️  --digest-days {digest_days}: using the most recent {digest_days} day(s).")
+    if holdout_days:
+        if held_out_days:
+            print(f"   🧊 --holdout-days {holdout_days}: holding out {held_out_days} for a later hot pass.")
+        else:
+            print(f"   ⚠️  --holdout-days {holdout_days} >= {len(daily_batches)} available days; holding out nothing.")
+
+    # Days whose batch contains any --hot-input email get tagged hot at
+    # the ledger-entry level, even if they also contain cold-inbox emails
+    # for the same date — the day itself is "new information," not just
+    # some of the emails in it.
+    hot_days = {day for day, batch in daily_batches.items() if any(e.get("_hot") for e in batch)}
 
     # Load existing ledger for incremental updates
     ledger, processed_days = load_ledger(LEDGER_FILE)
@@ -505,7 +566,7 @@ def run_map_phase(llm, map_system_prompt: str, map_schema: dict, config: dict, m
     succeeded = 0
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_day = {
-            executor.submit(_map_single_day, llm, day, batch, map_system_prompt, map_schema): day
+            executor.submit(_map_single_day, llm, day, batch, map_system_prompt, map_schema, day in hot_days): day
             for day, batch in days_to_process
         }
         for future in as_completed(future_to_day):
@@ -550,7 +611,8 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
     lines = []
     for entry in ledger:
         label = f"Week of {entry['day']}" if entry.get("compacted") else entry["day"]
-        lines.append(f"### {label} ({entry.get(COUNT_KEY, 0)} emails)")
+        hot_suffix = " [JUST ARRIVED]" if entry.get("hot") else ""
+        lines.append(f"### {label} ({entry.get(COUNT_KEY, 0)} emails){hot_suffix}")
 
         if entry.get("stats"):
             lines.extend(_render_email_stats(entry["stats"]))
@@ -702,6 +764,23 @@ def parse_args():
         default=4,
         help="Number of concurrent workers for MAP phase (default: 4)",
     )
+    parser.add_argument(
+        "--digest-days",
+        type=int,
+        default=None,
+        help="Cap the digest to the most recent N days found in the inbox (default: all)",
+    )
+    parser.add_argument(
+        "--holdout-days",
+        type=int,
+        default=None,
+        help="Hold out the most recent N days from this run so a later run (without this flag) picks them up as a 'hot' pass",
+    )
+    parser.add_argument(
+        "--hot-input",
+        default=None,
+        help="Path to a directory of additional .eml files to process as newly-arrived 'hot' data",
+    )
     return parser.parse_args()
 
 
@@ -728,13 +807,20 @@ def main():
 
     total_start = time.time()
 
+    map_kwargs = dict(
+        max_workers=args.workers,
+        digest_days=args.digest_days,
+        holdout_days=args.holdout_days,
+        hot_input=args.hot_input,
+    )
+
     if args.reduce_only:
         run_reduce_phase(llm, reduce_system_prompt)
     elif args.map_only:
-        run_map_phase(llm, map_system_prompt, map_schema, config, max_workers=args.workers)
+        run_map_phase(llm, map_system_prompt, map_schema, config, **map_kwargs)
     else:
         # Full pipeline: MAP → REDUCE
-        map_success = run_map_phase(llm, map_system_prompt, map_schema, config, max_workers=args.workers)
+        map_success = run_map_phase(llm, map_system_prompt, map_schema, config, **map_kwargs)
         if map_success:
             run_reduce_phase(llm, reduce_system_prompt)
 
