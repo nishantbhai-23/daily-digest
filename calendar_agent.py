@@ -354,6 +354,24 @@ def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
 # ─── REDUCE Phase ─────────────────────────────────────────────────────────────
 
 
+def _render_calendar_stats(stats: dict, indent: str = "") -> list[str]:
+    """Render one day's deterministic calendar stats as text lines."""
+    lines = [
+        f"{indent}- Meetings: {stats.get('meeting_count', 0)} "
+        f"({stats.get('meeting_hours', 0)}h) | "
+        f"Focus time protected: {stats.get('focus_hours_protected', 0)}h, "
+        f"eroded: {stats.get('focus_hours_eroded', 0)}h | "
+        f"Back-to-back: {stats.get('back_to_back_count', 0)} | "
+        f"Declined/cancelled: {stats.get('declined_or_cancelled_count', 0)}"
+    ]
+    for conflict in stats.get("deep_work_conflicts", []):
+        lines.append(
+            f"{indent}  - DEEP WORK CONFLICT: '{conflict['summary']}' at "
+            f"{conflict['start']} ({conflict['overlap_hours']}h overlap)"
+        )
+    return lines
+
+
 def render_ledger_as_text(ledger: list[dict]) -> str:
     """Render the ledger as readable text instead of raw JSON.
 
@@ -368,21 +386,11 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
         label = f"Week of {entry['day']}" if entry.get("compacted") else entry["day"]
         lines.append(f"### {label} ({entry.get(COUNT_KEY, 0)} events)")
 
-        stats = entry.get("stats", {})
-        if stats:
-            lines.append(
-                f"- Meetings: {stats.get('meeting_count', 0)} "
-                f"({stats.get('meeting_hours', 0)}h) | "
-                f"Focus time protected: {stats.get('focus_hours_protected', 0)}h, "
-                f"eroded: {stats.get('focus_hours_eroded', 0)}h | "
-                f"Back-to-back: {stats.get('back_to_back_count', 0)} | "
-                f"Declined/cancelled: {stats.get('declined_or_cancelled_count', 0)}"
-            )
-            for conflict in stats.get("deep_work_conflicts", []):
-                lines.append(
-                    f"  - DEEP WORK CONFLICT: '{conflict['summary']}' at "
-                    f"{conflict['start']} ({conflict['overlap_hours']}h overlap)"
-                )
+        if entry.get("stats"):
+            lines.extend(_render_calendar_stats(entry["stats"]))
+        for day, day_stats in entry.get("stats_by_day", {}).items():
+            lines.append(f"  {day}:")
+            lines.extend(_render_calendar_stats(day_stats, indent="  "))
 
         delta = entry.get("delta", {})
         for item in delta.get("meetings_needing_prep", []):

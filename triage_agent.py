@@ -261,6 +261,36 @@ def format_staleness_report(staleness: list[dict]) -> str:
     return "\n".join(lines)
 
 
+# ─── Deterministic Per-Day Email Stats ────────────────────────────────────────
+# Thinner than calendar's structured events or notes' checkboxes — free-text
+# email doesn't carry much that's reliably extractable without judgment —
+# but the envelope should still carry a 'stats' sibling to 'delta' the same
+# way calendar/notes ledger entries do, both for consistency and because
+# even a little deterministic signal (reply ratio, sender diversity) is
+# still cheaper and more trustworthy than asking the LLM to compute it.
+
+
+def compute_day_email_stats(batch: list[dict]) -> dict:
+    """Pure-Python deterministic stats for a day's email batch."""
+    senders = set()
+    reply_count = 0
+    for em in batch:
+        match = _FROM_HEADER_RE.match(em.get("from", "").strip())
+        email_addr = match.group(2).lower() if match and match.group(2) else em.get("from", "").lower()
+        senders.add(email_addr)
+        if em.get("subject", "").strip().lower().startswith(("re:", "fwd:", "fw:")):
+            reply_count += 1
+
+    total_chars = sum(len(em.get("body", "")) for em in batch)
+
+    return {
+        "unique_senders": len(senders),
+        "reply_count": reply_count,
+        "new_thread_count": len(batch) - reply_count,
+        "avg_body_chars": round(total_chars / len(batch)) if batch else 0,
+    }
+
+
 # ─── MAP Phase ────────────────────────────────────────────────────────────────
 
 
@@ -270,6 +300,7 @@ def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str) ->
     Returns:
         A ledger entry dict on success, None on failure.
     """
+    stats = compute_day_email_stats(batch)
     context = format_email_batch(batch)
     start = time.time()
 
@@ -292,6 +323,7 @@ def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str) ->
         return {
             "day": day,
             COUNT_KEY: len(batch),
+            "stats": stats,
             "delta": structured_delta,
         }
     except Exception as e:
@@ -389,6 +421,16 @@ def run_map_phase(llm, map_system_prompt: str, max_workers: int = 4) -> bool:
 # ─── REDUCE Phase ─────────────────────────────────────────────────────────────
 
 
+def _render_email_stats(stats: dict, indent: str = "") -> list[str]:
+    """Render one day's deterministic email stats as text lines."""
+    return [
+        f"{indent}- Senders: {stats.get('unique_senders', 0)} unique | "
+        f"Replies: {stats.get('reply_count', 0)} | "
+        f"New threads: {stats.get('new_thread_count', 0)} | "
+        f"Avg body length: {stats.get('avg_body_chars', 0)} chars"
+    ]
+
+
 def render_ledger_as_text(ledger: list[dict]) -> str:
     """Render the ledger as readable text instead of raw JSON.
 
@@ -402,6 +444,12 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
     for entry in ledger:
         label = f"Week of {entry['day']}" if entry.get("compacted") else entry["day"]
         lines.append(f"### {label} ({entry.get(COUNT_KEY, 0)} emails)")
+
+        if entry.get("stats"):
+            lines.extend(_render_email_stats(entry["stats"]))
+        for day, day_stats in entry.get("stats_by_day", {}).items():
+            lines.append(f"  {day}:")
+            lines.extend(_render_email_stats(day_stats, indent="  "))
 
         delta = entry.get("delta", {})
         for item in delta.get("deadlines", []):

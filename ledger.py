@@ -199,15 +199,25 @@ def compact_ledger(
             compacted.extend(entries)
             continue
 
-        compacted.append(
-            {
-                "day": week_key,
-                count_key: count_sum,
-                "delta": merged_delta,
-                "compacted": True,
-                "days_covered": [e["day"] for e in entries],
-            }
-        )
+        compacted_entry = {
+            "day": week_key,
+            count_key: count_sum,
+            "delta": merged_delta,
+            "compacted": True,
+            "days_covered": [e["day"] for e in entries],
+        }
+        # Deterministic per-day facts (calendar's deep_work_conflicts,
+        # notes' checklist staleness, ...) have a source-specific schema
+        # ledger.py doesn't know — rather than trying to merge them, keep
+        # them keyed by day so nothing is silently dropped on compaction.
+        stats_by_day = {e["day"]: e["stats"] for e in entries if "stats" in e}
+        if stats_by_day:
+            compacted_entry["stats_by_day"] = stats_by_day
+        note_ids = [e["note_id"] for e in entries if "note_id" in e]
+        if note_ids:
+            compacted_entry["note_ids_covered"] = note_ids
+
+        compacted.append(compacted_entry)
 
     return sorted(compacted + fresh, key=_chronological_key)
 
