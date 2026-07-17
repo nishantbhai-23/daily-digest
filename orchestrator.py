@@ -41,6 +41,8 @@ import time
 
 import calendar_agent
 import notes_agent
+import resilience
+import tenant_paths
 import triage_agent
 from cross_reference import build_cross_reference_index
 from ledger import check_data_freshness, format_today, load_ledger, save_digest, validate_schema
@@ -212,7 +214,7 @@ def _ground_contradictions(contradictions: list, multi_source: dict) -> list:
     return grounded
 
 
-def detect_contradictions(llm, cross_ref_index: dict, persona_text: str) -> dict:
+def detect_contradictions(llm, cross_ref_index: dict, persona_text: str, breaker=None, metrics_path=None) -> dict:
     """Only checks tasks that appear in 2+ distinct sources — a task
     mentioned twice within the same source has nothing to contradict
     against. Skips the LLM call entirely if there are no such candidates.
@@ -243,7 +245,7 @@ def detect_contradictions(llm, cross_ref_index: dict, persona_text: str) -> dict
         return result
 
     try:
-        result = call_with_retry(_call)
+        result = call_with_retry(_call, breaker=breaker, llm=llm, metrics_path=metrics_path)
     except Exception as e:
         print(f"   ⚠️  Contradiction detection failed after retries: {e}")
         return {"contradictions": []}
@@ -268,6 +270,8 @@ def synthesize_brief(
     contradictions: dict,
     freshness: dict,
     persona_text: str,
+    breaker=None,
+    metrics_path=None,
 ) -> dict:
     prompt = build_synthesis_prompt(persona_text)
 
@@ -298,7 +302,7 @@ def synthesize_brief(
             raise ValueError(f"Invalid synthesis output: {errors}")
         return result
 
-    return call_with_retry(_call)
+    return call_with_retry(_call, breaker=breaker, llm=llm, metrics_path=metrics_path)
 
 
 # ─── Stage 3: Draft Generation ────────────────────────────────────────────────
@@ -331,7 +335,7 @@ def mentions_blocked_contact(item: dict, patterns: list[re.Pattern]) -> bool:
     return any(pattern.search(text) for pattern in patterns)
 
 
-def generate_drafts(llm, dispatchable_items: list[dict], persona_text: str, config: dict) -> dict:
+def generate_drafts(llm, dispatchable_items: list[dict], persona_text: str, config: dict, breaker=None, metrics_path=None) -> dict:
     """Filters out anything sourced from a tenant-configured "never draft"
     contact in code before the call is even made — enforced deterministically
     rather than trusted to the prompt alone. Generalized from a Sam-Park-
@@ -362,7 +366,7 @@ def generate_drafts(llm, dispatchable_items: list[dict], persona_text: str, conf
         return result
 
     try:
-        return call_with_retry(_call)
+        return call_with_retry(_call, breaker=breaker, llm=llm, metrics_path=metrics_path)
     except Exception as e:
         print(f"   ⚠️  Draft generation failed after retries: {e}")
         return {"drafts": []}
@@ -428,24 +432,50 @@ def parse_args():
     parser.add_argument("--provider", default="ollama", choices=["ollama", "anthropic", "google", "openrouter", "deepseek"], help="LLM provider (default: ollama)")
     parser.add_argument("--model", default="llama3", help="Model name (default: llama3)")
     parser.add_argument("--temperature", type=float, default=0.0, help="LLM temperature (default: 0.0)")
+    parser.add_argument(
+        "--tenant",
+        default=tenant_paths.DEFAULT_TENANT,
+        help="Tenant ID — reads/writes under data/tenants/<id>/ and output/tenants/<id>/ "
+        "(default: 'default', today's existing ./data/./output/ layout). Must match the "
+        "--tenant used when running triage_agent.py/calendar_agent.py/notes_agent.py, "
+        "since this only reads ledgers those scripts already produced.",
+    )
     return parser.parse_args()
 
 
-def main():
-    args = parse_args()
+def run_for_tenant(tenant_id: str, provider: str, model: str, temperature: float = 0.0) -> None:
+    """Run the full orchestrator pipeline for one tenant — everything
+    main() used to do inline, extracted so run_fleet.py can call this
+    directly, once per tenant, inside a shared ThreadPoolExecutor. Keeping
+    this an in-process function call (not a subprocess) is what lets
+    resilience.py's breaker/token-bucket registries actually be shared
+    across concurrent tenants — the entire point of the fleet runner.
+    """
+    paths = tenant_paths.for_tenant(tenant_id)
 
-    print(f"🤖 Initializing LLM: {args.provider}/{args.model}\n")
-    persona_text = load_persona()
-    config = load_tenant_config()
-    llm = create_llm(provider=args.provider, model=args.model, temperature=args.temperature)
+    print(f"🤖 Initializing LLM: {provider}/{model}")
+    print(f"   Tenant: {paths.tenant_id}\n")
+    persona_text = load_persona(paths.persona_file)
+    config = load_tenant_config(paths.tenant_config_file)
+    llm = create_llm(provider=provider, model=model, temperature=temperature, tenant_id=paths.tenant_id)
+
+    # Shared across every tenant process calling this (provider, model) —
+    # see resilience.py. Meaningful once run_fleet.py drives several
+    # tenants concurrently in one process; a no-op-in-practice single
+    # instance otherwise (never opens on a lone successful run).
+    breaker = resilience.get_breaker(
+        provider, model,
+        failure_threshold=config.get("circuit_breaker_threshold", 5),
+    )
+    metrics_path = paths.metrics_file
 
     total_start = time.time()
 
     print("📚 Loading source ledgers and live task signals...")
-    email_ledger, _ = load_ledger(triage_agent.LEDGER_FILE)
-    calendar_ledger, _ = load_ledger(calendar_agent.LEDGER_FILE)
-    notes_ledger, _ = load_ledger(notes_agent.LEDGER_FILE)
-    tasks = load_tasks(TASKS_FILE)
+    email_ledger, _ = load_ledger(paths.email_ledger_file)
+    calendar_ledger, _ = load_ledger(paths.calendar_ledger_file)
+    notes_ledger, _ = load_ledger(paths.notes_ledger_file)
+    tasks = load_tasks(paths.tasks_file)
     task_signals = compute_task_signals(tasks)
 
     if not (email_ledger or calendar_ledger or notes_ledger):
@@ -460,29 +490,35 @@ def main():
     print(f"   {len(cross_ref_index)} flagged task(s) found in multiple sources.")
 
     print("🔍 Stage 1 — contradiction detection...")
-    contradictions = detect_contradictions(llm, cross_ref_index, persona_text)
+    contradictions = detect_contradictions(llm, cross_ref_index, persona_text, breaker=breaker, metrics_path=metrics_path)
     print(f"   {len(contradictions.get('contradictions', []))} contradiction(s) found.")
 
     print("🧠 Stage 2 — unified synthesis...")
     synthesis = synthesize_brief(
         llm, email_ledger, calendar_ledger, notes_ledger, task_signals,
         cross_ref_index, contradictions, freshness, persona_text,
+        breaker=breaker, metrics_path=metrics_path,
     )
     print(f"   {len(synthesis.get('dispatchable_items', []))} dispatchable item(s) identified.")
 
     print("✍️  Stage 3 — draft generation...")
-    drafts = generate_drafts(llm, synthesis.get("dispatchable_items", []), persona_text, config)
+    drafts = generate_drafts(llm, synthesis.get("dispatchable_items", []), persona_text, config, breaker=breaker, metrics_path=metrics_path)
     print(f"   {len(drafts.get('drafts', []))} draft(s) written.")
 
     brief = assemble_brief(synthesis, drafts, freshness)
-    history_path = save_digest(brief, BRIEF_FILE, HISTORY_DIR)
+    history_path = save_digest(brief, paths.brief_file, paths.history_dir)
 
     total_time = time.time() - total_start
     print(f"\n✅ Daily brief completed in {total_time:.1f}s.")
-    print(f"   Saved to: {BRIEF_FILE}")
+    print(f"   Saved to: {paths.brief_file}")
     print(f"   History copy: {history_path}")
     print(f"\n{'─' * 60}\n   Daily Brief\n{'─' * 60}\n")
     print(brief)
+
+
+def main():
+    args = parse_args()
+    run_for_tenant(args.tenant, args.provider, args.model, args.temperature)
 
 
 if __name__ == "__main__":

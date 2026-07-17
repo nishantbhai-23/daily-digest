@@ -31,6 +31,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
+import tenant_paths
 from email_parser import load_inbox, group_by_date
 from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window
 from llm import create_llm, call_with_retry
@@ -444,6 +445,7 @@ def run_map_phase(
     map_system_prompt: str,
     map_schema: dict,
     config: dict,
+    paths,
     max_workers: int = 4,
     digest_days: int | None = None,
     holdout_days: int | None = None,
@@ -465,6 +467,10 @@ def run_map_phase(
             a priority field (see build_map_system_prompt).
         config: Tenant config (see tenant_config.py) — used here for the
             pre-MAP noise filter.
+        paths: A tenant_paths.TenantPaths resolving where this tenant's
+            inbox and ledger live — see tenant_paths.py. Replaces the old
+            module-level INBOX_DIR/paths.email_ledger_file constants, which now only
+            describe the "default" tenant's layout.
         max_workers: Number of concurrent threads (default: 4).
         digest_days: If set, cap a cold run to the most recent N days found
             in the inbox — "how big a digest" control. None processes
@@ -489,8 +495,8 @@ def run_map_phase(
 
     # Load and parse all emails from inbox
     t0 = time.time()
-    print(f"📬 Loading emails from {INBOX_DIR}...")
-    emails = load_inbox(INBOX_DIR)
+    print(f"📬 Loading emails from {paths.inbox_dir}...")
+    emails = load_inbox(paths.inbox_dir)
     if not emails:
         print("❌ No emails found. Check the inbox directory.")
         return False
@@ -534,7 +540,7 @@ def run_map_phase(
     hot_days = {day for day, batch in daily_batches.items() if any(e.get("_hot") for e in batch)}
 
     # Load existing ledger for incremental updates
-    ledger, processed_days = load_ledger(LEDGER_FILE)
+    ledger, processed_days = load_ledger(paths.email_ledger_file)
     if processed_days:
         print(
             f"📋 Existing ledger found: {len(processed_days)} days already processed."
@@ -553,7 +559,7 @@ def run_map_phase(
     if not days_to_process:
         print("   Nothing new to process.")
         # Still save ledger (idempotent)
-        save_ledger(LEDGER_FILE, ledger)
+        save_ledger(paths.email_ledger_file, ledger)
         return True
 
     print(
@@ -574,14 +580,14 @@ def run_map_phase(
             if result is not None:
                 ledger.append(result)
                 # Save immediately
-                save_ledger(LEDGER_FILE, ledger)
+                save_ledger(paths.email_ledger_file, ledger)
                 succeeded += 1
 
     total_time = time.time() - map_start
     print(f"\n✅ MAP Phase completed in {total_time:.1f}s.")
     print(
         f"   {succeeded}/{len(days_to_process)} days succeeded. "
-        f"Ledger: {LEDGER_FILE} ({len(ledger)} total days)\n"
+        f"Ledger: {paths.email_ledger_file} ({len(ledger)} total days)\n"
     )
     return True
 
@@ -643,7 +649,7 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
+def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
     """REDUCE: Synthesize the 30-day ledger into an executive digest.
 
     Reads the full rolling ledger and passes it to the LLM for synthesis.
@@ -657,21 +663,21 @@ def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
     reduce_start = time.time()
     print("📉 Starting REDUCE Phase...")
 
-    ledger, _ = load_ledger(LEDGER_FILE)
+    ledger, _ = load_ledger(paths.email_ledger_file)
     if not ledger:
-        print(f"❌ Ledger not found or empty at '{LEDGER_FILE}'. Run MAP phase first.")
+        print(f"❌ Ledger not found or empty at '{paths.email_ledger_file}'. Run MAP phase first.")
         return
 
     # Collapse anything older than the retention window into weekly rollups
     # before synthesizing, so REDUCE cost doesn't grow unbounded over time.
     ledger = compact_ledger(ledger, llm, COMPACT_SYSTEM_PROMPT, retention_days=30, count_key=COUNT_KEY)
-    save_ledger(LEDGER_FILE, ledger)
+    save_ledger(paths.email_ledger_file, ledger)
 
     ledger_context = render_ledger_as_text(ledger)
 
     # Deterministic ground truth for "who's gone quiet" — computed from raw
     # inbox headers, not inferred by the LLM from the rendered ledger.
-    emails = load_inbox(INBOX_DIR)
+    emails = load_inbox(paths.inbox_dir)
     staleness = compute_sender_staleness(emails)
     staleness_report = format_staleness_report(staleness)
 
@@ -702,11 +708,11 @@ def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
         return
 
     # Save current + a timestamped history copy
-    history_path = save_digest(summary, SUMMARY_FILE, HISTORY_DIR)
+    history_path = save_digest(summary, paths.email_summary_file, paths.history_dir)
 
     reduce_time = time.time() - reduce_start
     print(f"✅ REDUCE Phase completed in {reduce_time:.1f}s.")
-    print(f"   Summary saved to: {SUMMARY_FILE}")
+    print(f"   Summary saved to: {paths.email_summary_file}")
     print(f"   History copy: {history_path}")
     print(f"\n{'─' * 60}")
     print("   Current 30-Day Executive Digest")
@@ -781,18 +787,26 @@ def parse_args():
         default=None,
         help="Path to a directory of additional .eml files to process as newly-arrived 'hot' data",
     )
+    parser.add_argument(
+        "--tenant",
+        default=tenant_paths.DEFAULT_TENANT,
+        help="Tenant ID — resolves data/output paths under data/tenants/<id>/ and "
+        "output/tenants/<id>/ (default: 'default', today's existing ./data/./output/ layout)",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+    paths = tenant_paths.for_tenant(args.tenant)
 
     print(f"🤖 Initializing LLM: {args.provider}/{args.model}")
     print(f"   Temperature: {args.temperature}")
-    print(f"   Workers: {args.workers}\n")
+    print(f"   Workers: {args.workers}")
+    print(f"   Tenant: {paths.tenant_id}\n")
 
-    persona_text = load_persona()
-    config = load_tenant_config()
+    persona_text = load_persona(paths.persona_file)
+    config = load_tenant_config(paths.tenant_config_file)
     use_persona = config.get("use_persona_in_map", True)
 
     map_system_prompt = build_map_system_prompt(persona_text, use_persona=use_persona)
@@ -815,14 +829,14 @@ def main():
     )
 
     if args.reduce_only:
-        run_reduce_phase(llm, reduce_system_prompt)
+        run_reduce_phase(llm, reduce_system_prompt, paths)
     elif args.map_only:
-        run_map_phase(llm, map_system_prompt, map_schema, config, **map_kwargs)
+        run_map_phase(llm, map_system_prompt, map_schema, config, paths, **map_kwargs)
     else:
         # Full pipeline: MAP → REDUCE
-        map_success = run_map_phase(llm, map_system_prompt, map_schema, config, **map_kwargs)
+        map_success = run_map_phase(llm, map_system_prompt, map_schema, config, paths, **map_kwargs)
         if map_success:
-            run_reduce_phase(llm, reduce_system_prompt)
+            run_reduce_phase(llm, reduce_system_prompt, paths)
 
     total_time = time.time() - total_start
     print(f"\n⏱️  Total elapsed: {total_time:.1f}s")

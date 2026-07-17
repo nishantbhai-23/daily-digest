@@ -35,6 +35,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
+import tenant_paths
 from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today
 from llm import create_llm, call_with_retry
 from notes_parser import load_notes
@@ -265,14 +266,14 @@ def _map_single_note(llm, note: dict, map_system_prompt: str, map_schema: dict) 
         return None
 
 
-def run_map_phase(llm, map_system_prompt: str, map_schema: dict, max_workers: int = 4) -> bool:
+def run_map_phase(llm, map_system_prompt: str, map_schema: dict, paths, max_workers: int = 4) -> bool:
     """MAP: Process notes one-by-one into structured signal deltas."""
     map_start = time.time()
     print("🚀 Starting Notes MAP Phase...")
 
     t0 = time.time()
-    print(f"📝 Loading notes from {NOTES_DIR}...")
-    notes = load_notes(NOTES_DIR)
+    print(f"📝 Loading notes from {paths.notes_dir}...")
+    notes = load_notes(paths.notes_dir)
     if not notes:
         print("❌ No notes found. Check the notes directory.")
         return False
@@ -282,7 +283,7 @@ def run_map_phase(llm, map_system_prompt: str, map_schema: dict, max_workers: in
     # Resume tracking is note_id-based, not day-based — unlike email/calendar,
     # two notes could share a creation date, and "day" here is a chronological
     # sort/compaction key, not a uniqueness guarantee.
-    ledger, _ = load_ledger(LEDGER_FILE)
+    ledger, _ = load_ledger(paths.notes_ledger_file)
     processed_note_ids = {entry["note_id"] for entry in ledger if "note_id" in entry}
     if processed_note_ids:
         print(f"📋 Existing ledger found: {len(processed_note_ids)} notes already processed.")
@@ -294,7 +295,7 @@ def run_map_phase(llm, map_system_prompt: str, map_schema: dict, max_workers: in
 
     if not notes_to_process:
         print("   Nothing new to process.")
-        save_ledger(LEDGER_FILE, ledger)
+        save_ledger(paths.notes_ledger_file, ledger)
         return True
 
     print(f"\n🔄 Processing {len(notes_to_process)} notes with {max_workers} worker(s)...\n")
@@ -309,14 +310,14 @@ def run_map_phase(llm, map_system_prompt: str, map_schema: dict, max_workers: in
             result = future.result()
             if result is not None:
                 ledger.append(result)
-                save_ledger(LEDGER_FILE, ledger)
+                save_ledger(paths.notes_ledger_file, ledger)
                 succeeded += 1
 
     total_time = time.time() - map_start
     print(f"\n✅ Notes MAP Phase completed in {total_time:.1f}s.")
     print(
         f"   {succeeded}/{len(notes_to_process)} notes succeeded. "
-        f"Ledger: {LEDGER_FILE} ({len(ledger)} total entries)\n"
+        f"Ledger: {paths.notes_ledger_file} ({len(ledger)} total entries)\n"
     )
     return True
 
@@ -373,18 +374,18 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
+def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
     """REDUCE: Synthesize the notes ledger into a notes-focused digest."""
     reduce_start = time.time()
     print("📉 Starting Notes REDUCE Phase...")
 
-    ledger, _ = load_ledger(LEDGER_FILE)
+    ledger, _ = load_ledger(paths.notes_ledger_file)
     if not ledger:
-        print(f"❌ Ledger not found or empty at '{LEDGER_FILE}'. Run MAP phase first.")
+        print(f"❌ Ledger not found or empty at '{paths.notes_ledger_file}'. Run MAP phase first.")
         return
 
     ledger = compact_ledger(ledger, llm, COMPACT_SYSTEM_PROMPT, retention_days=30, count_key=COUNT_KEY)
-    save_ledger(LEDGER_FILE, ledger)
+    save_ledger(paths.notes_ledger_file, ledger)
 
     ledger_context = render_ledger_as_text(ledger)
     print(f"🧠 Synthesizing {len(ledger)}-entry context window...")
@@ -401,11 +402,11 @@ def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
         print(f"❌ Notes REDUCE phase failed after retries: {e}")
         return
 
-    history_path = save_digest(summary, SUMMARY_FILE, HISTORY_DIR)
+    history_path = save_digest(summary, paths.notes_summary_file, paths.history_dir)
 
     reduce_time = time.time() - reduce_start
     print(f"✅ Notes REDUCE Phase completed in {reduce_time:.1f}s.")
-    print(f"   Summary saved to: {SUMMARY_FILE}")
+    print(f"   Summary saved to: {paths.notes_summary_file}")
     print(f"   History copy: {history_path}")
     print(f"\n{'─' * 60}")
     print("   Current 30-Day Notes Digest")
@@ -435,18 +436,26 @@ def parse_args():
     parser.add_argument("--map-only", action="store_true", help="Run only the MAP phase (extract signals from notes)")
     parser.add_argument("--reduce-only", action="store_true", help="Run only the REDUCE phase (synthesize existing ledger)")
     parser.add_argument("--workers", type=int, default=4, help="Number of concurrent workers for MAP phase (default: 4)")
+    parser.add_argument(
+        "--tenant",
+        default=tenant_paths.DEFAULT_TENANT,
+        help="Tenant ID — resolves data/output paths under data/tenants/<id>/ and "
+        "output/tenants/<id>/ (default: 'default', today's existing ./data/./output/ layout)",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+    paths = tenant_paths.for_tenant(args.tenant)
 
     print(f"🤖 Initializing LLM: {args.provider}/{args.model}")
     print(f"   Temperature: {args.temperature}")
-    print(f"   Workers: {args.workers}\n")
+    print(f"   Workers: {args.workers}")
+    print(f"   Tenant: {paths.tenant_id}\n")
 
-    persona_text = load_persona()
-    config = load_tenant_config()
+    persona_text = load_persona(paths.persona_file)
+    config = load_tenant_config(paths.tenant_config_file)
     use_persona = config.get("use_persona_in_map", True)
 
     map_system_prompt = build_map_system_prompt(persona_text, use_persona=use_persona)
@@ -458,13 +467,13 @@ def main():
     total_start = time.time()
 
     if args.reduce_only:
-        run_reduce_phase(llm, reduce_system_prompt)
+        run_reduce_phase(llm, reduce_system_prompt, paths)
     elif args.map_only:
-        run_map_phase(llm, map_system_prompt, map_schema, max_workers=args.workers)
+        run_map_phase(llm, map_system_prompt, map_schema, paths, max_workers=args.workers)
     else:
-        map_success = run_map_phase(llm, map_system_prompt, map_schema, max_workers=args.workers)
+        map_success = run_map_phase(llm, map_system_prompt, map_schema, paths, max_workers=args.workers)
         if map_success:
-            run_reduce_phase(llm, reduce_system_prompt)
+            run_reduce_phase(llm, reduce_system_prompt, paths)
 
     total_time = time.time() - total_start
     print(f"\n⏱️  Total elapsed: {total_time:.1f}s")

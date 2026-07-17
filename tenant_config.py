@@ -49,29 +49,71 @@ DEFAULT_CONFIG = {
 
 CONFIG_FILE = "./data/tenant_config.json"
 
+# Fleet-level ceilings a tenant must never be able to set for themselves —
+# same reasoning that pulled never_draft_contacts out of persona.md's free
+# text and into deterministic code: the highest-stakes settings shouldn't
+# depend on trusting arbitrary tenant-authored content, whether that's a
+# prompt or, as here, a JSON file the tenant is otherwise free to edit. Never
+# stored under data/tenants/<id>/ — one file, shared across every tenant.
+SYSTEM_CONFIG_FILE = "./data/system_config.json"
 
-def load_tenant_config(path: str = CONFIG_FILE) -> dict:
-    """Load tenant config, falling back to defaults for anything unset.
+DEFAULT_SYSTEM_CONFIG = {
+    "max_qps_per_tenant": 2.0,
+    "allowed_providers": ["ollama", "anthropic", "google", "openrouter", "deepseek"],
+    "circuit_breaker_threshold": 5,
+}
 
-    Args:
-        path: Path to the tenant's config JSON file.
+# Keys that always come from system config, even if a tenant's own file
+# also happens to set them — enforced by load_tenant_config always applying
+# these last, overwriting whatever the tenant-config merge produced.
+SYSTEM_ENFORCED_KEYS = frozenset(DEFAULT_SYSTEM_CONFIG.keys())
 
-    Returns:
-        DEFAULT_CONFIG merged with whatever the file overrides. Missing file
-        returns a copy of DEFAULT_CONFIG unchanged.
+
+def load_system_config(path: str = SYSTEM_CONFIG_FILE) -> dict:
+    """Load the fleet-level system config, falling back to defaults for
+    anything unset. Missing file returns a copy of DEFAULT_SYSTEM_CONFIG.
     """
-    merged = json.loads(json.dumps(DEFAULT_CONFIG))  # deep copy, stdlib-only
+    merged = json.loads(json.dumps(DEFAULT_SYSTEM_CONFIG))  # deep copy, stdlib-only
 
     if not os.path.exists(path):
         return merged
 
     with open(path, "r", encoding="utf-8") as f:
-        user_config = json.load(f)
+        system_config = json.load(f)
 
-    for key, value in user_config.items():
-        if isinstance(value, dict) and isinstance(merged.get(key), dict):
-            merged[key].update(value)
-        else:
-            merged[key] = value
+    merged.update(system_config)
+    return merged
+
+
+def load_tenant_config(path: str = CONFIG_FILE, system_path: str = SYSTEM_CONFIG_FILE) -> dict:
+    """Load tenant config, falling back to defaults for anything unset, then
+    layer system config on top so SYSTEM_ENFORCED_KEYS always reflect the
+    fleet-level file regardless of what the tenant's own file contains.
+
+    Args:
+        path: Path to the tenant's config JSON file.
+        system_path: Path to the fleet-level system config — deliberately
+            NOT tenant-scoped; always the same file for every tenant unless
+            a caller explicitly overrides it (e.g. in tests).
+
+    Returns:
+        DEFAULT_CONFIG merged with the tenant's file, then with
+        SYSTEM_ENFORCED_KEYS overwritten by system config as the final step.
+    """
+    merged = json.loads(json.dumps(DEFAULT_CONFIG))  # deep copy, stdlib-only
+
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            user_config = json.load(f)
+
+        for key, value in user_config.items():
+            if isinstance(value, dict) and isinstance(merged.get(key), dict):
+                merged[key].update(value)
+            else:
+                merged[key] = value
+
+    system_config = load_system_config(system_path)
+    for key in SYSTEM_ENFORCED_KEYS:
+        merged[key] = system_config[key]
 
     return merged

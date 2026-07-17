@@ -1,0 +1,5 @@
+{
+  "max_qps_per_tenant": 2.0,
+  "allowed_providers": ["ollama", "anthropic", "google", "openrouter", "deepseek"],
+  "circuit_breaker_threshold": 5
+}

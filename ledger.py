@@ -15,6 +15,8 @@ Usage:
     from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger
 """
 
+import contextlib
+import fcntl
 import json
 import os
 from collections import defaultdict
@@ -24,26 +26,71 @@ from datetime import datetime, timedelta
 # ─── Ledger Load/Save ─────────────────────────────────────────────────────────
 
 
+@contextlib.contextmanager
+def _ledger_lock(path: str, exclusive: bool = True):
+    """Advisory file lock guarding one ledger file against concurrent access.
+
+    What this actually protects, verified directly (not assumed): each
+    individual load_ledger()/save_ledger() call is now atomic with respect
+    to every other one on the same path — no reader ever sees a torn/
+    half-written file, and no two writers' bytes ever interleave into
+    invalid JSON. That's real and was worth having on its own.
+
+    What it does NOT protect, found via a concurrent-write test written
+    while verifying this: a full read-modify-write *session* (load once,
+    mutate an in-memory list, save — repeated across several calls, which
+    is exactly triage_agent.py/calendar_agent.py/notes_agent.py's
+    run_map_phase pattern) is not atomic end-to-end. Two concurrent
+    run_map_phase invocations for the same tenant can each load the same
+    starting ledger, each append their own new day, and the second save()
+    silently wins — lost update, not corruption. Closing that gap needs a
+    lock held for the whole MAP-phase session, not per call, which isn't
+    built here. Not a live risk for what currently calls save_ledger
+    concurrently (orchestrator.run_for_tenant, driven by run_fleet.py, only
+    *reads* ledgers — it never calls save_ledger), but a real limitation if
+    someone runs the same tenant's MAP phase twice at once. Documented here
+    rather than silently claimed as solved.
+
+    Uses a sidecar `.lock` file rather than locking the data file directly,
+    since save_ledger opens the data file with "w" (which truncates
+    immediately on open) — a separate lock file lets the lock be acquired
+    *before* any truncation happens.
+
+    POSIX-only (fcntl) — fine for this codebase's target environment; no
+    cross-platform fallback, consistent with not adding dependencies for a
+    problem this system doesn't have yet.
+    """
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    lock_path = path + ".lock"
+    with open(lock_path, "a") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+
+
 def load_ledger(path: str) -> tuple:
     """Load an existing ledger and the set of already-processed day keys.
 
     Returns:
         (ledger_entries, processed_days_set)
     """
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            ledger = json.load(f)
-        processed_days = {entry["day"] for entry in ledger}
-        return ledger, processed_days
-    return [], set()
+    with _ledger_lock(path, exclusive=False):
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                ledger = json.load(f)
+            processed_days = {entry["day"] for entry in ledger}
+            return ledger, processed_days
+        return [], set()
 
 
 def save_ledger(path: str, ledger: list[dict]) -> None:
     """Persist the ledger, sorted chronologically by day key."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    ledger_sorted = sorted(ledger, key=_chronological_key)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(ledger_sorted, f, indent=2)
+    with _ledger_lock(path, exclusive=True):
+        ledger_sorted = sorted(ledger, key=_chronological_key)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(ledger_sorted, f, indent=2)
 
 
 # ─── Schema Validation ────────────────────────────────────────────────────────

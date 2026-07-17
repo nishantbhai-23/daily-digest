@@ -33,6 +33,7 @@ import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import tenant_paths
 from calendar_parser import load_calendar, group_by_date
 from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window
 from llm import create_llm, call_with_retry
@@ -356,6 +357,7 @@ def _map_single_day(llm, day: str, events: list[dict], map_system_prompt: str, h
 def run_map_phase(
     llm,
     map_system_prompt: str,
+    paths,
     max_workers: int = 4,
     digest_days: int | None = None,
     holdout_days: int | None = None,
@@ -373,8 +375,8 @@ def run_map_phase(
     print("🚀 Starting Calendar MAP Phase...")
 
     t0 = time.time()
-    print(f"📅 Loading calendar from {CALENDAR_FILE}...")
-    events = load_calendar(CALENDAR_FILE)
+    print(f"📅 Loading calendar from {paths.calendar_file}...")
+    events = load_calendar(paths.calendar_file)
     if not events:
         print("❌ No calendar events found. Check the calendar file.")
         return False
@@ -406,7 +408,7 @@ def run_map_phase(
 
     hot_days = {day for day, batch in daily_batches.items() if any(e.get("_hot") for e in batch)}
 
-    ledger, processed_days = load_ledger(LEDGER_FILE)
+    ledger, processed_days = load_ledger(paths.calendar_ledger_file)
     if processed_days:
         print(f"📋 Existing ledger found: {len(processed_days)} days already processed.")
 
@@ -419,7 +421,7 @@ def run_map_phase(
 
     if not days_to_process:
         print("   Nothing new to process.")
-        save_ledger(LEDGER_FILE, ledger)
+        save_ledger(paths.calendar_ledger_file, ledger)
         return True
 
     print(f"\n🔄 Processing {len(days_to_process)} days with {max_workers} worker(s)...\n")
@@ -434,14 +436,14 @@ def run_map_phase(
             result = future.result()
             if result is not None:
                 ledger.append(result)
-                save_ledger(LEDGER_FILE, ledger)
+                save_ledger(paths.calendar_ledger_file, ledger)
                 succeeded += 1
 
     total_time = time.time() - map_start
     print(f"\n✅ Calendar MAP Phase completed in {total_time:.1f}s.")
     print(
         f"   {succeeded}/{len(days_to_process)} days succeeded. "
-        f"Ledger: {LEDGER_FILE} ({len(ledger)} total days)\n"
+        f"Ledger: {paths.calendar_ledger_file} ({len(ledger)} total days)\n"
     )
     return True
 
@@ -506,18 +508,18 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
+def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
     """REDUCE: Synthesize the calendar ledger into a schedule-focused digest."""
     reduce_start = time.time()
     print("📉 Starting Calendar REDUCE Phase...")
 
-    ledger, _ = load_ledger(LEDGER_FILE)
+    ledger, _ = load_ledger(paths.calendar_ledger_file)
     if not ledger:
-        print(f"❌ Ledger not found or empty at '{LEDGER_FILE}'. Run MAP phase first.")
+        print(f"❌ Ledger not found or empty at '{paths.calendar_ledger_file}'. Run MAP phase first.")
         return
 
     ledger = compact_ledger(ledger, llm, COMPACT_SYSTEM_PROMPT, retention_days=30, count_key=COUNT_KEY)
-    save_ledger(LEDGER_FILE, ledger)
+    save_ledger(paths.calendar_ledger_file, ledger)
 
     ledger_context = render_ledger_as_text(ledger)
     print(f"🧠 Synthesizing {len(ledger)}-entry context window...")
@@ -534,11 +536,11 @@ def run_reduce_phase(llm, reduce_system_prompt: str) -> None:
         print(f"❌ Calendar REDUCE phase failed after retries: {e}")
         return
 
-    history_path = save_digest(summary, SUMMARY_FILE, HISTORY_DIR)
+    history_path = save_digest(summary, paths.calendar_summary_file, paths.history_dir)
 
     reduce_time = time.time() - reduce_start
     print(f"✅ Calendar REDUCE Phase completed in {reduce_time:.1f}s.")
-    print(f"   Summary saved to: {SUMMARY_FILE}")
+    print(f"   Summary saved to: {paths.calendar_summary_file}")
     print(f"   History copy: {history_path}")
     print(f"\n{'─' * 60}")
     print("   Current 30-Day Calendar Digest")
@@ -571,18 +573,26 @@ def parse_args():
     parser.add_argument("--digest-days", type=int, default=None, help="Cap the digest to the most recent N days found in the calendar (default: all)")
     parser.add_argument("--holdout-days", type=int, default=None, help="Hold out the most recent N days from this run so a later run (without this flag) picks them up as a 'hot' pass")
     parser.add_argument("--hot-input", default=None, help="Path to an additional .ics file to process as newly-arrived 'hot' data")
+    parser.add_argument(
+        "--tenant",
+        default=tenant_paths.DEFAULT_TENANT,
+        help="Tenant ID — resolves data/output paths under data/tenants/<id>/ and "
+        "output/tenants/<id>/ (default: 'default', today's existing ./data/./output/ layout)",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+    paths = tenant_paths.for_tenant(args.tenant)
 
     print(f"🤖 Initializing LLM: {args.provider}/{args.model}")
     print(f"   Temperature: {args.temperature}")
-    print(f"   Workers: {args.workers}\n")
+    print(f"   Workers: {args.workers}")
+    print(f"   Tenant: {paths.tenant_id}\n")
 
-    persona_text = load_persona()
-    config = load_tenant_config()
+    persona_text = load_persona(paths.persona_file)
+    config = load_tenant_config(paths.tenant_config_file)
     map_system_prompt = build_map_system_prompt(persona_text, use_persona=config.get("use_persona_in_map", True))
     reduce_system_prompt = build_reduce_system_prompt(persona_text)
 
@@ -598,13 +608,13 @@ def main():
     )
 
     if args.reduce_only:
-        run_reduce_phase(llm, reduce_system_prompt)
+        run_reduce_phase(llm, reduce_system_prompt, paths)
     elif args.map_only:
-        run_map_phase(llm, map_system_prompt, **map_kwargs)
+        run_map_phase(llm, map_system_prompt, paths, **map_kwargs)
     else:
-        map_success = run_map_phase(llm, map_system_prompt, **map_kwargs)
+        map_success = run_map_phase(llm, map_system_prompt, paths, **map_kwargs)
         if map_success:
-            run_reduce_phase(llm, reduce_system_prompt)
+            run_reduce_phase(llm, reduce_system_prompt, paths)
 
     total_time = time.time() - total_start
     print(f"\n⏱️  Total elapsed: {total_time:.1f}s")

@@ -33,6 +33,8 @@ import urllib.error
 import urllib.request
 from abc import ABC, abstractmethod
 
+from resilience import log_call_metrics
+
 
 class TerminalLLMError(Exception):
     """An LLM API error that retrying cannot fix — bad request, auth
@@ -71,7 +73,17 @@ def _raise_classified(message: str, status_code, cause: Exception):
     raise error_cls(message) from cause
 
 
-def call_with_retry(fn, *args, max_retries: int = 3, base_delay: float = 2.0, retry_on=(Exception,), **kwargs):
+def call_with_retry(
+    fn,
+    *args,
+    max_retries: int = 3,
+    base_delay: float = 2.0,
+    retry_on=(Exception,),
+    breaker=None,
+    llm=None,
+    metrics_path: str | None = None,
+    **kwargs,
+):
     """Call fn(*args, **kwargs) with exponential backoff retry.
 
     A single transient LLM failure (timeout, malformed JSON, a schema
@@ -95,26 +107,81 @@ def call_with_retry(fn, *args, max_retries: int = 3, base_delay: float = 2.0, re
         base_delay: Seconds to wait before the first retry; doubles each
             subsequent attempt.
         retry_on: Exception types that trigger a retry.
+        breaker: Optional resilience.CircuitBreaker. When passed,
+            before_call() gates the attempt entirely (raises
+            resilience.CircuitOpenError without calling fn at all if the
+            circuit is open — the whole point being to fail faster than
+            even a TerminalLLMError, since it never touches the network),
+            and record_success()/record_failure() fire around the outcome.
+            Optional and back-compatible: every existing call site that
+            doesn't pass this behaves exactly as before.
+        llm: Optional BaseLLM instance (as returned by create_llm) — when
+            passed together with metrics_path, its .provider/.model/
+            .tenant_id attributes are used to label the logged metrics
+            line. Purely for the "poor man's observability" JSONL log
+            (resilience.log_call_metrics); has no effect on retry behavior.
+        metrics_path: Optional path to append one JSONL metrics line per
+            call to. None (the default) skips logging entirely.
 
     Returns:
         Whatever fn(*args, **kwargs) returns.
 
     Raises:
+        resilience.CircuitOpenError immediately if breaker is open.
         TerminalLLMError immediately, without retrying, if the call raises
         one. Otherwise the last exception encountered, if every attempt
         fails.
     """
+    if breaker is not None:
+        breaker.before_call()
+
+    start = time.monotonic()
     last_error = None
+    attempts_made = 0
     for attempt in range(1, max_retries + 1):
+        attempts_made = attempt
         try:
-            return fn(*args, **kwargs)
+            result = fn(*args, **kwargs)
         except TerminalLLMError:
+            if breaker is not None:
+                breaker.record_failure()
+            _log_call_metrics(llm, metrics_path, success=False, retries=attempts_made - 1, elapsed=time.monotonic() - start, breaker=breaker)
             raise
         except retry_on as e:
             last_error = e
             if attempt < max_retries:
                 time.sleep(base_delay * (2 ** (attempt - 1)))
+        else:
+            if breaker is not None:
+                breaker.record_success()
+            _log_call_metrics(llm, metrics_path, success=True, retries=attempts_made - 1, elapsed=time.monotonic() - start, breaker=breaker)
+            return result
+
+    if breaker is not None:
+        breaker.record_failure()
+    _log_call_metrics(llm, metrics_path, success=False, retries=attempts_made, elapsed=time.monotonic() - start, breaker=breaker)
     raise last_error
+
+
+def _log_call_metrics(llm, metrics_path, *, success: bool, retries: int, elapsed: float, breaker) -> None:
+    """Best-effort metrics logging — never lets a logging failure affect
+    the actual call outcome. No-op if metrics_path wasn't passed.
+    """
+    if not metrics_path:
+        return
+    try:
+        log_call_metrics(
+            metrics_path,
+            tenant_id=getattr(llm, "tenant_id", "default"),
+            provider=getattr(llm, "provider", "unknown"),
+            model=getattr(llm, "model", "unknown"),
+            latency_ms=elapsed * 1000,
+            success=success,
+            retries=retries,
+            breaker_state=breaker.state if breaker is not None else None,
+        )
+    except Exception:
+        pass
 
 
 DEFAULT_TIMEOUT_SECONDS = 120
@@ -527,13 +594,18 @@ PROVIDERS = {
 }
 
 
-def create_llm(provider: str, model: str, **kwargs) -> BaseLLM:
+def create_llm(provider: str, model: str, tenant_id: str = "default", **kwargs) -> BaseLLM:
     """Factory function to create an LLM instance.
 
     Args:
         provider: One of "ollama", "anthropic", "google".
         model: Model name (e.g. "llama3.1:8b", "claude-sonnet-4-20250514",
                "gemini-2.5-flash").
+        tenant_id: Stamped onto the returned instance (not passed to the
+            provider constructor) — lets call_with_retry attribute a call to
+            a tenant in its optional metrics logging without every call
+            site needing to pass tenant_id through separately. Purely a
+            label; doesn't change how the provider is called.
         **kwargs: temperature (float), max_tokens (int).
 
     Returns:
@@ -549,4 +621,7 @@ def create_llm(provider: str, model: str, **kwargs) -> BaseLLM:
             f"Available: {', '.join(PROVIDERS.keys())}"
         )
 
-    return PROVIDERS[provider](model, **kwargs)
+    instance = PROVIDERS[provider](model, **kwargs)
+    instance.provider = provider
+    instance.tenant_id = tenant_id
+    return instance
