@@ -109,3 +109,38 @@ NOTES_MAP_SCENARIOS = [
 EMAIL_DIGEST_SCENARIOS = EMAIL_MAP_SCENARIOS
 CALENDAR_DIGEST_SCENARIOS = CALENDAR_MAP_SCENARIOS
 NOTES_DIGEST_SCENARIOS = NOTES_MAP_SCENARIOS
+
+# Orchestrator Stage 1 (contradiction detection) scenarios — a different
+# category from the MAP scenarios above: these check whether
+# detect_contradictions actually finds a genuine cross-source disagreement,
+# not just correctly returns empty when there's nothing to find. Added after
+# a design review noted Stage 1 had never been exercised against a true
+# positive — only the empty case, plus one unplanned false positive (the
+# Elena Marsh hallucination that motivated the grounding check in the first
+# place). Planted via --hot-input rather than generate_data.py, specifically
+# to avoid invalidating the existing 30-day corpus and its already-built
+# ledger — see docs/LOW_LEVEL_DESIGN.md's "Planted scenarios" section for
+# the full reasoning.
+CONTRADICTION_SCENARIOS = [
+    {
+        "name": "marcus_closing_call_reschedule",
+        "description": (
+            "data/scenarios/contradiction_marcus_reschedule/calendar/calendar.ics "
+            "(Friday 7/17, 'Call with Marcus — Series A closing') directly "
+            "contradicts .../inbox/0001.eml (7/16, Marcus asking to move the "
+            "call to Monday) — a genuine date conflict between two sources "
+            "for the same flagged task (TESS-225: 'Confirm Series A closing "
+            "call time with Marcus'), deliberately mirroring persona.md's own "
+            "worked example ('calendar says I'm meeting Marcus Friday but "
+            "email says we moved to Monday'). Live-verified via DeepSeek: "
+            "Stage 1 correctly reported it, and the entity resolved and "
+            "passed the grounding check — which surfaced and fixed a real "
+            "bug in _resolve_entity along the way (the model referenced the "
+            "entity as 'TESS-225: <title>', a combined format the grounding "
+            "check didn't originally handle and silently dropped as "
+            "'ungrounded' — a false negative in the safety check itself)."
+        ),
+        "task_id": "TESS-225",
+        "required_keywords": ["marcus", "friday", "monday"],
+    },
+]

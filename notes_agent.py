@@ -36,7 +36,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 import tenant_paths
-from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today
+from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, check_schema_consistency
 from llm import create_llm, call_with_retry
 from notes_parser import load_notes
 from persona import load_persona
@@ -227,8 +227,13 @@ def format_note(note: dict, stats: dict) -> str:
 # ─── MAP Phase ────────────────────────────────────────────────────────────────
 
 
-def _map_single_note(llm, note: dict, map_system_prompt: str, map_schema: dict) -> dict | None:
+def _map_single_note(llm, note: dict, map_system_prompt: str, map_schema: dict, map_variant: str = "persona") -> dict | None:
     """Process a single note through the LLM. Thread-safe.
+
+    Args:
+        map_variant: Which MAP schema/prompt configuration produced this
+            entry — "persona" or "no_persona" — same rationale as
+            triage_agent.py's `_map_single_day`.
 
     Returns:
         A ledger entry dict on success, None on failure.
@@ -259,6 +264,7 @@ def _map_single_note(llm, note: dict, map_system_prompt: str, map_schema: dict) 
             COUNT_KEY: stats["checklist_open"] + stats["checklist_done"],
             "stats": stats,
             "delta": delta,
+            "map_variant": map_variant,
         }
     except Exception as e:
         elapsed = time.time() - start
@@ -266,7 +272,7 @@ def _map_single_note(llm, note: dict, map_system_prompt: str, map_schema: dict) 
         return None
 
 
-def run_map_phase(llm, map_system_prompt: str, map_schema: dict, paths, max_workers: int = 4) -> bool:
+def run_map_phase(llm, map_system_prompt: str, map_schema: dict, paths, max_workers: int = 4, map_variant: str = "persona") -> bool:
     """MAP: Process notes one-by-one into structured signal deltas."""
     map_start = time.time()
     print("🚀 Starting Notes MAP Phase...")
@@ -303,7 +309,7 @@ def run_map_phase(llm, map_system_prompt: str, map_schema: dict, paths, max_work
     succeeded = 0
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_note = {
-            executor.submit(_map_single_note, llm, note, map_system_prompt, map_schema): note
+            executor.submit(_map_single_note, llm, note, map_system_prompt, map_schema, map_variant): note
             for note in notes_to_process
         }
         for future in as_completed(future_to_note):
@@ -384,6 +390,9 @@ def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
         print(f"❌ Ledger not found or empty at '{paths.notes_ledger_file}'. Run MAP phase first.")
         return
 
+    for warning in check_schema_consistency(ledger):
+        print(f"   ⚠️  {warning}")
+
     ledger = compact_ledger(ledger, llm, COMPACT_SYSTEM_PROMPT, retention_days=30, count_key=COUNT_KEY)
     save_ledger(paths.notes_ledger_file, ledger)
 
@@ -460,6 +469,7 @@ def main():
 
     map_system_prompt = build_map_system_prompt(persona_text, use_persona=use_persona)
     map_schema = MAP_SCHEMA if use_persona else MAP_SCHEMA_NO_PERSONA
+    map_variant = "persona" if use_persona else "no_persona"
     reduce_system_prompt = build_reduce_system_prompt(persona_text)
 
     llm = create_llm(provider=args.provider, model=args.model, temperature=args.temperature)
@@ -469,9 +479,9 @@ def main():
     if args.reduce_only:
         run_reduce_phase(llm, reduce_system_prompt, paths)
     elif args.map_only:
-        run_map_phase(llm, map_system_prompt, map_schema, paths, max_workers=args.workers)
+        run_map_phase(llm, map_system_prompt, map_schema, paths, max_workers=args.workers, map_variant=map_variant)
     else:
-        map_success = run_map_phase(llm, map_system_prompt, map_schema, paths, max_workers=args.workers)
+        map_success = run_map_phase(llm, map_system_prompt, map_schema, paths, max_workers=args.workers, map_variant=map_variant)
         if map_success:
             run_reduce_phase(llm, reduce_system_prompt, paths)
 

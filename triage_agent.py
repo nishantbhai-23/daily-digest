@@ -33,7 +33,7 @@ from datetime import datetime
 
 import tenant_paths
 from email_parser import load_inbox, group_by_date
-from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window
+from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window, check_schema_consistency
 from llm import create_llm, call_with_retry
 from persona import load_persona
 from tenant_config import load_tenant_config
@@ -390,7 +390,7 @@ def filter_blocked_senders(emails: list[dict], config: dict) -> list[dict]:
 # ─── MAP Phase ────────────────────────────────────────────────────────────────
 
 
-def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str, map_schema: dict, hot: bool = False) -> dict | None:
+def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str, map_schema: dict, hot: bool = False, map_variant: str = "persona") -> dict | None:
     """Process a single day's emails through the LLM. Thread-safe.
 
     Args:
@@ -400,6 +400,16 @@ def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str, ma
             a label for downstream transparency (render_ledger_as_text,
             eventually the digest's own honesty framing); doesn't change how
             the day itself is processed.
+        map_variant: Which MAP schema/prompt configuration produced this
+            entry — "persona" or "no_persona" (tenant_config's
+            use_persona_in_map). Stamped onto the entry so a ledger that
+            silently mixes entries built under different MAP configurations
+            is detectable (ledger.check_schema_consistency) instead of the
+            two shapes blending unnoticed — found as a real, not
+            hypothetical, gap: MAP_SCHEMA and MAP_SCHEMA_NO_PERSONA already
+            produce structurally different `delta` shapes (with/without
+            `priority`) and nothing previously recorded which one a given
+            entry came from.
 
     Returns:
         A ledger entry dict on success, None on failure.
@@ -430,6 +440,7 @@ def _map_single_day(llm, day: str, batch: list[dict], map_system_prompt: str, ma
             COUNT_KEY: len(batch),
             "stats": stats,
             "delta": structured_delta,
+            "map_variant": map_variant,
         }
         if hot:
             entry["hot"] = True
@@ -450,6 +461,7 @@ def run_map_phase(
     digest_days: int | None = None,
     holdout_days: int | None = None,
     hot_input: str | None = None,
+    map_variant: str = "persona",
 ) -> bool:
     """MAP: Process emails day-by-day into structured signal deltas.
 
@@ -486,6 +498,9 @@ def run_map_phase(
             merged in before day-grouping, so it naturally lands in its own
             day bucket and flows through the same incremental MAP path.
             Entries built from this data are tagged `"hot": True`.
+        map_variant: Stamped onto every entry this run produces — see
+            _map_single_day. Caller (main()) sets this from
+            config["use_persona_in_map"] so it always matches map_schema.
 
     Returns:
         True if processing succeeded, False otherwise.
@@ -572,7 +587,7 @@ def run_map_phase(
     succeeded = 0
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_day = {
-            executor.submit(_map_single_day, llm, day, batch, map_system_prompt, map_schema, day in hot_days): day
+            executor.submit(_map_single_day, llm, day, batch, map_system_prompt, map_schema, day in hot_days, map_variant): day
             for day, batch in days_to_process
         }
         for future in as_completed(future_to_day):
@@ -667,6 +682,9 @@ def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
     if not ledger:
         print(f"❌ Ledger not found or empty at '{paths.email_ledger_file}'. Run MAP phase first.")
         return
+
+    for warning in check_schema_consistency(ledger):
+        print(f"   ⚠️  {warning}")
 
     # Collapse anything older than the retention window into weekly rollups
     # before synthesizing, so REDUCE cost doesn't grow unbounded over time.
@@ -826,6 +844,7 @@ def main():
         digest_days=args.digest_days,
         holdout_days=args.holdout_days,
         hot_input=args.hot_input,
+        map_variant="persona" if use_persona else "no_persona",
     )
 
     if args.reduce_only:

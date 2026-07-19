@@ -222,6 +222,55 @@ def format_today(reference_date=None) -> str:
     return f"{reference_date.isoformat()} ({reference_date.strftime('%A')})"
 
 
+def check_schema_consistency(ledger: list[dict]) -> list[str]:
+    """Detect a ledger whose entries were produced under different MAP
+    schema/prompt configurations — surfaced as a warning instead of silently
+    blended.
+
+    Found as a real, not hypothetical, gap: `use_persona_in_map` already
+    makes MAP produce structurally different `delta` shapes (with/without a
+    `priority` field) depending on tenant config at the time a given day/note
+    was processed. Ledgers are resumable by design (see HLD Decision 1),
+    which means a config change between runs doesn't get reprocessed — it
+    just accumulates alongside the old entries with no prior way to tell them
+    apart. Every MAP call now stamps `"map_variant"` on its entry (see
+    triage_agent.py's `_map_single_day`); this function is the deterministic
+    check that makes a resulting mismatch visible.
+
+    Compacted (weekly-rollup) entries are excluded — they're built by a
+    separate compaction LLM call merging multiple original entries, not
+    day/note MAP, so they don't carry a comparable map_variant and mixing
+    with them is expected, not a version drift signal.
+
+    Args:
+        ledger: A loaded ledger (list of entry dicts).
+
+    Returns:
+        A list of human-readable warning strings — empty means consistent
+        (including the trivial case of 0 or 1 comparable entries). Entries
+        from before this field existed are treated as their own
+        "unversioned" category rather than skipped, since a ledger silently
+        mixing versioned and unversioned entries is exactly the kind of
+        blend this check exists to catch.
+    """
+    comparable = [entry for entry in ledger if not entry.get("compacted")]
+    counts: dict[str, int] = {}
+    for entry in comparable:
+        variant = entry.get("map_variant", "unversioned")
+        counts[variant] = counts.get(variant, 0) + 1
+
+    if len(counts) <= 1:
+        return []
+
+    breakdown = ", ".join(f"{variant}: {n}" for variant, n in sorted(counts.items()))
+    return [
+        f"Ledger mixes entries from {len(counts)} different MAP configurations "
+        f"({breakdown}) — content shape/quality may differ across entries from "
+        f"before vs. after a tenant_config.json change. Re-run MAP for the older "
+        f"entries if consistency matters for this digest."
+    ]
+
+
 def check_data_freshness(ledgers: dict, reference_date=None, stale_after_days: int = 1) -> dict:
     """Check how current each source's ledger is, relative to today.
 

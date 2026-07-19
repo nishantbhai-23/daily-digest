@@ -1,0 +1,19 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Tessera//Daily Digest Generator//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Avery Chen's Calendar
+X-WR-TIMEZONE:America/Los_Angeles
+BEGIN:VEVENT
+UID:marcus-closing-call-hot@tessera.io
+DTSTAMP:20260716T090000Z
+DTSTART:20260717T100000
+DTEND:20260717T103000
+SUMMARY:Call with Marcus — Series A closing
+STATUS:CONFIRMED
+DESCRIPTION:Confirm closing logistics and timeline for the Series A round.
+LOCATION:Zoom
+ATTENDEE;CN=Marcus Webb;PARTSTAT=ACCEPTED:mailto:marcus.webb@inflectionpointvc.com
+END:VEVENT
+END:VCALENDAR

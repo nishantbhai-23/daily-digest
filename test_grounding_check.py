@@ -38,6 +38,14 @@ class TestResolveEntity(unittest.TestCase):
     def test_resolves_by_task_id(self):
         self.assertIs(_resolve_entity("TESS-219", MULTI_SOURCE), MULTI_SOURCE["TESS-219"])
 
+    def test_resolves_combined_id_and_title_format(self):
+        # Found live: the model naturally writes "TESS-219: Decide on Elena
+        # Marsh offer (Senior Engineer)" — a legitimate reference style that
+        # matched neither a bare task_id nor a bare title exactly, and was
+        # incorrectly dropped as "ungrounded" before this was handled.
+        match = _resolve_entity("TESS-219: Decide on Elena Marsh offer (Senior Engineer)", MULTI_SOURCE)
+        self.assertIs(match, MULTI_SOURCE["TESS-219"])
+
     def test_resolves_by_title_case_insensitive(self):
         match = _resolve_entity("decide on elena marsh offer (senior engineer)", MULTI_SOURCE)
         self.assertIs(match, MULTI_SOURCE["TESS-219"])

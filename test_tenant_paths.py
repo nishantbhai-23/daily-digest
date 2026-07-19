@@ -21,6 +21,55 @@ from tenant_config import CONFIG_FILE
 from tenant_paths import DEFAULT_TENANT, for_tenant
 
 
+class TestTenantIdSanitization(unittest.TestCase):
+    """The entire cross-tenant isolation guarantee rests on for_tenant's
+    validation — regression coverage for the path-traversal bug found in
+    design review: for_tenant("../../../../tmp/evil") used to resolve
+    completely outside data/tenants/ before this check existed.
+    """
+
+    def test_rejects_path_traversal(self):
+        with self.assertRaises(ValueError):
+            for_tenant("../../../../tmp/evil")
+
+    def test_rejects_absolute_path(self):
+        with self.assertRaises(ValueError):
+            for_tenant("/etc/passwd")
+
+    def test_rejects_path_separator(self):
+        with self.assertRaises(ValueError):
+            for_tenant("foo/bar")
+
+    def test_rejects_dot_segment(self):
+        with self.assertRaises(ValueError):
+            for_tenant("..")
+
+    def test_rejects_whitespace(self):
+        with self.assertRaises(ValueError):
+            for_tenant("tenant with spaces")
+
+    def test_rejects_empty_string(self):
+        with self.assertRaises(ValueError):
+            for_tenant("")
+
+    def test_rejects_uppercase(self):
+        # Conservative allowlist — no case-insensitivity footgun on
+        # filesystems where "Acme" and "acme" would collide or not
+        # depending on OS.
+        with self.assertRaises(ValueError):
+            for_tenant("Acme")
+
+    def test_rejects_over_length_limit(self):
+        with self.assertRaises(ValueError):
+            for_tenant("a" * 65)
+
+    def test_accepts_legitimate_ids(self):
+        for tenant_id in ("default", "demo", "arclight", "acme-corp", "tenant_1", "a"):
+            with self.subTest(tenant_id=tenant_id):
+                paths = for_tenant(tenant_id)
+                self.assertEqual(paths.tenant_id, tenant_id)
+
+
 class TestDefaultTenantMatchesExistingConstants(unittest.TestCase):
     """The most important regression check in this whole module: running
     any script with no --tenant flag at all must be byte-for-byte identical

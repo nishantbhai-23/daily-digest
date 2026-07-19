@@ -169,12 +169,25 @@ def _resolve_entity(entity: str, multi_source: dict) -> dict | None:
     visible to it in the JSON context. Accepts either, case-insensitively,
     rather than silently failing to resolve legitimate claims just because
     the model picked the other valid label.
+
+    Also accepts the model combining both into one string — e.g.
+    "TESS-225: Confirm Series A closing call time with Marcus" — since that's
+    a normal, legitimate way to reference an item, not a malformed one.
+    Found live, not hypothetically: the first real true-positive contradiction
+    this grounding check ever saw (a genuine planted date conflict) was
+    dropped as "ungrounded" purely because of this formatting mismatch,
+    before this fix — a false negative in the safety check itself.
     """
     if entity in multi_source:
         return multi_source[entity]
     entity_lower = entity.strip().lower()
-    for data in multi_source.values():
-        if data.get("title", "").strip().lower() == entity_lower:
+    for task_id, data in multi_source.items():
+        title_lower = data.get("title", "").strip().lower()
+        if title_lower == entity_lower:
+            return data
+        if entity_lower.startswith(task_id.lower()):
+            return data
+        if title_lower and title_lower in entity_lower:
             return data
     return None
 

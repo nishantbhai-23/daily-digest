@@ -18,6 +18,14 @@ directory listing under data/tenants/ (or just knowing the id you passed in)
 is the registry. Consistent with the rest of this codebase's stdlib-only,
 filesystem-as-storage approach (ledger.py, persona.py, tenant_config.py).
 
+`tenant_id` is f-string-interpolated directly into every path this module
+builds — the entire cross-tenant isolation guarantee rests on this one
+function, so `for_tenant` validates `tenant_id` against an allowlist before
+building anything. Confirmed necessary, not speculative: an earlier version
+had no check at all, and `for_tenant("../../../../tmp/evil")` resolved to a
+path completely outside `data/tenants/` — a live path-traversal bug, found in
+a design review, not fixed proactively.
+
 Usage:
     from tenant_paths import for_tenant
 
@@ -27,9 +35,17 @@ Usage:
 """
 
 import os
+import re
 from dataclasses import dataclass
 
 DEFAULT_TENANT = "default"
+
+# Lowercase alphanumeric, hyphen, underscore; must start with an alphanumeric
+# char; capped at 64 chars. Deliberately conservative — no ".", "/", or
+# whitespace at all, so there's no path-separator or dot-segment shaped
+# character to reject case-by-case. "default" satisfies this itself, so no
+# special-case exemption is needed.
+_VALID_TENANT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 
 
 @dataclass(frozen=True)
@@ -68,7 +84,20 @@ def for_tenant(tenant_id: str = DEFAULT_TENANT) -> TenantPaths:
 
     Returns:
         A fully-resolved TenantPaths.
+
+    Raises:
+        ValueError: If tenant_id doesn't match _VALID_TENANT_ID_RE — rejects
+            path separators, ".."-shaped traversal, whitespace, and anything
+            outside a conservative lowercase-alphanumeric/hyphen/underscore
+            allowlist, before any path is constructed.
     """
+    if not _VALID_TENANT_ID_RE.match(tenant_id):
+        raise ValueError(
+            f"Invalid tenant_id {tenant_id!r} — must match "
+            f"{_VALID_TENANT_ID_RE.pattern} (lowercase alphanumeric, "
+            f"hyphen, underscore; max 64 chars)"
+        )
+
     if tenant_id == DEFAULT_TENANT:
         data_root = "./data"
         output_root = "./output"

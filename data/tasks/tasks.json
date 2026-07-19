@@ -162,5 +162,30 @@
         "done": false
       }
     ]
+  },
+  {
+    "id": "TESS-225",
+    "title": "Confirm Series A closing call time with Marcus",
+    "description": "Marcus wants to finalize logistics for the Series A closing call. Confirm the day/time and make sure the calendar invite matches whatever gets agreed over email.",
+    "status": "todo",
+    "priority": "P0",
+    "assignee": "Avery Chen",
+    "due_date": "2026-07-20",
+    "created_at": "2026-07-16T09:00:00-07:00",
+    "tags": [
+      "series-a",
+      "fundraising",
+      "marcus"
+    ],
+    "subtasks": [
+      {
+        "title": "Confirm final call time with Marcus",
+        "done": false
+      },
+      {
+        "title": "Update calendar invite to match",
+        "done": false
+      }
+    ]
   }
 ]

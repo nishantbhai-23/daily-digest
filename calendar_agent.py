@@ -35,7 +35,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import tenant_paths
 from calendar_parser import load_calendar, group_by_date
-from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window
+from ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window, check_schema_consistency
 from llm import create_llm, call_with_retry
 from persona import load_persona
 from tenant_config import load_tenant_config
@@ -300,13 +300,19 @@ def format_event_batch(events: list[dict]) -> str:
 # ─── MAP Phase ────────────────────────────────────────────────────────────────
 
 
-def _map_single_day(llm, day: str, events: list[dict], map_system_prompt: str, hot: bool = False) -> dict | None:
+def _map_single_day(llm, day: str, events: list[dict], map_system_prompt: str, hot: bool = False, map_variant: str = "persona") -> dict | None:
     """Process a single day's calendar events. Thread-safe.
 
     Args:
         hot: Marks this entry as sourced from --hot-input — see
             triage_agent.py's `_map_single_day` for the full rationale;
             same convention, mirrored here for the calendar side.
+        map_variant: Which MAP prompt configuration produced this entry —
+            "persona" or "no_persona". Calendar's MAP_SCHEMA shape doesn't
+            change between the two (unlike email/notes), only the
+            instruction text does, but the entry is still tagged for
+            consistency — see triage_agent.py's `_map_single_day` and
+            ledger.check_schema_consistency.
 
     Returns:
         A ledger entry dict on success, None on failure.
@@ -344,6 +350,7 @@ def _map_single_day(llm, day: str, events: list[dict], map_system_prompt: str, h
             COUNT_KEY: len(events),
             "stats": stats,
             "delta": delta,
+            "map_variant": map_variant,
         }
         if hot:
             entry["hot"] = True
@@ -362,6 +369,7 @@ def run_map_phase(
     digest_days: int | None = None,
     holdout_days: int | None = None,
     hot_input: str | None = None,
+    map_variant: str = "persona",
 ) -> bool:
     """MAP: Process calendar events day-by-day into structured signal deltas.
 
@@ -429,7 +437,7 @@ def run_map_phase(
     succeeded = 0
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_day = {
-            executor.submit(_map_single_day, llm, day, batch, map_system_prompt, day in hot_days): day
+            executor.submit(_map_single_day, llm, day, batch, map_system_prompt, day in hot_days, map_variant): day
             for day, batch in days_to_process
         }
         for future in as_completed(future_to_day):
@@ -518,6 +526,9 @@ def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
         print(f"❌ Ledger not found or empty at '{paths.calendar_ledger_file}'. Run MAP phase first.")
         return
 
+    for warning in check_schema_consistency(ledger):
+        print(f"   ⚠️  {warning}")
+
     ledger = compact_ledger(ledger, llm, COMPACT_SYSTEM_PROMPT, retention_days=30, count_key=COUNT_KEY)
     save_ledger(paths.calendar_ledger_file, ledger)
 
@@ -605,6 +616,7 @@ def main():
         digest_days=args.digest_days,
         holdout_days=args.holdout_days,
         hot_input=args.hot_input,
+        map_variant="persona" if config.get("use_persona_in_map", True) else "no_persona",
     )
 
     if args.reduce_only:
