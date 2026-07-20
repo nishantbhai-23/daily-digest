@@ -1,0 +1,44 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Generated Persona//Daily Digest Generator//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Generated Persona's Calendar
+X-WR-TIMEZONE:America/Chicago
+BEGIN:VEVENT
+UID:generated-2026-07-18-0@greenleafhorticulture.example.com
+DTSTAMP:20260720T114610Z
+DTSTART:20260718T090000
+DTEND:20260718T110000
+SUMMARY:Deep Work - Propagation Planning
+STATUS:CONFIRMED
+DESCRIPTION:Blocked for planning fall propagation schedule. No meetings.
+LOCATION:Office
+ATTENDEE;CN=maya.rodriguez@greenleafhort.com;PARTSTAT=ACCEPTED:mailto:mayarodriguezgreenleafhortcom@greenleafhorticulture.example.com
+END:VEVENT
+BEGIN:VEVENT
+UID:generated-2026-07-18-1@greenleafhorticulture.example.com
+DTSTAMP:20260720T114610Z
+DTSTART:20260718T100000
+DTEND:20260718T103000
+SUMMARY:Team stand-up with Lena and Tom
+STATUS:CONFIRMED
+DESCRIPTION:Daily check-in on irrigation and pest status.
+LOCATION:Greenhouse 1
+ATTENDEE;CN=lena.kim@greenleafhort.com;PARTSTAT=ACCEPTED:mailto:lenakimgreenleafhortcom@greenleafhorticulture.example.com
+ATTENDEE;CN=tom.baker@greenleafhort.com;PARTSTAT=ACCEPTED:mailto:tombakergreenleafhortcom@greenleafhorticulture.example.com
+ATTENDEE;CN=maya.rodriguez@greenleafhort.com;PARTSTAT=ACCEPTED:mailto:mayarodriguezgreenleafhortcom@greenleafhorticulture.example.com
+END:VEVENT
+BEGIN:VEVENT
+UID:generated-2026-07-19-0@greenleafhorticulture.example.com
+DTSTAMP:20260720T114610Z
+DTSTART:20260719T140000
+DTEND:20260719T143000
+SUMMARY:Call with Raj re: soil salinity
+STATUS:CONFIRMED
+DESCRIPTION:Discuss gypsum treatment for GH3.
+LOCATION:Phone
+ATTENDEE;CN=raj.patel@oregonstate.edu;PARTSTAT=ACCEPTED:mailto:rajpateloregonstateedu@greenleafhorticulture.example.com
+ATTENDEE;CN=maya.rodriguez@greenleafhort.com;PARTSTAT=ACCEPTED:mailto:mayarodriguezgreenleafhortcom@greenleafhorticulture.example.com
+END:VEVENT
+END:VCALENDAR

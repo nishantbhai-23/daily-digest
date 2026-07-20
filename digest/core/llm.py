@@ -33,7 +33,13 @@ import urllib.error
 import urllib.request
 from abc import ABC, abstractmethod
 
+from digest.core.env import load_dotenv
 from digest.core.resilience import log_call_metrics
+
+# Loaded once at import time, before any provider's __init__ reads its API
+# key from os.environ — see digest/core/env.py. A real environment variable
+# (CI, deploy) always takes precedence; this only fills gaps.
+load_dotenv()
 
 
 class TerminalLLMError(Exception):

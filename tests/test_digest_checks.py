@@ -15,9 +15,11 @@ import os
 import unittest
 
 from digest.eval.digest_checks import (
+    check_extraction_bloat,
     check_keywords_present,
     check_min_length,
     check_not_schema_description,
+    extract_searchable_text,
     looks_like_schema_description,
 )
 
@@ -84,6 +86,72 @@ class TestMinLength(unittest.TestCase):
 
     def test_long_text_passes(self):
         self.assertTrue(check_min_length(GOOD_DIGEST_EXCERPT, min_words=20))
+
+
+class TestExtractSearchableText(unittest.TestCase):
+    def test_no_categories_searches_whole_container(self):
+        delta = {"action_items": [{"description": "call Marcus about data room"}]}
+        text = extract_searchable_text(delta)
+        self.assertIn("Marcus", text)
+
+    def test_single_category_scopes_search(self):
+        delta = {
+            "action_items": [{"description": "call Marcus"}],
+            "decisions": [{"description": "renew Halberd contract"}],
+        }
+        text = extract_searchable_text(delta, "action_items")
+        self.assertIn("Marcus", text)
+        self.assertNotIn("Halberd", text)
+
+    def test_list_of_categories_scopes_search_to_union(self):
+        delta = {
+            "action_items": [{"description": "call Marcus"}],
+            "decisions": [{"description": "renew Halberd contract"}],
+            "thread_progressions": [{"thread": "unrelated", "progression": "noise"}],
+        }
+        text = extract_searchable_text(delta, ["action_items", "decisions"])
+        self.assertIn("Marcus", text)
+        self.assertIn("Halberd", text)
+        self.assertNotIn("noise", text)
+
+    def test_missing_category_returns_empty_not_error(self):
+        delta = {"action_items": [{"description": "call Marcus"}]}
+        text = extract_searchable_text(delta, "decisions")
+        self.assertEqual(text, "")
+
+    def test_schema_key_names_do_not_pollute_search(self):
+        # The exact bug class found and fixed in cross_reference.py — a
+        # json.dumps() search would let "description" pass for free since
+        # every MAP item has that field name as a key.
+        delta = {"action_items": [{"description": "call Marcus about data room"}]}
+        text = extract_searchable_text(delta)
+        missing = check_keywords_present(text, ["description"])
+        self.assertEqual(missing, ["description"])
+
+
+class TestExtractionBloat(unittest.TestCase):
+    def test_under_threshold_returns_none(self):
+        delta = {"action_items": [{"description": "a"}, {"description": "b"}]}
+        self.assertIsNone(check_extraction_bloat(delta, max_items=5))
+
+    def test_at_threshold_returns_none(self):
+        delta = {"action_items": [{"description": "a"}, {"description": "b"}]}
+        self.assertIsNone(check_extraction_bloat(delta, max_items=2))
+
+    def test_over_threshold_returns_warning(self):
+        delta = {"action_items": [{"description": str(i)} for i in range(10)]}
+        warning = check_extraction_bloat(delta, max_items=5)
+        self.assertIsNotNone(warning)
+        self.assertIn("10", warning)
+
+    def test_sums_across_categories(self):
+        delta = {
+            "action_items": [{"description": str(i)} for i in range(3)],
+            "decisions": [{"description": str(i)} for i in range(3)],
+        }
+        warning = check_extraction_bloat(delta, max_items=5)
+        self.assertIsNotNone(warning)
+        self.assertIn("6", warning)
 
 
 if __name__ == "__main__":

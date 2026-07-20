@@ -37,5 +37,11 @@ output/
 # macOS system files
 .DS_Store
 
+# Local secrets — repo-specific provider API keys, never committed.
+# See digest/core/env.py for the loader; .env.example shows the expected shape.
+.env
+.env.*
+!.env.example
+
 # Design documents
 docs/
