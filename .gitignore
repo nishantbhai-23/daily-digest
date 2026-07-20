@@ -43,5 +43,7 @@ output/
 .env.*
 !.env.example
 
-# Design documents
-docs/
+# Design documents — local-only, except HIGH_LEVEL_DESIGN.md which is
+# committed as the one doc meant to be public/reviewed on GitHub.
+docs/*
+!docs/HIGH_LEVEL_DESIGN.md
