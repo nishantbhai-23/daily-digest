@@ -19,6 +19,7 @@ from digest.eval.digest_checks import (
     check_keywords_present,
     check_min_length,
     check_not_schema_description,
+    dynamic_bloat_ceiling,
     extract_searchable_text,
     looks_like_schema_description,
 )
@@ -77,6 +78,31 @@ class TestKeywordPresence(unittest.TestCase):
 
     def test_case_insensitive(self):
         missing = check_keywords_present(GOOD_DIGEST_EXCERPT, ["MARCUS WEBB"])
+        self.assertEqual(missing, [])
+
+    def test_or_set_passes_when_any_variant_present(self):
+        # "Marcus Webb" (a variant) is in the text even though "marcus w."
+        # and "mw" (the other variants) are not — the OR-set as a whole
+        # should still count as satisfied.
+        missing = check_keywords_present(GOOD_DIGEST_EXCERPT, [["marcus w.", "marcus webb", "mw"]])
+        self.assertEqual(missing, [])
+
+    def test_or_set_fails_and_reports_the_whole_set_when_no_variant_present(self):
+        missing = check_keywords_present(GOOD_DIGEST_EXCERPT, [["corrugator", "line 3", "grinding"]])
+        self.assertEqual(missing, [["corrugator", "line 3", "grinding"]])
+
+    def test_or_set_mixed_with_plain_keywords(self):
+        # "diane" (plain) is present; the OR-set's only satisfied variant
+        # is "webb" — both requirements clear, so nothing is missing.
+        missing = check_keywords_present(GOOD_DIGEST_EXCERPT, ["diane", ["nonexistent", "webb"]])
+        self.assertEqual(missing, [])
+
+    def test_plain_keyword_still_reported_missing_alongside_a_satisfied_or_set(self):
+        missing = check_keywords_present(GOOD_DIGEST_EXCERPT, ["nonexistent-plain", ["marcus", "irrelevant"]])
+        self.assertEqual(missing, ["nonexistent-plain"])
+
+    def test_or_set_case_insensitive(self):
+        missing = check_keywords_present(GOOD_DIGEST_EXCERPT, [["MARCUS WEBB", "irrelevant"]])
         self.assertEqual(missing, [])
 
 
@@ -152,6 +178,38 @@ class TestExtractionBloat(unittest.TestCase):
         warning = check_extraction_bloat(delta, max_items=5)
         self.assertIsNotNone(warning)
         self.assertIn("6", warning)
+
+
+class TestDynamicBloatCeiling(unittest.TestCase):
+    def test_scales_with_input_count(self):
+        self.assertEqual(dynamic_bloat_ceiling(10, floor=8, per_item_multiplier=4.0), 40)
+
+    def test_floor_protects_small_batches(self):
+        self.assertEqual(dynamic_bloat_ceiling(1, floor=8, per_item_multiplier=4.0), 8)
+
+    def test_rounds_to_nearest_int(self):
+        self.assertEqual(dynamic_bloat_ceiling(3, floor=4, per_item_multiplier=3.0), 9)
+
+    def test_quiet_day_hallucination_flood_now_caught(self):
+        # The exact gap a flat ceiling missed: a static EMAIL_MAX_ITEMS=40
+        # (calibrated against a busy ~10-email day) let a 2-email day
+        # produce 15 items without ever tripping the bloat check. A
+        # dynamic ceiling scaled to the day's real batch size catches it.
+        delta = {"action_items": [{"description": str(i)} for i in range(15)]}
+        flat_ceiling = 40
+        self.assertIsNone(check_extraction_bloat(delta, flat_ceiling))  # old behavior: misses it
+
+        dynamic_ceiling = dynamic_bloat_ceiling(2, floor=8, per_item_multiplier=4.0)
+        warning = check_extraction_bloat(delta, dynamic_ceiling)
+        self.assertIsNotNone(warning)  # new behavior: catches it
+
+    def test_busy_day_does_not_false_positive(self):
+        # A genuinely busy day (12 emails) producing a proportionally
+        # large but legitimate 30 items shouldn't trip the bound just
+        # because 30 > some fixed small number.
+        delta = {"action_items": [{"description": str(i)} for i in range(30)]}
+        dynamic_ceiling = dynamic_bloat_ceiling(12, floor=8, per_item_multiplier=4.0)
+        self.assertIsNone(check_extraction_bloat(delta, dynamic_ceiling))
 
 
 if __name__ == "__main__":

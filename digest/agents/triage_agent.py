@@ -33,7 +33,7 @@ from datetime import datetime
 
 from digest.core import tenant_paths
 from digest.parsers.email_parser import load_inbox, group_by_date
-from digest.core.ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window, check_schema_consistency
+from digest.core.ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, apply_digest_window, check_schema_consistency, relative_day_label
 from digest.core.llm import create_llm, call_with_retry
 from digest.core.persona import load_persona
 from digest.core.tenant_config import load_tenant_config
@@ -642,7 +642,7 @@ def _render_email_stats(stats: dict, indent: str = "") -> list[str]:
     ]
 
 
-def render_ledger_as_text(ledger: list[dict]) -> str:
+def render_ledger_as_text(ledger: list[dict], reference_date=None) -> str:
     """Render the ledger as readable text instead of raw JSON.
 
     Smaller local models tend to fall into "describe this JSON" pattern-
@@ -650,10 +650,20 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
     of system-prompt instructions to the contrary. Flattening it to prose
     keeps the model focused on synthesizing content instead of narrating
     the data structure.
+
+    reference_date: when given, each non-compacted entry's day is tagged
+    with relative_day_label so staleness never has to be inferred from a
+    bare date — see orchestrator._build_synthesis_context. Left None by
+    default so existing REDUCE-phase callers are unaffected.
     """
     lines = []
     for entry in ledger:
-        label = f"Week of {entry['day']}" if entry.get("compacted") else entry["day"]
+        if entry.get("compacted"):
+            label = f"Week of {entry['day']}"
+        elif reference_date is not None:
+            label = f"{entry['day']} ({relative_day_label(entry['day'], reference_date)})"
+        else:
+            label = entry["day"]
         hot_suffix = " [JUST ARRIVED]" if entry.get("hot") else ""
         lines.append(f"### {label} ({entry.get(COUNT_KEY, 0)} emails){hot_suffix}")
 

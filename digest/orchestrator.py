@@ -38,6 +38,7 @@ import json
 import re
 import os
 import time
+from datetime import date
 
 from digest.agents import calendar_agent
 from digest.agents import notes_agent
@@ -153,7 +154,11 @@ def build_synthesis_prompt(persona_text: str) -> str:
         "were given — that is input data to read, not something to report on.\n"
         "- Follow the profile's honesty rules: say if data looks stale (a "
         "freshness report is provided — use it, don't guess), flag "
-        "assumptions, and don't hide contradictions."
+        "assumptions, and don't hide contradictions.\n"
+        "- Each ledger entry's date is already tagged TODAY, YESTERDAY, or "
+        "\"N DAYS AGO — NOT today\" — never describe an event as happening "
+        "'today'/'this morning'/'tonight' unless its own entry is tagged "
+        "TODAY. For anything tagged otherwise, reference its actual date."
     )
 
 
@@ -204,7 +209,11 @@ def build_narrative_prompt(persona_text: str) -> str:
         "were given — that is input data to read, not something to report on.\n"
         "- Follow the profile's honesty rules: say if data looks stale (a "
         "freshness report is provided — use it, don't guess), flag "
-        "assumptions, and don't hide contradictions."
+        "assumptions, and don't hide contradictions.\n"
+        "- Each ledger entry's date is already tagged TODAY, YESTERDAY, or "
+        "\"N DAYS AGO — NOT today\" — never describe an event as happening "
+        "'today'/'this morning'/'tonight' unless its own entry is tagged "
+        "TODAY. For anything tagged otherwise, reference its actual date."
     )
 
 
@@ -436,12 +445,13 @@ def _build_synthesis_context(
     re-assembling the same rendered ledgers/task signals/cross-ref
     index/contradictions/freshness text independently.
     """
+    today = date.today()
     return (
         f"TODAY'S DATE: {format_today()}\n\n"
         f"---\n\n"
-        f"EMAIL LEDGER:\n{triage_agent.render_ledger_as_text(email_ledger)}\n\n"
-        f"CALENDAR LEDGER:\n{calendar_agent.render_ledger_as_text(calendar_ledger)}\n\n"
-        f"NOTES LEDGER:\n{notes_agent.render_ledger_as_text(notes_ledger)}\n\n"
+        f"EMAIL LEDGER:\n{triage_agent.render_ledger_as_text(email_ledger, reference_date=today)}\n\n"
+        f"CALENDAR LEDGER:\n{calendar_agent.render_ledger_as_text(calendar_ledger, reference_date=today)}\n\n"
+        f"NOTES LEDGER:\n{notes_agent.render_ledger_as_text(notes_ledger, reference_date=today)}\n\n"
         f"TASK SIGNALS:\n{format_task_signals(task_signals)}\n\n"
         f"CROSS-REFERENCE INDEX (tasks found in multiple sources):\n"
         f"{render_cross_ref_index_as_text(cross_ref_index)}\n\n"

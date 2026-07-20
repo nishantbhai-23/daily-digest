@@ -44,6 +44,49 @@ less: a false negative here just falls through to the LLM-judge fallback,
 which is exactly its job; a false positive here has no correction
 mechanism and ships a wrong citation directly.
 
+LLM-judge grounding vs. correctness (found live, fixed three times in a
+row against the same real bug before it actually closed): the first
+version of llm_match_sources only checked that a claimed source_ref
+existed among the candidates shown to the model — "faithfulness," not
+"correctness" in the citation-literature sense. That let through a real
+misattribution: a bullet about "Press #2 jam cleared" got cited to an
+email that was actually about unrelated "Press #3 vibration," a real ref
+with zero actual support.
+
+Fix 1: require the model to supply a verbatim quote from the source and
+verify it's a real substring (layer 2). Re-testing live, the *same* claim
+still mis-cited — the model quoted the email's own subject line ("Press #3
+vibration analysis") as "evidence," a genuine substring but irrelevant.
+
+Fix 2: also require the quote and the claim to share a real,
+corpus-filtered keyword (layer 3). Re-testing live *again*, the same claim
+still mis-cited, because this specific corpus (14 sources, "press"
+appearing in 5 of them) sat right under corpus_common_keywords' 0.5
+threshold — "press" alone was enough shared vocabulary to pass layer 3
+even though "Press #2" and "Press #3" are different machines.
+
+Fix 3: if the claim names a specific numbered/lettered instance (a
+"#N"-shaped token), require the quote to name that same instance, not
+just the surrounding category noun (layer 4). This is what finally closed
+the concrete bug: "#2" vs "#3" never overlap, regardless of how much
+surrounding vocabulary ("press", "vibration") the two machines share.
+
+Each fix in this chain was verified by literally re-running the citation
+pass against the same live tenant and reading the output, not assumed —
+same "don't just ask nicely, verify it" discipline as the rest of this
+codebase, applied to the fix itself, not just the original feature.
+
+Known, accepted limitation: layers 1-4 close every concrete failure mode
+found so far, including the one that survived two earlier fixes, but none
+of them verify semantic correctness the way a human re-reading the source
+would. A model could in principle still find a real, keyword-overlapping
+quote from the wrong source when neither claim nor source happens to
+contain a "#N"-shaped identifier to disambiguate by. Closing that fully
+would require another LLM call to judge the judge, which just relocates
+the same trust problem — not pursued, consistent with this file's
+"post-hoc, closed candidate set" scope rather than a fully
+adversarial-input citation system.
+
 Usage:
     python3 -m digest.core.citations --tenant demo-1 --provider deepseek --model deepseek-chat
     python3 -m digest.core.citations --tenant demo-1 --keyword-only
@@ -51,6 +94,7 @@ Usage:
 
 import argparse
 import os
+import re
 
 from digest.core.cross_reference import find_mentions, leaf_strings, title_keywords
 from digest.core.ledger import validate_schema
@@ -59,8 +103,9 @@ from digest.core.tenant_paths import for_tenant
 from digest.parsers.calendar_parser import load_calendar
 from digest.parsers.email_parser import load_inbox
 from digest.parsers.notes_parser import load_notes
+from digest.parsers.tasks_parser import load_tasks
 
-CITATION_JUDGE_SCHEMA = {"matches": ["claim_index", "source_refs"]}
+CITATION_JUDGE_SCHEMA = {"matches": ["claim_index", "evidence"]}
 
 _UNDRAFTED_LINE = "*(surfaced for you to handle directly — not drafted)*"
 
@@ -80,6 +125,22 @@ _PROSE_STOPWORDS = {
     "over", "before", "after", "again", "here", "there", "what", "which",
     "who", "whom",
 }
+
+# Matches a specific numbered/lettered instance within a shared category
+# noun — "Press #2" vs "Press #3", "Invoice #4521", "Room #12". Found live
+# in llm_match_sources: two sources can share every ordinary keyword
+# ("press", "vibration"/"jam" aside) while actually describing different
+# specific instances, and neither quote-existence nor plain keyword
+# overlap catches that — both quotes are real, and "press" alone isn't
+# always common enough across a brief's sources to get filtered by
+# corpus_common_keywords. An identifier token is unambiguous by
+# construction: if the claim names one, a genuine supporting quote from
+# the right source should name the same one, not a different one.
+_IDENTIFIER_TOKEN_RE = re.compile(r"#\d+")
+
+
+def _identifier_tokens(text: str) -> set[str]:
+    return set(_IDENTIFIER_TOKEN_RE.findall(text))
 
 # A flat min(2, len(keywords)) works for cross_reference.py's short task
 # titles but floods on long prose bullets — see module docstring. Scales
@@ -126,19 +187,25 @@ def corpus_common_keywords(sources: list[dict], threshold: float = _CORPUS_COMMO
     return {word for word, count in doc_counts.items() if count / n > threshold}
 
 
-def load_citable_sources(inbox_dir: str, calendar_file: str, notes_dir: str) -> list[dict]:
+def load_citable_sources(inbox_dir: str, calendar_file: str, notes_dir: str, tasks_file: str | None = None) -> list[dict]:
     """Re-parses raw source files independently of the MAP/ledger pipeline
     — the ledger's MAP deltas don't carry file-level references
     (source_subject is a weak, ambiguous stand-in that collides across a
     reply thread's multiple emails), so this goes straight to the same
     parsers MAP already uses and keeps each format's real reference:
-    filename for email, uid for calendar, note_id for notes.
+    filename for email, uid for calendar, note_id for notes, task id for
+    tasks.
+
+    tasks_file is optional (default None, meaning tasks aren't included) —
+    tasks.json isn't loaded through the same MAP pipeline as the other
+    three sources, so a caller only interested in email/calendar/notes
+    doesn't need to supply it.
 
     Returns:
-        [{"source": "email"|"calendar"|"notes", "ref": str, "label": str,
-        "text": str}] — text is leaf-extracted searchable content; label is
-        a short human-readable description; ref is what gets rendered as
-        the citation tag.
+        [{"source": "email"|"calendar"|"notes"|"task", "ref": str,
+        "label": str, "text": str}] — text is leaf-extracted searchable
+        content; label is a short human-readable description; ref is what
+        gets rendered as the citation tag.
     """
     sources = []
 
@@ -173,6 +240,16 @@ def load_citable_sources(inbox_dir: str, calendar_file: str, notes_dir: str) -> 
             "label": note.get("title") or note.get("note_id") or "(note)",
             "text": text,
         })
+
+    if tasks_file:
+        for task in load_tasks(tasks_file):
+            text = " ".join(leaf_strings({"title": task.get("title", ""), "description": task.get("description", "")}))
+            sources.append({
+                "source": "task",
+                "ref": task.get("id") or "unknown",
+                "label": task.get("title") or task.get("id") or "(task)",
+                "text": text,
+            })
 
     return sources
 
@@ -247,37 +324,74 @@ def build_citation_judge_prompt() -> str:
         "You are matching claims in a summary to the source documents they "
         "came from. You will receive a numbered list of claims and a "
         "numbered list of candidate source documents (each an email, "
-        "calendar event, or note, shown as 'N. [source_type:ref] label — "
-        "text').\n\n"
+        "calendar event, note, or task, shown as 'N. [source_type:ref] "
+        "label — text').\n\n"
         "For each claim, decide which source document(s), if any, "
         "genuinely support or describe that claim's content — not just "
-        "topically related, the actual source the claim was drawn from. "
-        "Point to specific matching content in the source before matching "
-        "it; do not match based on general plausibility alone. A claim can "
-        "match zero, one, or multiple sources.\n\n"
+        "topically related, the actual source the claim was drawn from. A "
+        "claim can match zero, one, or multiple sources.\n\n"
+        "For every source you match, you must include a short verbatim "
+        "quote — a contiguous span copied character-for-character from "
+        "that source's own text above — that supports the claim. Do not "
+        "paraphrase, summarize, or invent the quote. If you cannot find "
+        "an exact span in a source that supports the claim, do not match "
+        "that source at all, even if it seems topically related.\n\n"
         "Output strictly valid JSON:\n"
-        '{"matches": [{"claim_index": 0, "source_refs": ["ref-shown-in-brackets"]}]}\n\n'
-        "source_refs must be exactly the ref values shown in the source "
+        '{"matches": [{"claim_index": 0, "evidence": '
+        '[{"source_ref": "ref-shown-in-brackets", "quote": "exact text copied from that source"}]}]}\n\n'
+        "source_ref must be exactly the ref value shown in the source "
         "list's brackets (e.g. '0003.eml' or an event's uid) — never the "
         "source's list number. Include exactly one entry per claim index "
-        "given, even when source_refs is an empty list. Do not write any "
+        "given, even when evidence is an empty list. Do not write any "
         "markdown wrappers, conversational pleasantries, or extra text."
     )
 
 
-def llm_match_sources(llm, unmatched: list[str], sources: list[dict]) -> dict[int, list[dict]]:
+def llm_match_sources(llm, unmatched: list[str], sources: list[dict], common_keywords: set[str] | None = None) -> dict[int, list[dict]]:
     """One batched call covering every keyword-unmatched bullet at once,
-    not one call per bullet. Grounds the response before trusting it, same
-    shape as orchestrator._ground_contradictions: any claimed source_ref
-    that isn't actually one of the refs in `sources` gets dropped from
-    that claim's matches, not trusted blindly.
+    not one call per bullet. Grounds the response before trusting it in
+    four layers, not one — each added after the previous layer(s) still
+    let the same real bug through on live re-testing (see module
+    docstring for the full story):
+
+    1. Ref grounding (same shape as orchestrator._ground_contradictions):
+       any claimed source_ref that isn't actually one of the refs in
+       `sources` gets dropped — catches an invented/hallucinated ref.
+    2. Quote existence: the model must also supply a verbatim quote copied
+       from that source's text. If the quote isn't actually a substring of
+       the source (case-insensitive), the match is dropped — a real, valid
+       ref can still be a *wrong* match (plausible-sounding but actually
+       unrelated), which ref-grounding alone can't catch since it only
+       checks the ref existed, not that it supports the claim.
+    3. Quote relevance: a real quote can still be a red herring — the
+       model quoted an email's own subject line as "evidence" for an
+       unrelated claim, a real, verbatim, but irrelevant span. This layer
+       requires the quote and the claim to share at least one real
+       keyword (same title_keywords/_PROSE_STOPWORDS primitives as
+       keyword_match_sources, with the same corpus-common filtering so a
+       frequent word can't carry a match by itself).
+    4. Identifier disambiguation: two different specific instances of the
+       same category noun ("Press #2" vs "Press #3") can share every
+       ordinary keyword and still be wrong, especially when the shared
+       noun isn't frequent enough across the corpus for layer 3's
+       corpus-common filtering to exclude it. If the claim names a
+       "#N"-shaped token, the quote must name the same one.
+
+    None of this proves semantic correctness the way a human re-reading
+    the source would — a model could still find a real, keyword-
+    overlapping quote from the wrong source when neither side has a
+    "#N"-shaped identifier to disambiguate by. That residual risk doesn't
+    have a deterministic fix and is a known, documented limitation (see
+    module docstring), not something layers 1-4 claim to close entirely.
 
     Returns:
         {claim_index: [source, ...]} — only for indices the model actually
-        returned a grounded match for.
+        returned a grounded, quote-verified, relevant, disambiguated match
+        for.
     """
     if not unmatched:
         return {}
+    common = common_keywords or set()
 
     claims_text = "\n".join(f"{i}. {text}" for i, text in enumerate(unmatched))
     sources_text = "\n".join(
@@ -311,13 +425,55 @@ def llm_match_sources(llm, unmatched: list[str], sources: list[dict]) -> dict[in
         claim_index = claim.get("claim_index")
         if not isinstance(claim_index, int) or not (0 <= claim_index < len(unmatched)):
             continue
-        claimed_refs = claim.get("source_refs", [])
-        grounded_refs = [r for r in claimed_refs if r in valid_refs]
-        dropped = len(claimed_refs) - len(grounded_refs)
-        if dropped:
-            print(f"   ⚠️  Dropping {dropped} ungrounded citation ref(s) for claim {claim_index}")
-        if grounded_refs:
-            matches[claim_index] = [by_ref[r] for r in grounded_refs]
+
+        claim_text = unmatched[claim_index]
+        claim_keywords = {
+            kw.lower() for kw in title_keywords(claim_text)
+            if kw.lower() not in _PROSE_STOPWORDS and kw.lower() not in common
+        }
+        claim_ids = _identifier_tokens(claim_text)
+
+        grounded_sources = []
+        dropped_ref = 0
+        dropped_quote = 0
+        dropped_irrelevant = 0
+        for item in claim.get("evidence", []):
+            if not isinstance(item, dict):
+                continue
+            ref = item.get("source_ref")
+            quote = (item.get("quote") or "").strip()
+            if ref not in valid_refs:
+                dropped_ref += 1
+                continue
+            source = by_ref[ref]
+            if not quote or quote.lower() not in source["text"].lower():
+                dropped_quote += 1
+                continue
+            quote_keywords = {
+                kw.lower() for kw in title_keywords(quote)
+                if kw.lower() not in _PROSE_STOPWORDS and kw.lower() not in common
+            }
+            # If the claim names a specific numbered/lettered instance
+            # ("Press #2"), a genuine quote must name the same one — two
+            # different instances of the same category noun ("Press #2"
+            # vs "Press #3") can otherwise share every ordinary keyword
+            # and still be wrong. See module docstring.
+            if claim_ids and not (claim_ids & _identifier_tokens(quote)):
+                dropped_irrelevant += 1
+                continue
+            if not (quote_keywords & claim_keywords):
+                dropped_irrelevant += 1
+                continue
+            grounded_sources.append(source)
+
+        if dropped_ref or dropped_quote or dropped_irrelevant:
+            print(
+                f"   ⚠️  Dropping {dropped_ref} ungrounded ref(s), "
+                f"{dropped_quote} unverifiable-quote, and "
+                f"{dropped_irrelevant} irrelevant-quote match(es) for claim {claim_index}"
+            )
+        if grounded_sources:
+            matches[claim_index] = grounded_sources
 
     return matches
 
@@ -351,7 +507,7 @@ def cite_brief(markdown_text: str, sources: list[dict], llm=None) -> tuple[str, 
 
     llm_matches: dict[str, list[dict]] = {}
     if llm is not None and unmatched_bullets:
-        raw = llm_match_sources(llm, unmatched_bullets, sources)
+        raw = llm_match_sources(llm, unmatched_bullets, sources, common_keywords=common_keywords)
         for idx, matched_sources in raw.items():
             llm_matches[unmatched_bullets[idx]] = matched_sources
 
@@ -401,7 +557,7 @@ def main():
     with open(paths.brief_file, "r", encoding="utf-8") as f:
         brief_text = f.read()
 
-    sources = load_citable_sources(paths.inbox_dir, paths.calendar_file, paths.notes_dir)
+    sources = load_citable_sources(paths.inbox_dir, paths.calendar_file, paths.notes_dir, paths.tasks_file)
     print(f"📎 Loaded {len(sources)} candidate source item(s) for tenant '{args.tenant}'.")
 
     llm = None

@@ -58,14 +58,34 @@ def check_not_schema_description(text: str) -> None:
         )
 
 
-def check_keywords_present(text: str, required_keywords: list[str]) -> list[str]:
+def check_keywords_present(text: str, required_keywords: list) -> list:
     """Check that all required keywords/phrases appear (case-insensitive).
 
+    Each entry in required_keywords is either a plain string (must appear
+    literally) or a list/tuple of strings — an OR-set, where at least one
+    variant must appear. Lets a scenario assert "the signal survived" (e.g.
+    required_keywords=["budget", ["corrugator", "line 3", "grinding"]]) even
+    when the model's own wording of a concept varies run to run, without
+    the false-negative brittleness of requiring one exact literal string —
+    same motivation, and same "keyword-first, cheap and deterministic"
+    posture, as citations.py's own matching, just without an LLM fallback:
+    a plain flat keyword list is still the common case and behaves exactly
+    as before, this only adds an option, not a new requirement.
+
     Returns:
-        List of missing keywords — empty list means all were found.
+        List of missing entries (echoing back the plain string or the
+        whole OR-set that failed to match) — empty list means everything
+        required was found.
     """
     lowered = text.lower()
-    return [kw for kw in required_keywords if kw.lower() not in lowered]
+    missing = []
+    for kw in required_keywords:
+        if isinstance(kw, (list, tuple)):
+            if not any(alt.lower() in lowered for alt in kw):
+                missing.append(list(kw))
+        elif kw.lower() not in lowered:
+            missing.append(kw)
+    return missing
 
 
 def check_min_length(text: str, min_words: int = 50) -> bool:
@@ -97,14 +117,39 @@ def extract_searchable_text(container: dict, categories: str | list[str] | None 
     return " ".join(leaf_strings(target))
 
 
+def dynamic_bloat_ceiling(input_count: int, floor: int, per_item_multiplier: float) -> int:
+    """A bloat ceiling that scales with how much input the MAP call
+    actually had to work with, instead of one flat number applied
+    regardless of batch size.
+
+    A flat ceiling calibrated against a busy day (e.g. 40, from a real
+    31-item day) can't catch a hallucination flood on a quiet one — a
+    2-email day producing 15 items looks completely fine against a
+    40-item bound, even though 15 items from 2 emails is exactly the
+    failure mode this check exists to catch. Scaling the ceiling with
+    input_count closes that gap without losing the "deliberately
+    generous, not a tight precision bound" posture
+    check_extraction_bloat already documents: `floor` still protects a
+    single-item day from a falsely tight bound, and the multiplier is
+    schema-motivated (see eval_map.py's *_BLOAT_MULTIPLIER constants —
+    each source's MAP_SCHEMA category count, not a guess) rather than
+    arbitrary.
+
+    Returns:
+        max(floor, round(input_count * per_item_multiplier)).
+    """
+    return max(floor, round(input_count * per_item_multiplier))
+
+
 def check_extraction_bloat(delta: dict, max_items: int) -> str | None:
     """Coarse sanity bound on total extracted items across every category
     in one MAP delta — catches a hallucination-flood failure mode (the
     model inventing dozens of spurious items), not everyday volume
-    variation. Deliberately generous: callers pass a per-source max_items
-    calibrated against this project's own real corpus (see eval_map.py's
-    *_MAX_ITEMS constants and the real observed maxima that set them), not
-    a tight precision bound.
+    variation. Deliberately generous, not a tight precision bound.
+    Callers pass a max_items ceiling — either a flat, real-corpus-
+    calibrated constant, or one computed by dynamic_bloat_ceiling above
+    when there's a natural per-call input count to scale against (see
+    eval_map.py).
 
     Returns:
         None if under the bound, else a human-readable warning string.

@@ -22,8 +22,17 @@ hypothetical.
 
 Each MAP scenario's `required_keywords` check is deliberately blunt (see
 digest_checks.py) — a coarse proxy for "did the signal survive," not a
-substitute for reading the output. Two optional fields narrow what that
-proxy actually checks:
+substitute for reading the output. Still fully deterministic and free (no
+LLM judge, no ground-truth circularity — see the module docstring on
+digest_checks.check_keywords_present for why an ungrounded LLM judge was
+considered and rejected here after citations.py's own judge needed four
+rounds of grounding fixes to stop hallucinating matches on a structurally
+similar problem): an entry in `required_keywords` can be a plain string
+(must appear literally) or a nested list — an OR-set, at least one variant
+must appear, e.g. `["budget", ["corrugator", "line 3", "grinding"]]` —
+for a concept the model's own wording varies on run to run, without
+resorting to an ungrounded judge or a brittle single literal string. Two
+further optional fields narrow what the proxy actually checks:
 - `expected_category` — a single MAP_SCHEMA category name, or a list where
   a scenario's own description documents genuine ambiguity between two
   categories. Scopes the keyword search to just that subtree (via

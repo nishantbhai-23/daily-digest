@@ -222,6 +222,30 @@ def format_today(reference_date=None) -> str:
     return f"{reference_date.isoformat()} ({reference_date.strftime('%A')})"
 
 
+def relative_day_label(day: str, reference_date=None) -> str:
+    """Explicit, precomputed "how old is this" tag for a ledger entry's day.
+
+    A synthesis/REDUCE call being told a bare date (e.g. "2026-07-19") has
+    to correctly subtract it from a separate TODAY'S DATE fact shown
+    elsewhere in the same prompt to know whether that's today, yesterday,
+    or stale — found live to fail (a stale calendar event narrated as
+    "today"), even with both facts present and an explicit instruction to
+    use them. This computes that arithmetic once in code so callers can
+    fold the answer directly into the text a model reads, leaving nothing
+    for it to infer.
+    """
+    reference_date = reference_date or datetime.now().date()
+    entry_date = datetime.strptime(day, "%Y-%m-%d").date()
+    delta = (reference_date - entry_date).days
+    if delta == 0:
+        return "TODAY"
+    if delta == 1:
+        return "YESTERDAY"
+    if delta > 1:
+        return f"{delta} DAYS AGO — NOT today"
+    return day
+
+
 def check_schema_consistency(ledger: list[dict]) -> list[str]:
     """Detect a ledger whose entries were produced under different MAP
     schema/prompt configurations — surfaced as a warning instead of silently
