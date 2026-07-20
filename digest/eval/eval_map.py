@@ -7,6 +7,23 @@ extracted — turns the manual ad hoc checks done throughout development
 (grep-ing ledgers, one-off `python3 -c` snippets) into something
 repeatable.
 
+Scoring is done by score_scenario, a pure function separated out from the
+three eval_*_scenarios functions below specifically so it's unit-testable
+without a real model call (see tests/test_eval_map_scoring.py) — same split
+orchestrator.check_priority_coverage uses. It reads golden_scenarios.py's
+optional `expected_category` (scope the keyword search to the category the
+signal should actually land in, not the whole delta — catches a keyword
+landing in the wrong extraction category) and `forbidden_keywords` (a
+scenario asserting nothing should be extracted at all — the negative-case
+path this eval didn't have before). Both use
+digest_checks.extract_searchable_text, which is leaf-string-based rather
+than json.dumps-based, so schema key names never leak into the search
+corpus.
+
+Also runs digest_checks.check_extraction_bloat per entry — a coarse,
+per-source-calibrated sanity bound that warns (never fails) if a day's
+extraction looks like a hallucination flood rather than real content.
+
 This calls a real model — it is NOT run automatically. Invoke explicitly
 once a working LLM provider is available:
 
@@ -17,7 +34,6 @@ once a working LLM provider is available:
 """
 
 import argparse
-import json
 import sys
 
 from digest.agents import calendar_agent
@@ -25,7 +41,7 @@ from digest.agents import notes_agent
 from digest.agents import triage_agent
 from digest.parsers.calendar_parser import group_by_date as group_calendar_by_date
 from digest.parsers.calendar_parser import load_calendar
-from digest.eval.digest_checks import check_keywords_present
+from digest.eval.digest_checks import check_extraction_bloat, check_keywords_present, extract_searchable_text
 from digest.parsers.email_parser import group_by_date as group_email_by_date
 from digest.parsers.email_parser import load_inbox
 from digest.eval.golden_scenarios import (
@@ -36,6 +52,50 @@ from digest.eval.golden_scenarios import (
 from digest.core.llm import create_llm
 from digest.parsers.notes_parser import load_notes
 from digest.core.persona import load_persona
+
+# Per-source bloat thresholds — calibrated against this project's own real
+# corpus (sampled directly from output/*_rolling_ledger.json), not guessed.
+# Calendar runs much lower volume than email/notes by nature (meeting-based,
+# not thread-based), so one flat threshold across all three would either be
+# useless for calendar or false-positive on a legitimately busy email/notes
+# day.
+EMAIL_MAX_ITEMS = 40      # real corpus observed max: 31 items/day
+NOTES_MAX_ITEMS = 35      # real corpus observed max: 23 items/entry
+CALENDAR_MAX_ITEMS = 15   # real corpus observed max: 5 items/entry
+
+
+def score_scenario(entry: dict, scenario: dict, include_stats: bool = False) -> tuple[bool, str]:
+    """Pure, LLM-free scoring of one already-produced MAP entry against one
+    golden_scenarios.py scenario.
+
+    Args:
+        entry: {"delta": {...}} or {"delta": {...}, "stats": {...}} as
+            produced by _map_single_day/_map_single_note.
+        scenario: one golden_scenarios.py entry — either `required_keywords`
+            (positive case, optionally scoped by `expected_category`) or
+            `forbidden_keywords` (negative case, always unscoped).
+        include_stats: whether this source's deterministic stats field
+            should also be searched (True for calendar/notes, False for
+            email, which has no per-entry stats field in its MAP schema).
+
+    Returns:
+        (passed, detail) — detail is "OK" or a human-readable failure
+        reason.
+    """
+    if "forbidden_keywords" in scenario:
+        # expected_category doesn't apply to a forbidden check — a false
+        # positive could land in any category, so this always searches the
+        # whole delta (+ stats), never category-scoped.
+        full = extract_searchable_text(entry.get("delta", {}))
+        if include_stats:
+            full = extract_searchable_text(entry.get("stats", {})) + " " + full
+        present = [kw for kw in scenario["forbidden_keywords"] if kw.lower() in full.lower()]
+        return (not present, "OK" if not present else f"forbidden keyword(s) found: {present}")
+
+    delta_text = extract_searchable_text(entry.get("delta", {}), scenario.get("expected_category"))
+    haystack = (extract_searchable_text(entry.get("stats", {})) + " " + delta_text) if include_stats else delta_text
+    missing = check_keywords_present(haystack, scenario["required_keywords"])
+    return (not missing, "OK" if not missing else f"missing: {missing}")
 
 
 def eval_email_scenarios(llm, persona_text: str) -> list[tuple]:
@@ -52,8 +112,11 @@ def eval_email_scenarios(llm, persona_text: str) -> list[tuple]:
         if entry is None:
             results.append((scenario["name"], False, "MAP call failed after retries"))
             continue
-        missing = check_keywords_present(json.dumps(entry["delta"]), scenario["required_keywords"])
-        results.append((scenario["name"], not missing, "OK" if not missing else f"missing: {missing}"))
+        bloat = check_extraction_bloat(entry["delta"], EMAIL_MAX_ITEMS)
+        if bloat:
+            print(f"   ⚠️  {scenario['name']}: {bloat}")
+        passed, detail = score_scenario(entry, scenario, include_stats=False)
+        results.append((scenario["name"], passed, detail))
     return results
 
 
@@ -71,10 +134,12 @@ def eval_calendar_scenarios(llm, persona_text: str) -> list[tuple]:
         if entry is None:
             results.append((scenario["name"], False, "MAP call failed after retries"))
             continue
+        bloat = check_extraction_bloat(entry["delta"], CALENDAR_MAX_ITEMS)
+        if bloat:
+            print(f"   ⚠️  {scenario['name']}: {bloat}")
         # Deterministic stats and the LLM delta both count as "extraction".
-        haystack = json.dumps(entry["stats"]) + json.dumps(entry["delta"])
-        missing = check_keywords_present(haystack, scenario["required_keywords"])
-        results.append((scenario["name"], not missing, "OK" if not missing else f"missing: {missing}"))
+        passed, detail = score_scenario(entry, scenario, include_stats=True)
+        results.append((scenario["name"], passed, detail))
     return results
 
 
@@ -92,9 +157,11 @@ def eval_notes_scenarios(llm, persona_text: str) -> list[tuple]:
         if entry is None:
             results.append((scenario["name"], False, "MAP call failed after retries"))
             continue
-        haystack = json.dumps(entry["stats"]) + json.dumps(entry["delta"])
-        missing = check_keywords_present(haystack, scenario["required_keywords"])
-        results.append((scenario["name"], not missing, "OK" if not missing else f"missing: {missing}"))
+        bloat = check_extraction_bloat(entry["delta"], NOTES_MAX_ITEMS)
+        if bloat:
+            print(f"   ⚠️  {scenario['name']}: {bloat}")
+        passed, detail = score_scenario(entry, scenario, include_stats=True)
+        results.append((scenario["name"], passed, detail))
     return results
 
 

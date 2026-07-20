@@ -10,7 +10,7 @@ Run: python3 -m unittest test_cross_reference -v
 
 import unittest
 
-from digest.core.cross_reference import build_cross_reference_index, _title_keywords
+from digest.core.cross_reference import build_cross_reference_index, title_keywords
 
 
 def _task_signals(**buckets):
@@ -21,7 +21,7 @@ def _task_signals(**buckets):
 
 class TestTitleKeywords(unittest.TestCase):
     def test_filters_stopwords_and_short_words(self):
-        keywords = _title_keywords("Decide on Elena Marsh offer (Senior Engineer)")
+        keywords = title_keywords("Decide on Elena Marsh offer (Senior Engineer)")
         self.assertIn("Elena", keywords)
         self.assertIn("Marsh", keywords)
         self.assertIn("Senior", keywords)
@@ -29,7 +29,16 @@ class TestTitleKeywords(unittest.TestCase):
         self.assertNotIn("on", keywords)
 
     def test_empty_title_returns_no_keywords(self):
-        self.assertEqual(_title_keywords("..."), [])
+        self.assertEqual(title_keywords("..."), [])
+
+    def test_short_proper_noun_kept_short_common_word_dropped(self):
+        # min_length dropped to 3 specifically so short real names like
+        # "Sam" (the persona's actual P0 contact) survive — the extended
+        # _STOPWORDS list is what keeps that from also letting through
+        # noise words of the same length.
+        keywords = title_keywords("Fix Sam onboarding checklist")
+        self.assertIn("Sam", keywords)
+        self.assertNotIn("Fix", keywords)
 
 
 class TestMatching(unittest.TestCase):
@@ -81,6 +90,106 @@ class TestMatching(unittest.TestCase):
         index = build_cross_reference_index(email_ledger, [], notes_ledger, task_signals)
         sources = {m["source"] for m in index["TESS-212"]["mentioned_in"]}
         self.assertEqual(sources, {"email", "notes"})
+
+    def test_json_schema_keys_do_not_pollute_matches(self):
+        # An earlier version built searchable text via json.dumps(entry),
+        # which put dict keys like "action_items"/"description" into the
+        # search corpus for free — a task title containing those same
+        # words would then match 100% of entries regardless of content.
+        # Only leaf string *values* should ever be searched.
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-1", "title": "Action Items Review", "priority": "P2"},
+        ])
+        email_ledger = [
+            {"day": "2026-06-22", "delta": {"action_items": [{"description": "Renew the office lease paperwork"}]}},
+        ]
+        index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        self.assertEqual(index, {})
+
+    def test_word_boundary_not_substring(self):
+        # "Marsh" must not match inside "Marshall", and "Board" must not
+        # match inside "Onboarding" — both real substring false-positive
+        # shapes found during review.
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-2", "title": "Board Marsh Renewal", "priority": "P1"},
+        ])
+        email_ledger = [
+            {"day": "2026-06-22", "delta": {"action_items": [{"description": "Onboarding for Marshall completed"}]}},
+        ]
+        index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        self.assertEqual(index, {})
+
+    def test_excerpt_centered_on_match_not_prefix(self):
+        # A fixed text[:500] misses the match entirely on any entry longer
+        # than 500 chars — measured as the common case against real ledger
+        # data (avg entry length ~2099 chars).
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-3", "title": "Halberd SLA Renewal", "priority": "P1"},
+        ])
+        padding = "Unrelated filler text discussing quarterly numbers and routine updates. " * 10
+        description = padding + "Halberd asked about the SLA renewal terms again today."
+        email_ledger = [{"day": "2026-06-22", "delta": {"action_items": [{"description": description}]}}]
+        index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        excerpt = index["TESS-3"]["mentioned_in"][0]["excerpt"]
+        self.assertIn("Halberd", excerpt)
+        self.assertIn("SLA", excerpt)
+
+    def test_matched_fields_reports_item_category(self):
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-4", "title": "Halberd SLA Renewal", "priority": "P1"},
+        ])
+        email_ledger = [{"day": "2026-06-22", "delta": {"deadlines": [{"description": "Halberd SLA renewal due"}]}}]
+        index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        self.assertEqual(index["TESS-4"]["mentioned_in"][0]["matched_fields"], ["deadlines"])
+
+    def test_item_level_matching_rejects_cross_item_contamination(self):
+        # The critical bug found while verifying this rewrite against real
+        # data: two DIFFERENT, unrelated items landing in the same category
+        # on the same day, each contributing one keyword, used to be
+        # counted as a single combined "mention" once the whole category
+        # was flattened into one blob. Neither item is actually about the
+        # flagged task, so this must not match.
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-5", "title": "Close Halberd Manufacturing Integration", "priority": "P1"},
+        ])
+        email_ledger = [{
+            "day": "2026-06-22",
+            "delta": {
+                "thread_progressions": [
+                    {"description": "Close out the Q2 expense receipts"},
+                    {"description": "Halberd asked about a different vendor contract"},
+                ]
+            },
+        }]
+        index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        self.assertEqual(index, {})
+
+    def test_item_level_matching_accepts_genuine_same_item_match(self):
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-6", "title": "Close Halberd Manufacturing Integration", "priority": "P1"},
+        ])
+        email_ledger = [{
+            "day": "2026-06-22",
+            "delta": {"thread_progressions": [{"description": "Close out Halberd Manufacturing integration timeline"}]},
+        }]
+        index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        self.assertIn("TESS-6", index)
+
+    def test_days_from_due_computed_with_correct_sign(self):
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-7", "title": "Halberd SLA Renewal", "priority": "P1", "due_date": "2026-06-20"},
+        ])
+        email_ledger = [{"day": "2026-06-18", "delta": {"deadlines": [{"description": "Halberd SLA renewal reminder"}]}}]
+        index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        self.assertEqual(index["TESS-7"]["mentioned_in"][0]["days_from_due"], -2)
+
+    def test_days_from_due_none_when_day_unparseable(self):
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-8", "title": "Halberd SLA Renewal", "priority": "P1", "due_date": "2026-06-20"},
+        ])
+        notes_ledger = [{"day": "unknown", "delta": {"decisions": [{"description": "Halberd SLA renewal discussion"}]}}]
+        index = build_cross_reference_index([], [], notes_ledger, task_signals)
+        self.assertIsNone(index["TESS-8"]["mentioned_in"][0]["days_from_due"])
 
 
 class TestAgainstRealData(unittest.TestCase):

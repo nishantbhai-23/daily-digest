@@ -619,7 +619,7 @@ def generate_emails(rng, output_dir):
 
 # ─── Calendar Generator ──────────────────────────────────────────────────────
 
-def _ics_event(uid, summary, dtstart, dtend, description="", location="", status="CONFIRMED", attendees=None, rrule=None):
+def ics_event(uid, summary, dtstart, dtend, description="", location="", status="CONFIRMED", attendees=None, rrule=None):
     """Format a single VEVENT block."""
     lines = [
         "BEGIN:VEVENT",
@@ -678,7 +678,7 @@ def generate_calendar(rng, output_dir):
 
         # ── Leadership standup (Mon/Wed/Fri, 9:00-9:15) ──
         if weekday in (0, 2, 4):
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"leadership-standup-{day_offset}@{DOMAIN}",
                 summary="Leadership Standup",
                 dtstart=naive_date.replace(hour=9, minute=0),
@@ -691,7 +691,7 @@ def generate_calendar(rng, output_dir):
         # ── Protected deep-work block (Tue/Thu, 9:00-11:00) — per persona,
         #    nobody should schedule over this without asking. ──
         if weekday in (1, 3):
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"deep-work-{day_offset}@{DOMAIN}",
                 summary="🔒 Deep Work Block",
                 dtstart=naive_date.replace(hour=9, minute=0),
@@ -702,7 +702,7 @@ def generate_calendar(rng, output_dir):
         # ── Deliberate violation: something gets scheduled over the deep-work
         #    block without asking, on the second Tuesday (day_offset 14 = 2026-06-30). ──
         if day_offset == 14:  # Tuesday
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"halberd-qbr-{day_offset}@{DOMAIN}",
                 summary="Customer Call: Halberd Quarterly Review",
                 dtstart=naive_date.replace(hour=9, minute=30),
@@ -717,7 +717,7 @@ def generate_calendar(rng, output_dir):
 
         # ── 1:1s: Priya 2x/week (co-founder), Jordan + Tomás weekly ──
         if weekday in (1, 3):
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"one-on-one-priya-{day_offset}@{DOMAIN}",
                 summary="1:1 with Priya",
                 dtstart=naive_date.replace(hour=11, minute=30),
@@ -727,7 +727,7 @@ def generate_calendar(rng, output_dir):
                 attendees=[{"name": priya["name"], "email": priya["email"]}],
             ))
         if weekday == 2:
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"one-on-one-jordan-{day_offset}@{DOMAIN}",
                 summary="1:1 with Jordan",
                 dtstart=naive_date.replace(hour=13, minute=0),
@@ -736,7 +736,7 @@ def generate_calendar(rng, output_dir):
                 attendees=[{"name": jordan["name"], "email": jordan["email"]}],
             ))
         if weekday == 4:
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"one-on-one-tomas-{day_offset}@{DOMAIN}",
                 summary="1:1 with Tomás",
                 dtstart=naive_date.replace(hour=13, minute=0),
@@ -747,7 +747,7 @@ def generate_calendar(rng, output_dir):
 
         # ── GTM pipeline review (weekly, Thursday 10:00-10:45) ──
         if weekday == 3:
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"gtm-pipeline-{day_offset}@{DOMAIN}",
                 summary="GTM Pipeline Review",
                 dtstart=naive_date.replace(hour=10, minute=0),
@@ -760,7 +760,7 @@ def generate_calendar(rng, output_dir):
         # ── Family collision: Wren's pediatrician follow-up lands directly on
         #    top of the GTM Pipeline Review, on the same Thursday (day_offset 9 = 2026-06-25). ──
         if day_offset == 9:
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"wren-pediatrician-{day_offset}@{DOMAIN}",
                 summary="Wren — Pediatrician Follow-up",
                 dtstart=naive_date.replace(hour=10, minute=15),
@@ -772,7 +772,7 @@ def generate_calendar(rng, output_dir):
 
         # ── Lunch block (~60% of days) ──
         if rng.random() < 0.6:
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"lunch-{day_offset}@{DOMAIN}",
                 summary="Lunch Break",
                 dtstart=naive_date.replace(hour=12, minute=0),
@@ -781,7 +781,7 @@ def generate_calendar(rng, output_dir):
 
         # ── Biweekly all-hands (every other Friday, 16:00-16:30) ──
         if weekday == 4 and (day_offset // 7) % 2 == 0:
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"all-hands-{day_offset}@{DOMAIN}",
                 summary="Tessera All-Hands",
                 dtstart=naive_date.replace(hour=16, minute=0),
@@ -792,7 +792,7 @@ def generate_calendar(rng, output_dir):
 
         # ── Hiring interviews (scattered) ──
         if day_offset in (6, 13, 20):
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"interview-{day_offset}@{DOMAIN}",
                 summary=[
                     "Onsite: Elena Marsh (Senior Engineer)",
@@ -808,7 +808,7 @@ def generate_calendar(rng, output_dir):
         # ── Customer check-ins (scattered, one per reference customer) ──
         if day_offset in (10, 22, 24):
             cust = [derek, lindsey, carla][[10, 22, 24].index(day_offset)]
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"customer-checkin-{day_offset}@{DOMAIN}",
                 summary=f"Customer Check-in: {cust['company']}",
                 dtstart=naive_date.replace(hour=11, minute=0),
@@ -820,7 +820,7 @@ def generate_calendar(rng, output_dir):
         # ── Investor / board (Marcus tapers off after day 4 to match the
         #    quiet-thread scenario in email; Diane 1:1 + one formal board mtg) ──
         if day_offset in (2, 8):
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"marcus-call-{day_offset}@{DOMAIN}",
                 summary="Investor Call: Marcus Webb (Inflection Point)",
                 dtstart=naive_date.replace(hour=15, minute=0),
@@ -829,7 +829,7 @@ def generate_calendar(rng, output_dir):
                 attendees=[{"name": marcus["name"], "email": marcus["email"]}],
             ))
         if day_offset == 15:
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"board-meeting-{day_offset}@{DOMAIN}",
                 summary="Board Meeting — Q2",
                 dtstart=naive_date.replace(hour=14, minute=0),
@@ -838,7 +838,7 @@ def generate_calendar(rng, output_dir):
                 attendees=[{"name": diane["name"], "email": diane["email"]}],
             ))
         if day_offset == 21:
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"diane-1on1-{day_offset}@{DOMAIN}",
                 summary="1:1 with Diane Okafor (Board)",
                 dtstart=naive_date.replace(hour=16, minute=0),
@@ -855,7 +855,7 @@ def generate_calendar(rng, output_dir):
                 "Webinar: Series A benchmarks 2026",
             ]
             idx = [7, 17, 27].index(day_offset)
-            events.append(_ics_event(
+            events.append(ics_event(
                 uid=f"declined-{day_offset}@{DOMAIN}",
                 summary=decline_subjects[idx],
                 dtstart=naive_date.replace(hour=rng.choice([10, 11, 14]), minute=0),

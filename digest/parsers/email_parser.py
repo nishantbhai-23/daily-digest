@@ -68,6 +68,12 @@ def parse_eml(filepath: str) -> dict:
         "body": body,
         "message_id": message_id,
         "thread_id": thread_id,
+        # The one filesystem-level reference to this specific email — kept
+        # here since parse_eml already receives filepath and it was
+        # otherwise just being discarded. Not used by MAP/REDUCE; exists so
+        # downstream tooling (see digest/core/citations.py) can point back
+        # to the exact file a piece of extracted text came from.
+        "filename": os.path.basename(filepath),
     }
 
 

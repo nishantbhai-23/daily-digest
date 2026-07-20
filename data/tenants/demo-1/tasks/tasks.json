@@ -1,0 +1,27 @@
+[
+  {
+    "id": "T001",
+    "title": "Finalize thrips treatment and soil leaching plan",
+    "description": "Based on Lena's pest alert and Raj's soil report, decide on treatment for GH3 (thrips + salinity). Execute by end of week.",
+    "status": "in-progress",
+    "priority": "P1",
+    "due_date": "2026-07-20",
+    "tags": [
+      "pest",
+      "soil",
+      "GH3"
+    ]
+  },
+  {
+    "id": "T002",
+    "title": "Confirm shipment delay with Portland Nursery",
+    "description": "Carlos needs confirmation that tomatoes can be delayed. I said they can hold 2 days, but need to follow up with Portland Nursery to ensure they accept.",
+    "status": "todo",
+    "priority": "P1",
+    "due_date": "2026-07-20",
+    "tags": [
+      "shipment",
+      "customer"
+    ]
+  }
+]

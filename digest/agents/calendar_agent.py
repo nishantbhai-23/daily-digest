@@ -58,20 +58,32 @@ MAP_SCHEMA = {
     "notable_events": ["summary"],
 }
 
-COMPACT_SYSTEM_PROMPT = (
-    "You are compressing a week's worth of daily calendar-triage deltas into a single "
-    "weekly delta, using the exact same JSON schema. Merge duplicate/similar flags, "
-    "keep genuinely distinct items, and preserve specifics (names, dates, meeting "
-    "titles).\n\n"
-    "Output strictly valid JSON matching this schema:\n"
-    "{\n"
-    '  "meetings_needing_prep": [{"summary": "...", "why": "..."}],\n'
-    '  "family_calendar_items": [{"summary": "...", "note": "..."}],\n'
-    '  "pattern_flags": [{"description": "..."}],\n'
-    '  "notable_events": [{"summary": "...", "why_notable": "..."}]\n'
-    "}\n\n"
-    "Do not write any markdown wrappers, conversational pleasantries, or extra text."
-)
+
+def build_compact_system_prompt(persona_text: str) -> str:
+    """Persona-aware weekly compaction — see triage_agent.py's
+    build_compact_system_prompt for the full rationale.
+    """
+    return (
+        f"{persona_text}\n\n"
+        "---\n\n"
+        "You are compressing a week's worth of daily calendar-triage deltas into a single "
+        "weekly delta, using the exact same JSON schema. Merge duplicate/similar flags, "
+        "keep genuinely distinct items, and preserve specifics (names, dates, meeting "
+        "titles).\n\n"
+        "When merging, preserve P0-P1 items individually even if they look similar — "
+        "repeated mentions of a high-priority item across the week is a real signal "
+        "(recurrence), not redundancy, and collapsing them into one entry would lose "
+        "it. P3-P4 items that appear only once may be dropped if a more important "
+        "item on the same topic already covers it.\n\n"
+        "Output strictly valid JSON matching this schema:\n"
+        "{\n"
+        '  "meetings_needing_prep": [{"summary": "...", "why": "..."}],\n'
+        '  "family_calendar_items": [{"summary": "...", "note": "..."}],\n'
+        '  "pattern_flags": [{"description": "..."}],\n'
+        '  "notable_events": [{"summary": "...", "why_notable": "..."}]\n'
+        "}\n\n"
+        "Do not write any markdown wrappers, conversational pleasantries, or extra text."
+    )
 
 
 # ─── Prompt Builders (persona-injected) ───────────────────────────────────────
@@ -170,6 +182,10 @@ def build_reduce_system_prompt(persona_text: str) -> str:
         "them under work content.\n\n"
         "## 4. PATTERNS WORTH FLAGGING\n"
         "Cadence drift (1:1s slipping, unusual meeting-load changes) across the window.\n\n"
+        "Target length: 200-400 words total. Use short bullet points (2-5 per "
+        "section), not paragraphs — if the full digest would take longer than 90 "
+        "seconds to read, cut the least important items rather than compressing "
+        "everything to fit.\n\n"
         "Follow the profile's honesty rules: say if the data looks stale, flag "
         "assumptions, and don't hide contradictions. Match the profile's tone — short, "
         "direct, no fluff. Write in markdown.\n\n"
@@ -516,7 +532,7 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
+def run_reduce_phase(llm, reduce_system_prompt: str, paths, persona_text: str) -> None:
     """REDUCE: Synthesize the calendar ledger into a schedule-focused digest."""
     reduce_start = time.time()
     print("📉 Starting Calendar REDUCE Phase...")
@@ -529,7 +545,7 @@ def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
     for warning in check_schema_consistency(ledger):
         print(f"   ⚠️  {warning}")
 
-    ledger = compact_ledger(ledger, llm, COMPACT_SYSTEM_PROMPT, retention_days=30, count_key=COUNT_KEY)
+    ledger = compact_ledger(ledger, llm, build_compact_system_prompt(persona_text), retention_days=30, count_key=COUNT_KEY)
     save_ledger(paths.calendar_ledger_file, ledger)
 
     ledger_context = render_ledger_as_text(ledger)
@@ -620,13 +636,13 @@ def main():
     )
 
     if args.reduce_only:
-        run_reduce_phase(llm, reduce_system_prompt, paths)
+        run_reduce_phase(llm, reduce_system_prompt, paths, persona_text)
     elif args.map_only:
         run_map_phase(llm, map_system_prompt, paths, **map_kwargs)
     else:
         map_success = run_map_phase(llm, map_system_prompt, paths, **map_kwargs)
         if map_success:
-            run_reduce_phase(llm, reduce_system_prompt, paths)
+            run_reduce_phase(llm, reduce_system_prompt, paths, persona_text)
 
     total_time = time.time() - total_start
     print(f"\n⏱️  Total elapsed: {total_time:.1f}s")

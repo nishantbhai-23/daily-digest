@@ -65,20 +65,38 @@ MAP_SCHEMA_NO_PERSONA = {
     "thread_progressions": ["thread", "progression"],
 }
 
-COMPACT_SYSTEM_PROMPT = (
-    "You are compressing a week's worth of daily email-triage deltas into a single "
-    "weekly delta, using the exact same JSON schema. Merge duplicate/similar items, "
-    "keep genuinely distinct ones, and preserve specifics (names, dates, subjects, "
-    "priority levels).\n\n"
-    "Output strictly valid JSON matching this schema:\n"
-    "{\n"
-    '  "deadlines": [{"description": "...", "date": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
-    '  "decisions": [{"description": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
-    '  "action_items": [{"description": "...", "owner": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
-    '  "thread_progressions": [{"thread": "...", "progression": "..."}]\n'
-    "}\n\n"
-    "Do not write any markdown wrappers, conversational pleasantries, or extra text."
-)
+
+def build_compact_system_prompt(persona_text: str) -> str:
+    """Persona-aware weekly compaction — previously a bare constant with no
+    persona injection at all, meaning the compaction model had no way to
+    judge which items mattered enough to preserve individually. Found in a
+    prompt design review, not hypothetically: a P0 item appearing 3 times in
+    a week could get silently merged into one mention, losing the
+    recurrence signal (which is itself often the point — see the
+    multiwarehouse_open_item golden scenario, where recurrence across time
+    is exactly what mattered).
+    """
+    return (
+        f"{persona_text}\n\n"
+        "---\n\n"
+        "You are compressing a week's worth of daily email-triage deltas into a single "
+        "weekly delta, using the exact same JSON schema. Merge duplicate/similar items, "
+        "keep genuinely distinct ones, and preserve specifics (names, dates, subjects, "
+        "priority levels).\n\n"
+        "When merging, preserve P0-P1 items individually even if they look similar — "
+        "repeated mentions of a high-priority item across the week is a real signal "
+        "(recurrence), not redundancy, and collapsing them into one entry would lose "
+        "it. P3-P4 items that appear only once may be dropped if a more important "
+        "item on the same topic already covers it.\n\n"
+        "Output strictly valid JSON matching this schema:\n"
+        "{\n"
+        '  "deadlines": [{"description": "...", "date": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
+        '  "decisions": [{"description": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
+        '  "action_items": [{"description": "...", "owner": "...", "source_subject": "...", "priority": "P0-P4"}],\n'
+        '  "thread_progressions": [{"thread": "...", "progression": "..."}]\n'
+        "}\n\n"
+        "Do not write any markdown wrappers, conversational pleasantries, or extra text."
+    )
 
 
 # ─── Prompt Builders (persona-injected) ───────────────────────────────────────
@@ -186,6 +204,10 @@ def build_reduce_system_prompt(persona_text: str) -> str:
         "Do not surface newsletters, already-accepted calendar invites, marketing "
         "email, long threads where the operator already had the last word, or anything "
         "whose only content is FYI — per the profile, these are noise, not signal.\n\n"
+        "Target length: 200-400 words total. Use short bullet points (2-5 per "
+        "section), not paragraphs — if the full digest would take longer than 90 "
+        "seconds to read, cut the least important items rather than compressing "
+        "everything to fit.\n\n"
         "Follow the profile's honesty rules: say if the data looks stale, flag any "
         "assumptions behind a suggested action, and don't hide contradictions between "
         "sources. Write a concise, high-impact digest in markdown. Be specific — name "
@@ -664,7 +686,7 @@ def render_ledger_as_text(ledger: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
+def run_reduce_phase(llm, reduce_system_prompt: str, paths, persona_text: str) -> None:
     """REDUCE: Synthesize the 30-day ledger into an executive digest.
 
     Reads the full rolling ledger and passes it to the LLM for synthesis.
@@ -688,7 +710,7 @@ def run_reduce_phase(llm, reduce_system_prompt: str, paths) -> None:
 
     # Collapse anything older than the retention window into weekly rollups
     # before synthesizing, so REDUCE cost doesn't grow unbounded over time.
-    ledger = compact_ledger(ledger, llm, COMPACT_SYSTEM_PROMPT, retention_days=30, count_key=COUNT_KEY)
+    ledger = compact_ledger(ledger, llm, build_compact_system_prompt(persona_text), retention_days=30, count_key=COUNT_KEY)
     save_ledger(paths.email_ledger_file, ledger)
 
     ledger_context = render_ledger_as_text(ledger)
@@ -848,14 +870,14 @@ def main():
     )
 
     if args.reduce_only:
-        run_reduce_phase(llm, reduce_system_prompt, paths)
+        run_reduce_phase(llm, reduce_system_prompt, paths, persona_text)
     elif args.map_only:
         run_map_phase(llm, map_system_prompt, map_schema, config, paths, **map_kwargs)
     else:
         # Full pipeline: MAP → REDUCE
         map_success = run_map_phase(llm, map_system_prompt, map_schema, config, paths, **map_kwargs)
         if map_success:
-            run_reduce_phase(llm, reduce_system_prompt, paths)
+            run_reduce_phase(llm, reduce_system_prompt, paths, persona_text)
 
     total_time = time.time() - total_start
     print(f"\n⏱️  Total elapsed: {total_time:.1f}s")
