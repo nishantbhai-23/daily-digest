@@ -36,7 +36,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 from digest.core import tenant_paths
-from digest.core.ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, check_schema_consistency
+from digest.core.ledger import load_ledger, save_ledger, save_digest, validate_schema, compact_ledger, format_today, check_schema_consistency, relative_day_label
 from digest.core.llm import create_llm, call_with_retry
 from digest.parsers.notes_parser import load_notes
 from digest.core.persona import load_persona
@@ -358,16 +358,26 @@ def _render_notes_stats(stats: dict, indent: str = "") -> list[str]:
     return lines
 
 
-def render_ledger_as_text(ledger: list[dict]) -> str:
+def render_ledger_as_text(ledger: list[dict], reference_date=None) -> str:
     """Render the ledger as readable text instead of raw JSON.
 
     Smaller models tend to fall into "describe this JSON" pattern-completion
     when handed a large literal JSON blob as context — flattening it to
     prose keeps the model focused on synthesizing content.
+
+    reference_date: when given, each non-compacted entry's day is tagged
+    with relative_day_label so staleness never has to be inferred from a
+    bare date — see orchestrator._build_synthesis_context. Left None by
+    default so existing REDUCE-phase callers are unaffected.
     """
     lines = []
     for entry in ledger:
-        label = f"Week of {entry['day']}" if entry.get("compacted") else entry["day"]
+        if entry.get("compacted"):
+            label = f"Week of {entry['day']}"
+        elif reference_date is not None:
+            label = f"{entry['day']} ({relative_day_label(entry['day'], reference_date)})"
+        else:
+            label = entry["day"]
         note_ref = "" if entry.get("compacted") else f" — {entry.get('note_id', '')}"
         lines.append(f"### {label}{note_ref}")
 

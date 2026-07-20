@@ -10,6 +10,7 @@ tests/test_grounding_check.py already established for Stage 1.
 Run: python3 -m unittest test_citations -v
 """
 
+import json
 import os
 import tempfile
 import unittest
@@ -155,6 +156,34 @@ class TestLoadCitableSources(unittest.TestCase):
         self.assertEqual(by_source["notes"]["ref"], "2026-07-18-log.md")
         self.assertIn("Delta Queen", by_source["email"]["text"])
         self.assertIn("Ocean Pride", by_source["calendar"]["text"])
+        self.assertNotIn("task", by_source)  # tasks_file omitted -> no task sources
+
+    def test_tasks_file_included_when_given(self):
+        # Real gap found live: tasks were never loaded at all, so a digest
+        # bullet about a task could never be cited to it, and nothing could
+        # detect content duplicated from an email into a task description.
+        with tempfile.TemporaryDirectory() as tmp:
+            inbox_dir = os.path.join(tmp, "inbox")
+            notes_dir = os.path.join(tmp, "notes")
+            calendar_file = os.path.join(tmp, "calendar.ics")
+            tasks_file = os.path.join(tmp, "tasks.json")
+            os.makedirs(inbox_dir)
+            os.makedirs(notes_dir)
+
+            with open(os.path.join(inbox_dir, "0003.eml"), "w", encoding="utf-8") as f:
+                f.write(_SAMPLE_EML)
+            with open(calendar_file, "w", encoding="utf-8") as f:
+                f.write(_SAMPLE_ICS)
+            with open(os.path.join(notes_dir, "2026-07-18-log.md"), "w", encoding="utf-8") as f:
+                f.write(_SAMPLE_NOTE)
+            with open(tasks_file, "w", encoding="utf-8") as f:
+                json.dump([{"id": "T-1", "title": "Review Delta Queen draft", "description": "Finish the review by Friday.", "status": "todo", "priority": "P1"}], f)
+
+            sources = load_citable_sources(inbox_dir, calendar_file, notes_dir, tasks_file)
+
+        by_source = {s["source"]: s for s in sources}
+        self.assertEqual(by_source["task"]["ref"], "T-1")
+        self.assertIn("Delta Queen", by_source["task"]["text"])
 
 
 class _FakeJudgeLLM:
@@ -168,13 +197,22 @@ class _FakeJudgeLLM:
 class TestLlmMatchSourcesGrounding(unittest.TestCase):
     def setUp(self):
         self.sources = [
-            {"source": "email", "ref": "0003.eml", "label": "x", "text": "x"},
-            {"source": "notes", "ref": "log.md", "label": "y", "text": "y"},
+            {
+                "source": "email", "ref": "0003.eml", "label": "x",
+                "text": (
+                    "Press #3 vibration readings are trending upward this week. "
+                    "Also the new felt from DuroFelt arrived yesterday."
+                ),
+            },
+            {"source": "notes", "ref": "log.md", "label": "y", "text": "Tom reported Press #2 jam cleared in standup"},
         ]
+        self.vibration_claim = "Press vibration readings are trending upward"
 
-    def test_keeps_grounded_source_ref(self):
-        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "source_refs": ["0003.eml"]}]})
-        result = llm_match_sources(llm, ["some claim"], self.sources)
+    def test_keeps_grounded_source_ref_with_real_quote(self):
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "vibration readings are trending upward"},
+        ]}]})
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
         self.assertEqual(len(result[0]), 1)
         self.assertEqual(result[0][0]["ref"], "0003.eml")
 
@@ -182,19 +220,126 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
         # The model claims a ref that was never in the candidate list given
         # to it — the exact hallucination shape the grounding check exists
         # to catch, mirroring test_grounding_check.py's own regression.
-        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "source_refs": ["never-shown.eml"]}]})
-        result = llm_match_sources(llm, ["some claim"], self.sources)
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "never-shown.eml", "quote": "anything"},
+        ]}]})
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
         self.assertEqual(result, {})
 
     def test_partial_grounding_keeps_only_the_real_ref(self):
-        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "source_refs": ["0003.eml", "fake.eml"]}]})
-        result = llm_match_sources(llm, ["some claim"], self.sources)
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "vibration readings are trending upward"},
+            {"source_ref": "fake.eml", "quote": "anything"},
+        ]}]})
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
         self.assertEqual([s["ref"] for s in result[0]], ["0003.eml"])
 
     def test_empty_unmatched_list_skips_the_call_entirely(self):
         llm = _FakeJudgeLLM({"matches": []})
         result = llm_match_sources(llm, [], self.sources)
         self.assertEqual(result, {})
+
+    def test_drops_match_whose_quote_is_not_actually_in_the_source(self):
+        # Real bug found live: the judge attached a genuinely valid ref
+        # (0003.eml, the Press #3 vibration email) to a claim about "Press
+        # #2 jam cleared" — a topic that email never mentions at all. The
+        # ref existed (so ref-grounding alone passed it through), but no
+        # real quote from 0003.eml could ever support that claim. This is
+        # the exact case quote-existence verification exists to catch.
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "Press #2 jam cleared"},
+        ]}]})
+        result = llm_match_sources(llm, ["Press #2 jam cleared"], self.sources)
+        self.assertEqual(result, {})
+
+    def test_drops_real_but_irrelevant_quote(self):
+        # Second live-found bug, narrower than the first: after adding
+        # quote-existence verification, the judge started passing quote
+        # checks with a real-but-unrelated span from the *same* wrong
+        # source — here, the email's own felt-delivery sentence, quoted as
+        # "evidence" for an unrelated jam claim. The quote genuinely exists
+        # in 0003.eml (layer 2 passes), but shares no real keyword with the
+        # claim, so layer 3 must still reject it.
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "the new felt from DuroFelt arrived yesterday"},
+        ]}]})
+        result = llm_match_sources(llm, ["Press #2 jam cleared in standup, Tom reported"], self.sources)
+        self.assertEqual(result, {})
+
+    def test_common_keyword_alone_cannot_satisfy_relevance_check(self):
+        # Mirrors the actual live corpus behavior: "Press" appeared in most
+        # of demo-1's sources, so corpus_common_keywords filtered it before
+        # cite_brief ever calls llm_match_sources. Without that filtering,
+        # sharing only a corpus-common word would wrongly look relevant.
+        # Deliberately no "#N" tokens on either side, so this exercises
+        # layer 3 specifically rather than being caught by layer 4 first.
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "Press readings trending upward"},
+        ]}]})
+        result = llm_match_sources(
+            llm, ["Press jam cleared in standup"], self.sources, common_keywords={"press"},
+        )
+        self.assertEqual(result, {})
+
+    def test_drops_match_naming_a_different_numbered_instance(self):
+        # Third live-found bug, narrower still: layers 2 and 3 both passed
+        # a real, on-topic-sounding quote — "Press #3 vibration analysis,"
+        # the email's own subject line — against a claim actually about a
+        # *different* press. "press" and "vibration" aren't corpus-common
+        # enough in this fixture to be filtered by layer 3, so keyword
+        # overlap alone lets it through. The claim names a specific
+        # instance ("#2"); the quote names a different one ("#3") — layer 4
+        # must catch that even though the surrounding vocabulary overlaps.
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "Press #3 vibration readings are trending upward"},
+        ]}]})
+        result = llm_match_sources(llm, ["Press #2 jam cleared, vibration readings normal"], self.sources)
+        self.assertEqual(result, {})
+
+    def test_keeps_match_naming_the_same_numbered_instance(self):
+        # The positive case for layer 4: claim and quote both name "#3",
+        # so the identifier check shouldn't reject a genuinely correct
+        # match just because a "#N" token happens to be present.
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "Press #3 vibration readings are trending upward"},
+        ]}]})
+        result = llm_match_sources(llm, ["Press #3 vibration readings trending upward"], self.sources)
+        self.assertEqual(len(result[0]), 1)
+        self.assertEqual(result[0][0]["ref"], "0003.eml")
+
+    def test_no_identifier_in_claim_skips_layer_four_entirely(self):
+        # A claim with no "#N" token at all shouldn't require one in the
+        # quote either — layer 4 only applies when the claim itself names
+        # a specific instance.
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "vibration readings are trending upward"},
+        ]}]})
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        self.assertEqual(len(result[0]), 1)
+
+    def test_missing_quote_field_drops_the_match(self):
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml"},
+        ]}]})
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        self.assertEqual(result, {})
+
+    def test_quote_matching_is_case_insensitive(self):
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "VIBRATION READINGS ARE TRENDING UPWARD"},
+        ]}]})
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        self.assertEqual(len(result[0]), 1)
+
+    def test_mixed_valid_and_unverifiable_matches_on_same_claim(self):
+        # One evidence item is real, the other's quote doesn't exist in
+        # its source — only the real one should survive.
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0003.eml", "quote": "vibration readings are trending upward"},
+            {"source_ref": "log.md", "quote": "this text is not in the note"},
+        ]}]})
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        self.assertEqual([s["ref"] for s in result[0]], ["0003.eml"])
 
 
 class TestCiteBriefKeywordOnly(unittest.TestCase):

@@ -41,7 +41,7 @@ from digest.agents import notes_agent
 from digest.agents import triage_agent
 from digest.parsers.calendar_parser import group_by_date as group_calendar_by_date
 from digest.parsers.calendar_parser import load_calendar
-from digest.eval.digest_checks import check_extraction_bloat, check_keywords_present, extract_searchable_text
+from digest.eval.digest_checks import check_extraction_bloat, check_keywords_present, dynamic_bloat_ceiling, extract_searchable_text
 from digest.parsers.email_parser import group_by_date as group_email_by_date
 from digest.parsers.email_parser import load_inbox
 from digest.eval.golden_scenarios import (
@@ -53,15 +53,29 @@ from digest.core.llm import create_llm
 from digest.parsers.notes_parser import load_notes
 from digest.core.persona import load_persona
 
-# Per-source bloat thresholds — calibrated against this project's own real
-# corpus (sampled directly from output/*_rolling_ledger.json), not guessed.
-# Calendar runs much lower volume than email/notes by nature (meeting-based,
-# not thread-based), so one flat threshold across all three would either be
-# useless for calendar or false-positive on a legitimately busy email/notes
-# day.
-EMAIL_MAX_ITEMS = 40      # real corpus observed max: 31 items/day
-NOTES_MAX_ITEMS = 35      # real corpus observed max: 23 items/entry
-CALENDAR_MAX_ITEMS = 15   # real corpus observed max: 5 items/entry
+# Email/calendar bloat ceilings scale with the actual day's batch size (see
+# digest_checks.dynamic_bloat_ceiling) instead of one flat number for every
+# day regardless of volume — a flat ceiling calibrated against a busy day
+# can't catch a hallucination flood on a quiet one. The multiplier is
+# schema-motivated, not guessed: each source's MAP_SCHEMA category count is
+# the ceiling on how many distinct categories a single input item could
+# plausibly populate at once in the busiest realistic case (triage_agent.
+# MAP_SCHEMA: deadlines/decisions/action_items/thread_progressions = 4;
+# calendar_agent.MAP_SCHEMA also has 4, but pattern_flags/notable_events
+# are day-level flags rather than strictly per-event, so a slightly more
+# conservative multiplier is used there). Floors keep a single-item day
+# from getting a falsely tight bound.
+EMAIL_BLOAT_FLOOR = 8
+EMAIL_BLOAT_MULTIPLIER = 4.0
+CALENDAR_BLOAT_FLOOR = 4
+CALENDAR_BLOAT_MULTIPLIER = 3.0
+
+# notes_agent.py MAPs one note at a time, not a day's batch of notes — there
+# is no natural per-call input count to scale a ceiling against the way
+# there is for email/calendar's per-day batches (a note's own length isn't
+# an equivalent signal without more calibration data than exists today), so
+# this stays a flat, real-corpus-calibrated ceiling.
+NOTES_MAX_ITEMS = 35   # real corpus observed max: 23 items/entry
 
 
 def score_scenario(entry: dict, scenario: dict, include_stats: bool = False) -> tuple[bool, str]:
@@ -112,7 +126,8 @@ def eval_email_scenarios(llm, persona_text: str) -> list[tuple]:
         if entry is None:
             results.append((scenario["name"], False, "MAP call failed after retries"))
             continue
-        bloat = check_extraction_bloat(entry["delta"], EMAIL_MAX_ITEMS)
+        max_items = dynamic_bloat_ceiling(len(batch), EMAIL_BLOAT_FLOOR, EMAIL_BLOAT_MULTIPLIER)
+        bloat = check_extraction_bloat(entry["delta"], max_items)
         if bloat:
             print(f"   ⚠️  {scenario['name']}: {bloat}")
         passed, detail = score_scenario(entry, scenario, include_stats=False)
@@ -134,7 +149,8 @@ def eval_calendar_scenarios(llm, persona_text: str) -> list[tuple]:
         if entry is None:
             results.append((scenario["name"], False, "MAP call failed after retries"))
             continue
-        bloat = check_extraction_bloat(entry["delta"], CALENDAR_MAX_ITEMS)
+        max_items = dynamic_bloat_ceiling(len(batch), CALENDAR_BLOAT_FLOOR, CALENDAR_BLOAT_MULTIPLIER)
+        bloat = check_extraction_bloat(entry["delta"], max_items)
         if bloat:
             print(f"   ⚠️  {scenario['name']}: {bloat}")
         # Deterministic stats and the LLM delta both count as "extraction".
