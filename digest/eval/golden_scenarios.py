@@ -14,6 +14,12 @@ expected signals, across four categories:
   existing corpus where persona.md's own rules make the correct priority
   unambiguous. Used by eval_prompt_variants.py to compare MAP prompt
   variants against a measurable target.
+- CROSS_REFERENCE_SCENARIOS — not planted, observed: real tasks in the
+  arclight tenant already flagged as time-sensitive with real cross-source
+  mentions, confirmed by running cross_reference.build_cross_reference_index
+  directly against arclight's actual ledgers. Used by
+  eval_cross_reference_variants.py to compare the lexical and
+  embedding-assisted Stage-0 implementations.
 
 This turns the manual `python3 -c` / `jq` checks done throughout
 development into something repeatable: every scenario here is a real bug,
@@ -267,5 +273,29 @@ PRIORITY_CALIBRATION_SCENARIOS = [
             "below the 3+ threshold, so correct MAP output extracts nothing "
             "for this sender at all."
         ),
+    },
+]
+
+# Cross-reference scenarios — used by eval_cross_reference_variants.py to
+# compare cross_reference.py's lexical and embedding-assisted Stage-0
+# implementations. Each entry names a real, already-flagged task in the
+# arclight tenant's actual data, with the sources build_cross_reference_index
+# (the lexical variant) is directly verified to find today — not a planted
+# fixture, an observed fact confirmed by running the lexical function
+# against arclight's real ledgers. expected_sources is a floor, not a
+# ceiling: a variant that finds a superset (e.g. embedding_assisted adding a
+# calendar mention lexical misses) still passes.
+CROSS_REFERENCE_SCENARIOS = [
+    {
+        "name": "arclight_sre_req_open",
+        "tenant_id": "arclight",
+        "task_id": "ARC-102",
+        "expected_sources": {"email", "notes"},
+    },
+    {
+        "name": "arclight_oncall_rebalance_blocked",
+        "tenant_id": "arclight",
+        "task_id": "ARC-103",
+        "expected_sources": {"email", "calendar", "notes"},
     },
 ]

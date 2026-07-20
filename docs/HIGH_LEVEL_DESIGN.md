@@ -74,9 +74,26 @@ buckets, recomputed fresh from the live file every run.
 
 Four stages, each with one job:
 
-- **Stage 0** (no LLM): `build_cross_reference_index` (keyword-matches
-  flagged tasks against the other three ledgers) plus
-  `check_data_freshness`.
+- **Stage 0** (no LLM by default): `cross_reference.CROSS_REFERENCE_VARIANTS`,
+  selected via `--cross-reference-variant`. `lexical` (the default —
+  `build_cross_reference_index`, keyword-matches flagged tasks against the
+  other three ledgers) is purely deterministic. `embedding_assisted`
+  (`build_cross_reference_index_embedding_assisted`) runs the identical
+  lexical pass first, then adds a local-embedding rescue pass
+  (`digest/core/embeddings.py`, via Ollama) for paraphrase matches the
+  keyword pass misses — never removes a lexical match, only adds ones
+  lexical missed. Not the default yet: this index directly seeds Stage 1's
+  contradiction-detection candidate set, so a false match here has a
+  bigger blast radius than a false positive anywhere else this codebase
+  does keyword matching (it could feed a hallucinated contradiction about
+  two things that were never actually the same task). Compared against the
+  lexical baseline via `eval_cross_reference_variants.py` before any
+  decision to change the default — as of the last comparison run against
+  the arclight tenant, `embedding_assisted` found no additional mentions
+  beyond lexical (the highest similarity among genuinely uncovered items
+  was 0.524, well short of the 0.70 threshold — a real, evidence-based
+  reason to stay conservative here, not an oversight). Both variants also
+  run `check_data_freshness`.
 - **Stage 1** (LLM, conditional): `detect_contradictions` — only runs when
   Stage 0 found a task mentioned in 2+ sources; skipped entirely otherwise.
   Every claimed contradiction is grounded before being trusted
@@ -88,9 +105,13 @@ Four stages, each with one job:
   Two interchangeable variants, selected via `--synthesis-variant`:
   `single_call` (one call for everything) and `staged` (narrative first,
   dispatchable items as a dependent second call). `check_priority_coverage`
-  runs after either variant — a deterministic, keyword-based check that
-  every P0/P1 task from `tasks_signals.py` is mentioned somewhere in the
-  output; logs a warning, never blocks.
+  runs after either variant to verify every P0/P1 task from
+  `tasks_signals.py` is mentioned somewhere in the output; logs a warning,
+  never blocks. Two tiers: keyword matching first, then a local-embedding
+  rescue (same `digest/core/embeddings.py`) for a task covered only via
+  paraphrase — advisory-only, so the embedding tier is on by default here
+  (unlike Stage 0's variant, there's no comparable blast-radius concern
+  since this check never feeds another stage).
 - **Stage 3** (LLM): draft generation for every dispatchable item, tone-
   locked to the persona, with `tenant_config.json`'s `never_draft_contacts`
   filtered out in code first — never left to prompt compliance.
@@ -98,29 +119,64 @@ Four stages, each with one job:
 Assembly (stitching Stage 2/3 output into `daily_brief.md`) is pure Python,
 no LLM involved.
 
+### Local embeddings (`digest/core/embeddings.py`)
+
+Shared primitive behind every embedding-assisted matcher above
+(citations' embedding tier, Stage 2's `check_priority_coverage` rescue,
+Stage 0's `embedding_assisted` cross-reference variant): `embed_texts`
+wraps Ollama's `nomic-embed-text` model, `cosine_similarity` and
+`best_matches` are pure stdlib math — no numpy, no new dependency (reuses
+the `ollama` package the Ollama chat provider already requires). Every
+call site injects its own `embed_fn`, defaulting to the real function but
+swappable for `None` (disables the tier) or a test double, and every
+caller catches a failed embed call and falls back to whatever tier ran
+before it rather than crashing. Each of the three call sites above
+calibrates its own similarity threshold separately against real data
+rather than sharing one value — the three comparison shapes (bullet vs.
+full source document, task title vs. narrative chunk, task title vs. a
+single extracted item) score differently even for equally genuine
+matches, and the acceptable false-positive risk differs by how directly
+each check's output feeds another stage (see Stage 0's writeup above for
+the most consequential case).
+
 ### Citations (`digest/core/citations.py`)
 
 Attaches a per-bullet source reference to an already-rendered
 `daily_brief.md`, entirely after the fact. Splits the brief into bullets,
-then matches each one against the day's real source items in two passes:
+then matches each one against the day's real source items in three tiers,
+cheapest first:
 
 1. **Keyword matching** (`keyword_match_sources`) — free, deterministic,
    tried first. Uses `cross_reference.py`'s `title_keywords`/`find_mentions`
    primitives with prose-specific tuning (`_PROSE_STOPWORDS`, a match
    threshold that scales with bullet length, corpus-frequency filtering via
    `corpus_common_keywords`).
-2. **LLM-judge fallback** (`llm_match_sources`) for anything keyword
-   matching can't confidently place — one batched call, verified through
-   four layers before a claimed match is trusted: the claimed `source_ref`
-   must actually be one of the candidates shown; the model must supply a
-   verbatim quote that is a real substring of that source's text; the
-   quote must share a real keyword with the claim (not a corpus-common
-   one); and if the claim names a specific numbered/lettered instance
-   (`"Press #2"`), the quote must name that same instance, not a different
-   one sharing the same category noun.
+2. **Embedding matching** (`embedding_match_sources`) — bullets keyword
+   matching can't place get compared against every source via local
+   embeddings (`digest/core/embeddings.py`, Ollama's `nomic-embed-text`,
+   cosine similarity ≥ 0.70). Catches paraphrase keyword overlap
+   structurally can't — a real, live-observed case: a bullet synthesizing
+   details from a 1:1 note scored 0.664 against its actual source, below
+   an initial 0.78 guess but genuinely correct once recalibrated against
+   real output. Also strengthens the LLM-judge layer below: its own
+   "quote relevance" check now accepts either keyword overlap *or*
+   embedding similarity, catching a real quote that supports a claim via
+   paraphrase with zero literal word overlap.
+3. **LLM-judge fallback** (`llm_match_sources`) for anything neither
+   earlier tier could confidently place — one batched call, verified
+   through four layers before a claimed match is trusted: the claimed
+   `source_ref` must actually be one of the candidates shown; the model
+   must supply a verbatim quote that is a real substring of that source's
+   text; the quote must share a real keyword *or* clear the embedding
+   threshold with the claim; and if the claim names a specific
+   numbered/lettered instance (`"Press #2"`), the quote must name that
+   same instance, not a different one sharing the same category noun.
 
-A bullet with no confident match from either pass is left uncited rather
-than guessed. Output: `daily_brief_cited.md`, sibling to the original.
+A bullet with no confident match from any tier is left uncited rather
+than guessed. The embedding tier is individually optional
+(`--no-embeddings`) and degrades gracefully (prints a warning, falls
+through to the LLM tier) if Ollama or the embedding model isn't
+available. Output: `daily_brief_cited.md`, sibling to the original.
 
 ### Structured digest (`digest/core/structured_digest.py`)
 
@@ -285,15 +341,17 @@ one command for a fresh randomly-named tenant.
 
 ## Evaluation tooling
 
-None of these run automatically — each calls a real model and costs real
-provider budget.
+None of these run automatically. Most call a real model and cost real
+provider budget; `eval_cross_reference_variants.py` is the one exception
+(local embeddings only, no LLM call), noted below.
 
-- **`golden_scenarios.py`**: a registry of real planted-data scenarios with
-  known-correct expected signals, across MAP extraction, Stage-1
-  contradiction detection, and priority calibration. `required_keywords`
-  entries may be a plain string (must appear literally) or a nested list —
-  an OR-set, at least one variant must appear — for concepts whose exact
-  wording varies run to run.
+- **`golden_scenarios.py`**: a registry of real planted-data or directly-
+  observed scenarios with known-correct expected signals, across MAP
+  extraction, Stage-1 contradiction detection, priority calibration, and
+  Stage-0 cross-referencing. `required_keywords` entries may be a plain
+  string (must appear literally) or a nested list — an OR-set, at least
+  one variant must appear — for concepts whose exact wording varies run
+  to run.
 - **`eval_map.py`**: runs MAP-phase extraction against
   `golden_scenarios.py` and scores it via `score_scenario`, a pure,
   LLM-free function (`digest_checks.check_keywords_present`/
@@ -303,23 +361,57 @@ provider budget.
   (`dynamic_bloat_ceiling`) as `max(floor, batch_size * multiplier)`, so it
   scales with how much input a given day actually had rather than one flat
   number for every day; notes (MAP'd one note at a time, no natural batch
-  size) uses a flat, real-corpus-calibrated ceiling.
+  size) uses a flat, real-corpus-calibrated ceiling. Optional `--llm-judge`
+  flag additionally scores each scenario via `quality_judge.judge_map_quality`
+  (see below) — a supplement to `score_scenario`'s coverage check, not a
+  replacement.
+- **`quality_judge.py`**: an in-house LLM judge scoring one (source,
+  output) pair on four dimensions — groundedness (the judge lists claims
+  with a supporting verbatim quote per claim; each quote is verified as a
+  real substring of the source in code, same check shape as citations'
+  own grounding, never trusted at face value), completeness (claimed-
+  missing items are cross-checked against the output's own vocabulary — a
+  claim that something's missing when its own keywords are already
+  present is self-contradicting and gets flagged, not trusted),
+  conciseness (fully deterministic, no LLM — `digest_checks.check_conciseness`,
+  a length-ratio bound), and coherence/tone (the one dimension with no
+  deterministic backstop, explicitly advisory/non-gating). Built in-house
+  rather than adopting DeepEval/RAGAS — both frameworks' signature
+  Faithfulness metric already works the same way this module's
+  groundedness dimension does, and this project already had that pattern
+  proven out, live, in citations.py's own grounding.
 - **`eval_prompt_variants.py`** / **`eval_synthesis_variants.py`**: compare
   MAP-prompt and Stage-2-synthesis variants against each other across
   multiple trials, each run recorded to `eval_history/results.jsonl` with a
   content-addressed snapshot of the exact prompt text tested.
-- **`digest_checks.py`**: the shared pure-Python primitives the above two
-  scripts are built from — keyword presence/absence, category-scoped
-  search, extraction-bloat bounds, schema-narration detection.
+- **`eval_cross_reference_variants.py`**: compares Stage 0's `lexical` and
+  `embedding_assisted` cross-reference variants against a tenant's real
+  ledger data — the one eval script here that makes no LLM call at all
+  (cross-referencing is keyword matching plus, optionally, local
+  embeddings), so there's no provider budget concern and no run-to-run
+  sampling variance to average over. Scores against
+  `golden_scenarios.CROSS_REFERENCE_SCENARIOS` via
+  `score_cross_reference_scenario` (a floor check — a variant finding a
+  superset of the expected sources still passes) and surfaces total
+  mention count and latency per variant, not scored — the tradeoff being
+  measured is precision risk (a false cross-reference feeding a
+  hallucinated contradiction), not $ cost.
+- **`digest_checks.py`**: the shared pure-Python primitives several of the
+  above scripts are built from — keyword presence/absence, category-scoped
+  search, extraction-bloat bounds, schema-narration detection, conciseness
+  ratio.
 
 ## Testing
 
 ```bash
 python3 -m unittest discover -s tests -p "test_*.py"
 ```
-305 tests, fully offline, no LLM calls, no API keys needed — run in
-milliseconds. Everything LLM-dependent lives in the eval scripts above
-instead, run manually and explicitly.
+370 tests, fully offline, no LLM calls, no API keys needed — run in
+milliseconds. This includes the embedding-assisted matchers above: every
+test injects a fake/precomputed `embed_fn` rather than calling Ollama for
+real, so the suite doesn't depend on it being installed or running.
+Everything LLM-dependent lives in the eval scripts above instead, run
+manually and explicitly.
 
 ## Known boundaries
 
@@ -360,6 +452,18 @@ Stated as current facts, not gaps awaiting a fix:
 - **`structured_digest.py` has no golden-scenario eval coverage** — nothing
   automated checks its `type`/`priority`/`date_urgency` classification
   accuracy today.
+- **Every embedding-assisted matcher requires Ollama running locally with
+  `nomic-embed-text` pulled** to do anything beyond its own keyword/
+  lexical floor. All three call sites degrade gracefully (print a
+  warning, fall back to the non-embedding result) if it isn't available
+  — nothing crashes, but a tenant run without Ollama silently gets less
+  recall than one with it, with no signal in the output that this
+  happened beyond the printed warning.
+- **`embedding_assisted` is not Stage 0's default** — `eval_cross_reference_variants.py`'s
+  only comparison run so far (arclight) found no additional coverage
+  beyond the lexical variant, so there's not yet a positive case for
+  switching; this may look different on a tenant with more paraphrase-
+  heavy source data.
 
 ## Further reading
 

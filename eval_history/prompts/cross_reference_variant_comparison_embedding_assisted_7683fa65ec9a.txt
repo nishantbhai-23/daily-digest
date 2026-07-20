@@ -1,0 +1,1 @@
+(no LLM prompt — deterministic/local-embedding only)

@@ -15,6 +15,7 @@ import os
 import unittest
 
 from digest.eval.digest_checks import (
+    check_conciseness,
     check_extraction_bloat,
     check_keywords_present,
     check_min_length,
@@ -210,6 +211,29 @@ class TestDynamicBloatCeiling(unittest.TestCase):
         delta = {"action_items": [{"description": str(i)} for i in range(30)]}
         dynamic_ceiling = dynamic_bloat_ceiling(12, floor=8, per_item_multiplier=4.0)
         self.assertIsNone(check_extraction_bloat(delta, dynamic_ceiling))
+
+
+class TestConciseness(unittest.TestCase):
+    def test_summary_within_ratio_passes(self):
+        source = " ".join(["word"] * 100)
+        output = " ".join(["word"] * 50)  # ratio 0.5, under default 0.6
+        self.assertIsNone(check_conciseness(output, source))
+
+    def test_summary_exceeding_ratio_is_flagged(self):
+        source = " ".join(["word"] * 100)
+        output = " ".join(["word"] * 80)  # ratio 0.8, over default 0.6
+        warning = check_conciseness(output, source)
+        self.assertIsNotNone(warning)
+        self.assertIn("0.80", warning)
+
+    def test_empty_source_does_not_divide_by_zero(self):
+        self.assertIsNone(check_conciseness("some output", ""))
+
+    def test_custom_max_ratio_is_respected(self):
+        source = " ".join(["word"] * 100)
+        output = " ".join(["word"] * 40)  # ratio 0.4
+        self.assertIsNone(check_conciseness(output, source, max_ratio=0.5))
+        self.assertIsNotNone(check_conciseness(output, source, max_ratio=0.3))
 
 
 if __name__ == "__main__":

@@ -16,16 +16,22 @@ open retrieval. The matching problem shrinks to "which of these known
 items does this claim match," a narrower, safer version of what that
 research warns about.
 
-Hybrid matching, not keyword-only: a digest bullet is the LLM's
+Three-tier matching, not keyword-only: a digest bullet is the LLM's
 *abstractive summary* of a source, not a literal quote, so keyword overlap
 alone under-matches it in a way cross_reference.py's original use case
 (matching a stable task title against mentions) doesn't hit. Keyword
 matching (cross_reference.title_keywords/find_mentions) runs first as a
-free, deterministic pass; bullets it can't place fall back to one batched
-LLM-judge call, grounded the same way orchestrator._ground_contradictions
-grounds Stage 1 — a claimed source_ref that isn't actually one of the refs
-the model was shown gets dropped, not trusted. A bullet with no match from
-either pass stays visibly uncited rather than forcing a guess.
+free, deterministic pass. Bullets it can't place go to a local-embedding
+similarity pass (digest.core.embeddings, via Ollama) — cheap, no API cost,
+and catches paraphrase keyword overlap structurally can't ("reached out to
+Andrew" vs. a source that says "called Drew"). Only bullets neither tier
+placed fall back to one batched LLM-judge call, grounded the same way
+orchestrator._ground_contradictions grounds Stage 1 — a claimed source_ref
+that isn't actually one of the refs the model was shown gets dropped, not
+trusted. A bullet with no match from any of the three tiers stays visibly
+uncited rather than forcing a guess. Both the embedding tier and the LLM
+tier are individually optional (embed_fn=None / llm=None) — keyword
+matching alone is always the floor.
 
 The keyword pass needed its own tuning, found live rather than guessed: a
 real brief's first bullet matched 9 of 10 available sources before this
@@ -89,6 +95,7 @@ adversarial-input citation system.
 
 Usage:
     python3 -m digest.core.citations --tenant demo-1 --provider deepseek --model deepseek-chat
+    python3 -m digest.core.citations --tenant demo-1 --no-embeddings
     python3 -m digest.core.citations --tenant demo-1 --keyword-only
 """
 
@@ -97,6 +104,7 @@ import os
 import re
 
 from digest.core.cross_reference import find_mentions, leaf_strings, title_keywords
+from digest.core.embeddings import best_matches, cosine_similarity, embed_texts
 from digest.core.ledger import validate_schema
 from digest.core.llm import call_with_retry, create_llm
 from digest.core.tenant_paths import for_tenant
@@ -164,6 +172,16 @@ _CORPUS_COMMON_THRESHOLD = 0.5
 # genuinely over-represented ones. Below this many sources, corpus-
 # frequency filtering isn't a meaningful signal, so it's skipped entirely.
 _MIN_SOURCES_FOR_CORPUS_FILTER = 4
+
+# nomic-embed-text cosine similarity — calibrated against a live run
+# against the arclight tenant, not guessed (same "found live, not
+# hypothetically" discipline as keyword_match_sources' own
+# _MIN_MATCH_RATIO history). An initial 0.78 guess turned out too strict:
+# a real, LLM-confirmed relevant match ("Layla's on-call load" bullet vs.
+# 0015.eml) scored only 0.66, while a genuinely unrelated-but-topically-
+# adjacent pair scored 0.60 — 0.70 sits above the negative anchor while
+# still catching the confirmed-relevant case.
+_EMBEDDING_SIMILARITY_THRESHOLD = 0.70
 
 
 def corpus_common_keywords(sources: list[dict], threshold: float = _CORPUS_COMMON_THRESHOLD) -> set[str]:
@@ -319,6 +337,35 @@ def keyword_match_sources(bullet_text: str, sources: list[dict], common_keywords
     return [source for _, source in scored]
 
 
+def embedding_match_sources(
+    bullet_vector: list[float], source_vectors: list[list[float]], sources: list[dict],
+    threshold: float = _EMBEDDING_SIMILARITY_THRESHOLD,
+) -> list[dict]:
+    """Semantic middle tier between keyword_match_sources and the LLM
+    judge — see module docstring's "Hybrid matching" section and
+    cite_brief for how this fits into the overall flow.
+
+    Takes precomputed vectors rather than embedding inside this function:
+    cite_brief embeds all unmatched bullets and all sources once each
+    (batched), not once per bullet — this function is just the similarity
+    scan over vectors already in hand, which also keeps it trivially
+    testable without mocking an embed call.
+
+    A bullet is the LLM's abstractive summary of a source, not a literal
+    quote — keyword_match_sources structurally under-matches paraphrase
+    ("reached out to Andrew" vs. a source that says "called Drew"), which
+    is exactly the gap this tier closes before falling through to the far
+    more expensive LLM judge.
+
+    Returns every source at or above threshold, sorted by similarity
+    (strongest first) — same "don't just return the single best" posture
+    as keyword_match_sources, since a bullet can legitimately synthesize
+    more than one source.
+    """
+    matches = best_matches(bullet_vector, source_vectors, threshold=threshold)
+    return [sources[i] for i, _ in matches]
+
+
 def build_citation_judge_prompt() -> str:
     return (
         "You are matching claims in a summary to the source documents they "
@@ -347,7 +394,10 @@ def build_citation_judge_prompt() -> str:
     )
 
 
-def llm_match_sources(llm, unmatched: list[str], sources: list[dict], common_keywords: set[str] | None = None) -> dict[int, list[dict]]:
+def llm_match_sources(
+    llm, unmatched: list[str], sources: list[dict], common_keywords: set[str] | None = None,
+    embed_fn=embed_texts,
+) -> dict[int, list[dict]]:
     """One batched call covering every keyword-unmatched bullet at once,
     not one call per bullet. Grounds the response before trusting it in
     four layers, not one — each added after the previous layer(s) still
@@ -366,10 +416,17 @@ def llm_match_sources(llm, unmatched: list[str], sources: list[dict], common_key
     3. Quote relevance: a real quote can still be a red herring — the
        model quoted an email's own subject line as "evidence" for an
        unrelated claim, a real, verbatim, but irrelevant span. This layer
-       requires the quote and the claim to share at least one real
+       passes if EITHER the quote and claim share at least one real
        keyword (same title_keywords/_PROSE_STOPWORDS primitives as
        keyword_match_sources, with the same corpus-common filtering so a
-       frequent word can't carry a match by itself).
+       frequent word can't carry a match by itself) OR their embedding
+       cosine similarity clears _EMBEDDING_SIMILARITY_THRESHOLD — the
+       keyword check alone was always a low bar (any single shared word
+       passes it); the embedding check catches a quote that genuinely
+       supports the claim via paraphrase with zero literal word overlap.
+       Only ORs in a second way to pass, never a way to fail — can't make
+       this layer stricter than it already was, only catch more real
+       matches it used to miss.
     4. Identifier disambiguation: two different specific instances of the
        same category noun ("Press #2" vs "Press #3") can share every
        ordinary keyword and still be wrong, especially when the shared
@@ -462,8 +519,19 @@ def llm_match_sources(llm, unmatched: list[str], sources: list[dict], common_key
                 dropped_irrelevant += 1
                 continue
             if not (quote_keywords & claim_keywords):
-                dropped_irrelevant += 1
-                continue
+                # Keyword overlap failed — give the embedding check a
+                # chance before dropping (see docstring layer 3). If
+                # embeddings aren't available, this OR-branch just can't
+                # help — falls back to the keyword-only verdict rather
+                # than crashing the whole judge pass over it.
+                try:
+                    claim_vec, quote_vec = embed_fn([claim_text, quote])
+                    similar_enough = cosine_similarity(claim_vec, quote_vec) >= _EMBEDDING_SIMILARITY_THRESHOLD
+                except Exception:
+                    similar_enough = False
+                if not similar_enough:
+                    dropped_irrelevant += 1
+                    continue
             grounded_sources.append(source)
 
         if dropped_ref or dropped_quote or dropped_irrelevant:
@@ -482,46 +550,85 @@ def _format_refs(sources: list[dict]) -> str:
     return ", ".join(f"{s['source']}: {s['ref']}" for s in sources)
 
 
-def cite_brief(markdown_text: str, sources: list[dict], llm=None) -> tuple[str, dict]:
-    """Runs split_citable_lines, then keyword_match_sources per line. Lines
-    with no keyword match are batched into one llm_match_sources call if
-    llm is given (None means keyword-only). Appends ' _[source: X]_' for a
-    keyword match or ' _[source: X (inferred)]_' for an LLM match — purely
-    additive, never rewrites the original wording.
+def cite_brief(markdown_text: str, sources: list[dict], llm=None, embed_fn=embed_texts) -> tuple[str, dict]:
+    """Runs split_citable_lines, then three tiers per line, cheapest first:
+
+    1. keyword_match_sources — free, first pass.
+    2. embedding_match_sources — bullets keyword-matching missed get
+       embedded once (batched), compared against all sources (also
+       embedded once, batched) via cosine similarity. Catches paraphrase
+       keyword overlap structurally can't ("reached out to Andrew" vs. a
+       source that says "called Drew"). Pass embed_fn=None to skip this
+       tier entirely (e.g. no local embedding model available) — falls
+       straight through to the LLM tier same as before this tier existed.
+    3. llm_match_sources — only bullets neither tier placed, batched into
+       one call if llm is given (None means no LLM fallback either).
+
+    Appends ' _[source: X]_' for a keyword match, ' _[source: X
+    (embedding-matched)]_' for an embedding match, or ' _[source: X
+    (inferred)]_' for an LLM match — purely additive, never rewrites the
+    original wording. Kept visually distinct per tier so a reader can see
+    which citations are literal vs. semantic vs. LLM-judged.
 
     Returns:
         (annotated_text, stats) where stats =
-        {"cited_keyword": N, "cited_llm": M, "uncited": K}.
+        {"cited_keyword": N, "cited_embedding": E, "cited_llm": M, "uncited": K}.
     """
     bullets = split_citable_lines(markdown_text)
     common_keywords = corpus_common_keywords(sources)
 
     keyword_matches: dict[str, list[dict]] = {}
-    unmatched_bullets: list[str] = []
+    after_keyword: list[str] = []
     for bullet in bullets:
         matched = keyword_match_sources(bullet, sources, common_keywords=common_keywords)
         if matched:
             keyword_matches[bullet] = matched
         else:
-            unmatched_bullets.append(bullet)
+            after_keyword.append(bullet)
+
+    embedding_matches: dict[str, list[dict]] = {}
+    after_embedding: list[str] = list(after_keyword)
+    if embed_fn is not None and after_keyword and sources:
+        try:
+            source_vectors = embed_fn([s["text"] for s in sources])
+            bullet_vectors = embed_fn(after_keyword)
+        except Exception as e:
+            print(f"   ⚠️  Embedding tier unavailable ({e}) — falling through to keyword/LLM matching only.")
+        else:
+            after_embedding = []
+            for bullet, bullet_vector in zip(after_keyword, bullet_vectors):
+                matched = embedding_match_sources(bullet_vector, source_vectors, sources)
+                if matched:
+                    embedding_matches[bullet] = matched
+                else:
+                    after_embedding.append(bullet)
 
     llm_matches: dict[str, list[dict]] = {}
-    if llm is not None and unmatched_bullets:
-        raw = llm_match_sources(llm, unmatched_bullets, sources, common_keywords=common_keywords)
+    if llm is not None and after_embedding:
+        # Passes embed_fn through as given, including None — an explicit
+        # "no embeddings" (e.g. --no-embeddings, no local model available)
+        # should also disable llm_match_sources' own internal embedding
+        # rescue (layer 3), not just this outer tier. llm_match_sources
+        # itself degrades embed_fn=None safely (falls back to keyword-only
+        # layer 3), so there's nothing extra to guard here.
+        raw = llm_match_sources(llm, after_embedding, sources, common_keywords=common_keywords, embed_fn=embed_fn)
         for idx, matched_sources in raw.items():
-            llm_matches[unmatched_bullets[idx]] = matched_sources
+            llm_matches[after_embedding[idx]] = matched_sources
 
-    stats = {"cited_keyword": 0, "cited_llm": 0, "uncited": 0}
+    stats = {"cited_keyword": 0, "cited_embedding": 0, "cited_llm": 0, "uncited": 0}
     out_lines = []
     for raw_line in markdown_text.split("\n"):
         stripped = raw_line.strip()
         if stripped in keyword_matches:
             out_lines.append(f"{raw_line} _[source: {_format_refs(keyword_matches[stripped])}]_")
             stats["cited_keyword"] += 1
+        elif stripped in embedding_matches:
+            out_lines.append(f"{raw_line} _[source: {_format_refs(embedding_matches[stripped])} (embedding-matched)]_")
+            stats["cited_embedding"] += 1
         elif stripped in llm_matches:
             out_lines.append(f"{raw_line} _[source: {_format_refs(llm_matches[stripped])} (inferred)]_")
             stats["cited_llm"] += 1
-        elif stripped in unmatched_bullets:
+        elif stripped in after_embedding:
             out_lines.append(raw_line)
             stats["uncited"] += 1
         else:
@@ -543,7 +650,8 @@ def parse_args():
     parser.add_argument("--tenant", default="default")
     parser.add_argument("--provider", default="deepseek", choices=["ollama", "anthropic", "google", "openrouter", "deepseek"])
     parser.add_argument("--model", default="deepseek-chat")
-    parser.add_argument("--keyword-only", action="store_true", help="Skip the LLM fallback pass entirely — free, but under-cites paraphrased claims")
+    parser.add_argument("--keyword-only", action="store_true", help="Skip both the embedding tier and the LLM fallback — free, but under-cites paraphrased claims")
+    parser.add_argument("--no-embeddings", action="store_true", help="Skip the embedding tier (e.g. no local embedding model pulled), but keep the LLM fallback")
     return parser.parse_args()
 
 
@@ -564,13 +672,18 @@ def main():
     if not args.keyword_only:
         llm = create_llm(provider=args.provider, model=args.model, temperature=0.0, tenant_id=args.tenant)
 
-    annotated, stats = cite_brief(brief_text, sources, llm=llm)
+    embed_fn = None if (args.keyword_only or args.no_embeddings) else embed_texts
+
+    annotated, stats = cite_brief(brief_text, sources, llm=llm, embed_fn=embed_fn)
 
     output_path = os.path.join(os.path.dirname(paths.brief_file), "daily_brief_cited.md")
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(annotated)
 
-    print(f"   {stats['cited_keyword']} cited by keyword, {stats['cited_llm']} cited by LLM fallback, {stats['uncited']} uncited.")
+    print(
+        f"   {stats['cited_keyword']} cited by keyword, {stats['cited_embedding']} cited by embedding, "
+        f"{stats['cited_llm']} cited by LLM fallback, {stats['uncited']} uncited."
+    )
     print(f"   Wrote {output_path}")
 
 

@@ -18,6 +18,7 @@ import unittest
 from digest.core.citations import (
     cite_brief,
     corpus_common_keywords,
+    embedding_match_sources,
     keyword_match_sources,
     llm_match_sources,
     load_citable_sources,
@@ -51,6 +52,24 @@ _SAMPLE_ICS = (
 )
 
 _SAMPLE_NOTE = "# Daily Log\n\nOcean Pride grounding update: preliminary report due Tuesday.\n"
+
+
+def _dissimilar_embed_fn(texts):
+    """Deterministic, network-free stand-in for digest.core.embeddings.embed_texts
+    — every distinct text gets its own orthogonal one-hot vector, so cosine
+    similarity is always ~0 between any two different texts (and 1.0 for
+    identical ones). Used everywhere llm_match_sources/cite_brief's
+    embedding OR-branch would otherwise fall back to a real local Ollama
+    call, which would make these tests slow, non-deterministic, and
+    dependent on the test machine having Ollama running with an embedding
+    model pulled — none of which this suite should require to pass.
+    """
+    unique = {}
+    for text in texts:
+        if text not in unique:
+            unique[text] = len(unique)
+    dim = len(unique)
+    return [[1.0 if i == unique[text] else 0.0 for i in range(dim)] for text in texts]
 
 
 class TestSplitCitableLines(unittest.TestCase):
@@ -212,7 +231,7 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
         llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
             {"source_ref": "0003.eml", "quote": "vibration readings are trending upward"},
         ]}]})
-        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(len(result[0]), 1)
         self.assertEqual(result[0][0]["ref"], "0003.eml")
 
@@ -223,7 +242,7 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
         llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
             {"source_ref": "never-shown.eml", "quote": "anything"},
         ]}]})
-        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(result, {})
 
     def test_partial_grounding_keeps_only_the_real_ref(self):
@@ -231,12 +250,12 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
             {"source_ref": "0003.eml", "quote": "vibration readings are trending upward"},
             {"source_ref": "fake.eml", "quote": "anything"},
         ]}]})
-        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual([s["ref"] for s in result[0]], ["0003.eml"])
 
     def test_empty_unmatched_list_skips_the_call_entirely(self):
         llm = _FakeJudgeLLM({"matches": []})
-        result = llm_match_sources(llm, [], self.sources)
+        result = llm_match_sources(llm, [], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(result, {})
 
     def test_drops_match_whose_quote_is_not_actually_in_the_source(self):
@@ -249,7 +268,7 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
         llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
             {"source_ref": "0003.eml", "quote": "Press #2 jam cleared"},
         ]}]})
-        result = llm_match_sources(llm, ["Press #2 jam cleared"], self.sources)
+        result = llm_match_sources(llm, ["Press #2 jam cleared"], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(result, {})
 
     def test_drops_real_but_irrelevant_quote(self):
@@ -263,7 +282,7 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
         llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
             {"source_ref": "0003.eml", "quote": "the new felt from DuroFelt arrived yesterday"},
         ]}]})
-        result = llm_match_sources(llm, ["Press #2 jam cleared in standup, Tom reported"], self.sources)
+        result = llm_match_sources(llm, ["Press #2 jam cleared in standup, Tom reported"], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(result, {})
 
     def test_common_keyword_alone_cannot_satisfy_relevance_check(self):
@@ -278,6 +297,7 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
         ]}]})
         result = llm_match_sources(
             llm, ["Press jam cleared in standup"], self.sources, common_keywords={"press"},
+            embed_fn=_dissimilar_embed_fn,
         )
         self.assertEqual(result, {})
 
@@ -293,7 +313,7 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
         llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
             {"source_ref": "0003.eml", "quote": "Press #3 vibration readings are trending upward"},
         ]}]})
-        result = llm_match_sources(llm, ["Press #2 jam cleared, vibration readings normal"], self.sources)
+        result = llm_match_sources(llm, ["Press #2 jam cleared, vibration readings normal"], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(result, {})
 
     def test_keeps_match_naming_the_same_numbered_instance(self):
@@ -303,7 +323,7 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
         llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
             {"source_ref": "0003.eml", "quote": "Press #3 vibration readings are trending upward"},
         ]}]})
-        result = llm_match_sources(llm, ["Press #3 vibration readings trending upward"], self.sources)
+        result = llm_match_sources(llm, ["Press #3 vibration readings trending upward"], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(len(result[0]), 1)
         self.assertEqual(result[0][0]["ref"], "0003.eml")
 
@@ -314,21 +334,21 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
         llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
             {"source_ref": "0003.eml", "quote": "vibration readings are trending upward"},
         ]}]})
-        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(len(result[0]), 1)
 
     def test_missing_quote_field_drops_the_match(self):
         llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
             {"source_ref": "0003.eml"},
         ]}]})
-        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(result, {})
 
     def test_quote_matching_is_case_insensitive(self):
         llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
             {"source_ref": "0003.eml", "quote": "VIBRATION READINGS ARE TRENDING UPWARD"},
         ]}]})
-        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual(len(result[0]), 1)
 
     def test_mixed_valid_and_unverifiable_matches_on_same_claim(self):
@@ -338,7 +358,7 @@ class TestLlmMatchSourcesGrounding(unittest.TestCase):
             {"source_ref": "0003.eml", "quote": "vibration readings are trending upward"},
             {"source_ref": "log.md", "quote": "this text is not in the note"},
         ]}]})
-        result = llm_match_sources(llm, [self.vibration_claim], self.sources)
+        result = llm_match_sources(llm, [self.vibration_claim], self.sources, embed_fn=_dissimilar_embed_fn)
         self.assertEqual([s["ref"] for s in result[0]], ["0003.eml"])
 
 
@@ -353,13 +373,153 @@ class TestCiteBriefKeywordOnly(unittest.TestCase):
         sources = [
             {"source": "email", "ref": "0003.eml", "label": "x", "text": "Diego sent the Delta Queen draft report"},
         ]
-        annotated, stats = cite_brief(brief, sources, llm=None)
+        annotated, stats = cite_brief(brief, sources, llm=None, embed_fn=None)
         self.assertIn("Review Diego's Delta Queen draft report today. _[source: email: 0003.eml]_", annotated)
         self.assertIn("Unrelated bullet about nothing in the sources.\n", annotated)
         self.assertNotIn("Unrelated bullet about nothing in the sources. _[source:", annotated)
         self.assertEqual(stats["cited_keyword"], 1)
         self.assertEqual(stats["uncited"], 1)
         self.assertEqual(stats["cited_llm"], 0)
+
+
+# Two 2D unit vectors with a known, hand-computed cosine similarity — lets
+# tests engineer an exact above/below-_EMBEDDING_SIMILARITY_THRESHOLD (0.78)
+# result without depending on any real embedding model's actual output.
+_HIGH_SIM_A = [1.0, 0.0]
+_HIGH_SIM_B = [0.9, 0.43589]   # cosine similarity with _HIGH_SIM_A ≈ 0.9
+_LOW_SIM = [0.3, 0.95394]      # cosine similarity with _HIGH_SIM_A ≈ 0.3
+
+
+class TestEmbeddingMatchSources(unittest.TestCase):
+    def setUp(self):
+        self.sources = [
+            {"source": "email", "ref": "0001.eml", "label": "a", "text": "irrelevant"},
+            {"source": "email", "ref": "0002.eml", "label": "b", "text": "irrelevant"},
+        ]
+
+    def test_source_at_or_above_threshold_is_matched(self):
+        matches = embedding_match_sources(_HIGH_SIM_A, [_HIGH_SIM_B], [self.sources[0]])
+        self.assertEqual([s["ref"] for s in matches], ["0001.eml"])
+
+    def test_source_below_threshold_is_not_matched(self):
+        matches = embedding_match_sources(_HIGH_SIM_A, [_LOW_SIM], [self.sources[0]])
+        self.assertEqual(matches, [])
+
+    def test_multiple_matches_sorted_by_similarity_descending(self):
+        matches = embedding_match_sources(_HIGH_SIM_A, [_LOW_SIM, _HIGH_SIM_B], self.sources)
+        self.assertEqual([s["ref"] for s in matches], ["0002.eml"])
+
+
+_BULLET_TEXT = "Reached out to Andrew regarding the hardware slip."
+_SOURCE_TEXT = "called Drew about the edge-compute delay"
+
+
+def _dispatch_embed_fn(mapping, default=_LOW_SIM):
+    """Builds an embed_fn that returns a fixed vector per exact text,
+    falling back to `default` for anything unlisted — keeps each test's
+    intent explicit (which exact strings are "similar") instead of
+    relying on brittle substring sniffing.
+    """
+    def embed_fn(texts):
+        return [mapping.get(t, default) for t in texts]
+    return embed_fn
+
+
+class TestCiteBriefEmbeddingTier(unittest.TestCase):
+    def setUp(self):
+        self.sources = [{"source": "email", "ref": "0001.eml", "label": "x", "text": _SOURCE_TEXT}]
+        self.brief = f"# Daily Brief\n\n## What Matters Today\n\n{_BULLET_TEXT}\n"
+
+    def test_zero_keyword_overlap_bullet_matched_via_embedding_tier(self):
+        # _BULLET_TEXT shares no real keyword with _SOURCE_TEXT —
+        # keyword_match_sources structurally can't place it. A high
+        # embedding similarity between the two should rescue it without
+        # ever reaching the (unconfigured, would-crash-if-called) LLM tier.
+        embed_fn = _dispatch_embed_fn({_BULLET_TEXT: _HIGH_SIM_A, _SOURCE_TEXT: _HIGH_SIM_B})
+
+        annotated, stats = cite_brief(self.brief, self.sources, llm=None, embed_fn=embed_fn)
+        self.assertIn("(embedding-matched)", annotated)
+        self.assertIn("email: 0001.eml", annotated)
+        self.assertEqual(stats["cited_embedding"], 1)
+        self.assertEqual(stats["cited_keyword"], 0)
+        self.assertEqual(stats["uncited"], 0)
+
+    def test_below_threshold_falls_through_to_llm_tier(self):
+        # Outer tier: bullet vs. full source text scores low, so it falls
+        # through. Inner layer 3 (the LLM's own quote, a *different*
+        # string from the full source text) gets a high similarity to the
+        # bullet, so the LLM tier successfully grounds and cites it —
+        # proving the two tiers are independently wired, not conflated.
+        quote = "Drew about the edge-compute delay"  # a real substring of _SOURCE_TEXT
+        embed_fn = _dispatch_embed_fn({
+            _BULLET_TEXT: _HIGH_SIM_A,
+            _SOURCE_TEXT: _LOW_SIM,
+            quote: _HIGH_SIM_B,
+        })
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0001.eml", "quote": quote},
+        ]}]})
+        annotated, stats = cite_brief(self.brief, self.sources, llm=llm, embed_fn=embed_fn)
+        self.assertEqual(stats["cited_embedding"], 0)
+        self.assertEqual(stats["cited_llm"], 1)
+        self.assertIn("(inferred)", annotated)
+
+    def test_embed_fn_none_disables_embeddings_everywhere_bullet_ends_uncited(self):
+        # embed_fn=None must disable embeddings both at this outer tier
+        # AND inside llm_match_sources' own layer-3 rescue — with zero
+        # keyword overlap and no embedding available anywhere, there's
+        # genuinely no way to ground this claim, so it should correctly
+        # end up uncited rather than crash or get cited on a technicality.
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0001.eml", "quote": _SOURCE_TEXT},
+        ]}]})
+        annotated, stats = cite_brief(self.brief, self.sources, llm=llm, embed_fn=None)
+        self.assertEqual(stats["cited_embedding"], 0)
+        self.assertEqual(stats["cited_llm"], 0)
+        self.assertEqual(stats["uncited"], 1)
+
+    def test_embedding_failure_degrades_gracefully_without_crashing(self):
+        # A broken embed_fn (e.g. Ollama not running) must not crash
+        # cite_brief — it should print a warning and fall through,
+        # landing wherever the remaining tiers (keyword, then LLM) can
+        # legitimately place it. With zero keyword overlap on both sides,
+        # that's correctly "uncited," not a crash.
+        def broken_embed_fn(texts):
+            raise RuntimeError("Ollama server not running")
+
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0001.eml", "quote": _SOURCE_TEXT},
+        ]}]})
+        annotated, stats = cite_brief(self.brief, self.sources, llm=llm, embed_fn=broken_embed_fn)
+        self.assertEqual(stats["cited_keyword"] + stats["cited_embedding"] + stats["cited_llm"] + stats["uncited"], 1)
+        self.assertEqual(stats["uncited"], 1)
+
+
+class TestLlmMatchSourcesEmbeddingRescue(unittest.TestCase):
+    def test_embedding_similarity_rescues_a_zero_keyword_overlap_quote(self):
+        # Layer 3's keyword-overlap check alone would drop this — the
+        # claim and quote share no real keyword. The embedding OR-branch
+        # should rescue it when similarity clears threshold, exactly the
+        # paraphrase gap layer 3's own docstring calls out as its weakest
+        # point.
+        sources = [{"source": "email", "ref": "0001.eml", "label": "x", "text": _SOURCE_TEXT}]
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0001.eml", "quote": _SOURCE_TEXT},
+        ]}]})
+        embed_fn = _dispatch_embed_fn({_BULLET_TEXT: _HIGH_SIM_A, _SOURCE_TEXT: _HIGH_SIM_B})
+
+        result = llm_match_sources(llm, [_BULLET_TEXT], sources, embed_fn=embed_fn)
+        self.assertEqual([s["ref"] for s in result[0]], ["0001.eml"])
+
+    def test_low_embedding_similarity_still_drops_the_match(self):
+        sources = [{"source": "email", "ref": "0001.eml", "label": "x", "text": _SOURCE_TEXT}]
+        llm = _FakeJudgeLLM({"matches": [{"claim_index": 0, "evidence": [
+            {"source_ref": "0001.eml", "quote": _SOURCE_TEXT},
+        ]}]})
+        embed_fn = _dispatch_embed_fn({_BULLET_TEXT: _HIGH_SIM_A, _SOURCE_TEXT: _LOW_SIM})
+
+        result = llm_match_sources(llm, [_BULLET_TEXT], sources, embed_fn=embed_fn)
+        self.assertEqual(result, {})
 
 
 if __name__ == "__main__":

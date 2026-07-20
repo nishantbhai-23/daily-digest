@@ -45,7 +45,8 @@ from digest.agents import notes_agent
 from digest.core import resilience
 from digest.core import tenant_paths
 from digest.agents import triage_agent
-from digest.core.cross_reference import build_cross_reference_index, title_keywords
+from digest.core.cross_reference import CROSS_REFERENCE_VARIANTS, build_cross_reference_index, title_keywords
+from digest.core.embeddings import cosine_similarity, embed_texts
 from digest.core.ledger import check_data_freshness, format_today, load_ledger, save_digest, validate_schema
 from digest.core.llm import call_with_retry, create_llm
 from digest.core.persona import load_persona
@@ -631,44 +632,76 @@ SYNTHESIS_VARIANTS = {
 }
 
 
-def check_priority_coverage(synthesis: dict, task_signals: dict, priorities=("P0", "P1")) -> list[dict]:
+# nomic-embed-text cosine similarity for the embedding rescue below —
+# live-calibrated, not guessed. Started at citations.py's own 0.70, but a
+# real check against arclight found a genuine paraphrase for ARC-102
+# ("Open senior SRE req and run interviews" vs. "We still need to post
+# the senior site-reliability engineer role and start screening
+# candidates") scored only 0.657 — below that threshold — while a clearly
+# unrelated pair scored 0.348. Task-title-vs-short-paraphrase-sentence
+# runs lower than citations.py's bullet-vs-full-source comparison shape,
+# so this threshold is calibrated separately rather than reusing that
+# file's value uncritically. 0.65 sits just below the weakest confirmed
+# genuine match found so far, comfortably above the negative anchor.
+_COVERAGE_SIMILARITY_THRESHOLD = 0.65
+
+
+def check_priority_coverage(
+    synthesis: dict, task_signals: dict, priorities=("P0", "P1"), embed_fn=embed_texts
+) -> list[dict]:
     """Deterministic post-check, applies after either Stage-2 variant:
     verify every task_signals task at P0/P1 is referenced somewhere in the
-    synthesized brief text, using the same title_keywords/2-keyword-match
-    threshold cross_reference.py already uses to decide "is this genuinely
-    mentioned" — reused here, not reinvented, so "mentioned" means the same
-    thing in both places.
+    synthesized brief text.
+
+    Two tiers, cheapest first — same OR-rescue shape as citations.py's
+    matching pipeline, never the other way around: keyword matching
+    (title_keywords/2-keyword-match threshold, the same one
+    cross_reference.py uses to decide "is this genuinely mentioned") runs
+    first; a task it can't place gets one more chance via embedding
+    similarity before being reported missing. Unlike citations.py's
+    bullet-vs-single-source comparison, comparing a short task title
+    against the *whole* brief as one embedded blob would dilute the
+    signal (a multi-paragraph document rarely scores high against a short
+    phrase, regardless of relevance) — so the brief is split into the
+    same per-item granularity `_scan_ledger`/citations already use
+    (each narrative field, each dispatchable item) and the task is
+    compared against every chunk, taking the best match.
 
     This is a coverage check, not a truth check: it can't verify the brief
     is *correct*, only that a known-important item wasn't silently dropped
-    from the output entirely. Deliberately blunt (keyword-substring, not
-    semantic) — same accepted tradeoff as digest_checks.py and
-    cross_reference.py. The caller logs this as a warning, not a hard
-    failure: a false positive here (an item covered via paraphrase, with no
-    literal keyword overlap) shouldn't block shipping a brief that may in
-    fact be fine.
+    from the output entirely. The caller logs this as a warning, not a
+    hard failure — advisory only, so a false-positive rescue (embeddings
+    call a task "covered" when it's more loosely related than genuinely
+    mentioned) costs nothing worse than the plain-keyword version's
+    existing false-negative risk.
 
     Also doubles as eval_synthesis_variants.py's scoring metric for
-    comparing the single_call and staged Stage-2 implementations — the same
-    deterministic signal serves both a production safety net and an
-    objective, LLM-free eval score.
+    comparing the single_call and staged Stage-2 implementations — the
+    same signal serves both a production safety net and an eval score,
+    so the embedding rescue's improved recall flows into that comparison
+    automatically (a paraphrase-covered P0 task should count as covered
+    there too, not just in production).
+
+    embed_fn=None disables the rescue entirely (falls back to the
+    original keyword-only result); a raising embed_fn degrades the same
+    way, printing a warning rather than crashing the whole synthesis
+    pipeline over an advisory check.
 
     Returns:
         [{"task_id", "title", "priority"}] for every flagged task that
-        didn't clear the match threshold — deduplicated by task_id, since a
-        task can legitimately be flagged in more than one task_signals
-        bucket at once (e.g. both "overdue" and "stalled"); each such task
-        must only ever count once here, not once per bucket it happens to
+        didn't clear either tier — deduplicated by task_id, since a task
+        can legitimately be flagged in more than one task_signals bucket
+        at once (e.g. both "overdue" and "stalled"); each such task must
+        only ever count once here, not once per bucket it happens to
         appear in. Empty list means full coverage.
     """
-    combined_text = " ".join([
-        synthesis.get("what_matters_today", ""),
-        synthesis.get("what_might_be_missed", ""),
-        " ".join(
-            f"{item.get('summary', '')} {item.get('context', '')}"
-            for item in synthesis.get("dispatchable_items", [])
-        ),
-    ]).lower()
+    chunks = [synthesis.get("what_matters_today", ""), synthesis.get("what_might_be_missed", "")]
+    chunks += [
+        f"{item.get('summary', '')} {item.get('context', '')}"
+        for item in synthesis.get("dispatchable_items", [])
+    ]
+    chunks = [c for c in chunks if c.strip()]
+    combined_text = " ".join(chunks).lower()
 
     candidates = {}
     for bucket in ("overdue", "due_soon", "blocked", "stalled"):
@@ -678,13 +711,29 @@ def check_priority_coverage(synthesis: dict, task_signals: dict, priorities=("P0
             candidates[task["id"]] = task
 
     missing = []
+    unresolved = []
     for task_id, task in candidates.items():
         keywords = title_keywords(task["title"])
         if not keywords:
             continue
         matched = sum(1 for kw in keywords if kw.lower() in combined_text)
         if matched < min(2, len(keywords)):
-            missing.append({"task_id": task_id, "title": task["title"], "priority": task["priority"]})
+            unresolved.append((task_id, task))
+
+    if embed_fn is not None and unresolved and chunks:
+        try:
+            chunk_vectors = embed_fn(chunks)
+            task_vectors = embed_fn([task["title"] for _, task in unresolved])
+        except Exception as e:
+            print(f"   ⚠️  Embedding-assisted coverage check unavailable ({e}) — using keyword-only result.")
+        else:
+            for (task_id, task), task_vector in zip(unresolved, task_vectors):
+                best_sim = max(cosine_similarity(task_vector, cv) for cv in chunk_vectors)
+                if best_sim < _COVERAGE_SIMILARITY_THRESHOLD:
+                    missing.append({"task_id": task_id, "title": task["title"], "priority": task["priority"]})
+            return missing
+
+    missing.extend({"task_id": tid, "title": t["title"], "priority": t["priority"]} for tid, t in unresolved)
     return missing
 
 
@@ -833,10 +882,25 @@ def parse_args():
         "production behavior — see eval_synthesis_variants.py for the comparison "
         "this default is pending on.",
     )
+    parser.add_argument(
+        "--cross-reference-variant",
+        default="lexical",
+        choices=list(CROSS_REFERENCE_VARIANTS.keys()),
+        help="Stage 0 implementation to use: 'lexical' (keyword matching only) "
+        "or 'embedding_assisted' (adds a local-embedding rescue pass for "
+        "paraphrase matches the keyword pass misses). Default 'lexical' "
+        "preserves current production behavior — this index directly seeds "
+        "Stage 1's contradiction-detection candidate set, so the higher-recall "
+        "variant is deliberately not the default yet — see "
+        "eval_cross_reference_variants.py for the comparison this is pending on.",
+    )
     return parser.parse_args()
 
 
-def run_for_tenant(tenant_id: str, provider: str, model: str, temperature: float = 0.0, synthesis_variant: str = "single_call") -> None:
+def run_for_tenant(
+    tenant_id: str, provider: str, model: str, temperature: float = 0.0,
+    synthesis_variant: str = "single_call", cross_reference_variant: str = "lexical",
+) -> None:
     """Run the full orchestrator pipeline for one tenant — everything
     main() used to do inline, extracted so run_fleet.py can call this
     directly, once per tenant, inside a shared ThreadPoolExecutor. Keeping
@@ -875,8 +939,8 @@ def run_for_tenant(tenant_id: str, provider: str, model: str, temperature: float
         print("❌ No source ledgers found. Run triage_agent.py / calendar_agent.py / notes_agent.py first.")
         return
 
-    print("🔎 Stage 0 — deterministic cross-reference index + freshness check...")
-    cross_ref_index = build_cross_reference_index(email_ledger, calendar_ledger, notes_ledger, task_signals)
+    print(f"🔎 Stage 0 — cross-reference index (variant: {cross_reference_variant}) + freshness check...")
+    cross_ref_index = CROSS_REFERENCE_VARIANTS[cross_reference_variant](email_ledger, calendar_ledger, notes_ledger, task_signals)
     freshness = check_data_freshness({
         "email": email_ledger, "calendar": calendar_ledger, "notes": notes_ledger,
     })
@@ -917,7 +981,7 @@ def run_for_tenant(tenant_id: str, provider: str, model: str, temperature: float
 
 def main():
     args = parse_args()
-    run_for_tenant(args.tenant, args.provider, args.model, args.temperature, args.synthesis_variant)
+    run_for_tenant(args.tenant, args.provider, args.model, args.temperature, args.synthesis_variant, args.cross_reference_variant)
 
 
 if __name__ == "__main__":

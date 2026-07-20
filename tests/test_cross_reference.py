@@ -10,7 +10,12 @@ Run: python3 -m unittest test_cross_reference -v
 
 import unittest
 
-from digest.core.cross_reference import build_cross_reference_index, title_keywords
+from digest.core.cross_reference import (
+    CROSS_REFERENCE_VARIANTS,
+    build_cross_reference_index,
+    build_cross_reference_index_embedding_assisted,
+    title_keywords,
+)
 
 
 def _task_signals(**buckets):
@@ -215,6 +220,126 @@ class TestAgainstRealData(unittest.TestCase):
         ])
         index = build_cross_reference_index([], [], fake_notes_ledger, task_signals)
         self.assertIn("TESS-212", index)
+
+
+# 2D unit vectors with a known cosine similarity, same fixture-engineering
+# approach as tests/test_citations.py and test_priority_coverage_check.py.
+_HIGH_SIM_A = [1.0, 0.0]
+_HIGH_SIM_B = [0.9, 0.43589]   # cosine similarity with _HIGH_SIM_A ~= 0.9
+_LOW_SIM = [0.3, 0.95394]      # cosine similarity with _HIGH_SIM_A ~= 0.3
+
+
+def _dispatch_embed_fn(mapping, default=_LOW_SIM):
+    def embed_fn(texts):
+        return [mapping.get(t, default) for t in texts]
+    return embed_fn
+
+
+class TestBuildCrossReferenceIndexEmbeddingAssisted(unittest.TestCase):
+    def test_lexical_missed_entry_rescued_via_embedding(self):
+        task_title = "Reach out to Andrew about the hardware slip"
+        entry_text = "Called Drew regarding the delayed shipment."
+        task_signals = _task_signals(overdue=[{"id": "TESS-1", "title": task_title, "priority": "P0"}])
+        email_ledger = [{"day": "2026-06-22", "delta": {"action_items": [{"description": entry_text}]}}]
+
+        embed_fn = _dispatch_embed_fn({task_title: _HIGH_SIM_A, entry_text: _HIGH_SIM_B})
+        index = build_cross_reference_index_embedding_assisted(email_ledger, [], [], task_signals, embed_fn=embed_fn)
+
+        self.assertIn("TESS-1", index)
+        mention = index["TESS-1"]["mentioned_in"][0]
+        self.assertEqual(mention["matched_via"], "embedding")
+        self.assertEqual(mention["source"], "email")
+
+    def test_lexical_covered_day_not_duplicated_by_embedding_pass(self):
+        # Task genuinely mentioned by keyword on 2026-06-22 — the
+        # embedding pass must not add a second mention for that same day,
+        # even if an embed_fn would otherwise score it highly.
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-219", "title": "Decide on Elena Marsh offer", "priority": "P1"},
+        ])
+        email_ledger = [
+            {"day": "2026-06-22", "delta": {"action_items": [{"description": "Review Elena Marsh feedback"}]}},
+        ]
+
+        def embed_fn(texts):
+            return [_HIGH_SIM_A for _ in texts]  # everything "matches" everything
+
+        index = build_cross_reference_index_embedding_assisted(email_ledger, [], [], task_signals, embed_fn=embed_fn)
+        mentions = index["TESS-219"]["mentioned_in"]
+        self.assertEqual(len(mentions), 1)
+        self.assertNotIn("matched_via", mentions[0])  # the lexical mention, not an embedding duplicate
+
+    def test_lexical_result_never_regresses_relative_to_lexical_only(self):
+        # Same fixture as the plain build_cross_reference_index test — the
+        # embedding-assisted variant must find at least everything the
+        # lexical-only function finds.
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-219", "title": "Decide on Elena Marsh offer", "priority": "P1"},
+        ])
+        email_ledger = [
+            {"day": "2026-06-22", "delta": {"action_items": [{"description": "Review Elena Marsh feedback"}]}},
+        ]
+        lexical_index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        assisted_index = build_cross_reference_index_embedding_assisted(
+            email_ledger, [], [], task_signals, embed_fn=lambda texts: [_LOW_SIM for _ in texts],
+        )
+        self.assertEqual(
+            {(m["source"], m["day"]) for m in lexical_index["TESS-219"]["mentioned_in"]},
+            {(m["source"], m["day"]) for m in assisted_index["TESS-219"]["mentioned_in"]},
+        )
+
+    def test_embedding_failure_degrades_to_lexical_only(self):
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-219", "title": "Decide on Elena Marsh offer", "priority": "P1"},
+        ])
+        email_ledger = [
+            {"day": "2026-06-22", "delta": {"action_items": [{"description": "Review Elena Marsh feedback"}]}},
+        ]
+
+        def broken_embed_fn(texts):
+            raise RuntimeError("Ollama server not running")
+
+        lexical_index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        assisted_index = build_cross_reference_index_embedding_assisted(
+            email_ledger, [], [], task_signals, embed_fn=broken_embed_fn,
+        )
+        self.assertEqual(
+            {(m["source"], m["day"]) for m in lexical_index["TESS-219"]["mentioned_in"]},
+            {(m["source"], m["day"]) for m in assisted_index["TESS-219"]["mentioned_in"]},
+        )
+
+    def test_compacted_entries_skipped_by_embedding_pass_too(self):
+        task_signals = _task_signals(stalled=[
+            {"id": "TESS-1", "title": "Multi-warehouse decision", "priority": "P1"},
+        ])
+        notes_ledger = [
+            {"day": "2026-W25", "compacted": True, "delta": {"decisions": [{"description": "multi-warehouse"}]}},
+        ]
+        index = build_cross_reference_index_embedding_assisted(
+            [], [], notes_ledger, task_signals, embed_fn=lambda texts: [_HIGH_SIM_A for _ in texts],
+        )
+        self.assertEqual(index, {})
+
+    def test_embed_fn_none_gives_pure_lexical_result(self):
+        task_signals = _task_signals(overdue=[
+            {"id": "TESS-219", "title": "Decide on Elena Marsh offer", "priority": "P1"},
+        ])
+        email_ledger = [
+            {"day": "2026-06-22", "delta": {"action_items": [{"description": "Review Elena Marsh feedback"}]}},
+        ]
+        lexical_index = build_cross_reference_index(email_ledger, [], [], task_signals)
+        assisted_index = build_cross_reference_index_embedding_assisted(email_ledger, [], [], task_signals, embed_fn=None)
+        self.assertEqual(
+            {(m["source"], m["day"]) for m in lexical_index["TESS-219"]["mentioned_in"]},
+            {(m["source"], m["day"]) for m in assisted_index["TESS-219"]["mentioned_in"]},
+        )
+
+
+class TestCrossReferenceVariantsRegistry(unittest.TestCase):
+    def test_both_variants_registered(self):
+        self.assertEqual(set(CROSS_REFERENCE_VARIANTS.keys()), {"lexical", "embedding_assisted"})
+        self.assertIs(CROSS_REFERENCE_VARIANTS["lexical"], build_cross_reference_index)
+        self.assertIs(CROSS_REFERENCE_VARIANTS["embedding_assisted"], build_cross_reference_index_embedding_assisted)
 
 
 if __name__ == "__main__":

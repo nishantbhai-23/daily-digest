@@ -93,6 +93,35 @@ def check_min_length(text: str, min_words: int = 50) -> bool:
     return len(text.split()) >= min_words
 
 
+def check_conciseness(output_text: str, source_text: str, max_ratio: float = 0.6) -> str | None:
+    """Deterministic, no-LLM conciseness check for a summary against its
+    own source — a length *ratio* rather than an absolute word count,
+    since "concise" is relative to how much source material there was to
+    begin with (a one-line email deserves a one-line summary; a long
+    thread deserves more). Used by quality_judge.judge_map_quality's
+    conciseness dimension, which needs no LLM call for this one.
+
+    Deliberately generous by default (0.6, not something tight like 0.3)
+    — same "coarse sanity bound, not a precision judgment" posture as
+    check_extraction_bloat, erring toward not flagging legitimately dense
+    source material rather than false-positiving on it.
+
+    Returns:
+        None if under the ratio, else a human-readable warning string.
+    """
+    source_words = len(source_text.split())
+    output_words = len(output_text.split())
+    if source_words == 0:
+        return None
+    ratio = output_words / source_words
+    if ratio > max_ratio:
+        return (
+            f"summary is {output_words} words vs. {source_words}-word source "
+            f"(ratio {ratio:.2f} > {max_ratio}) — possibly not concise"
+        )
+    return None
+
+
 def extract_searchable_text(container: dict, categories: str | list[str] | None = None) -> str:
     """Leaf-string-only text extraction for keyword checks — never includes
     schema key names, unlike a raw json.dumps() search (the same bug class
