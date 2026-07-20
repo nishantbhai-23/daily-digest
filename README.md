@@ -4,7 +4,7 @@ Turns a day's worth of email, calendar events, notes, and tasks into one
 daily brief: what actually needs your attention today, what you're at risk
 of dropping, and a handful of ready-to-send drafts for anything answerable
 in under a minute. Multi-tenant, provider-agnostic (Ollama, Anthropic,
-Google, OpenRouter, DeepSeek), stdlib-only — no `pip install` required.
+Google, OpenRouter, DeepSeek) — standard-library only when using DeepSeek/OpenRouter, while others require SDK installs.
 
 For the architecture and the reasoning behind it, see
 [`docs/HIGH_LEVEL_DESIGN.md`](docs/HIGH_LEVEL_DESIGN.md). This doc is the
@@ -16,7 +16,7 @@ practical "how do I run it" reference.
 - An API key for at least one provider (Anthropic, Google, OpenRouter, or
   DeepSeek), **or** a local [Ollama](https://ollama.com) install — no key
   needed, but slower and less reliable at following JSON-schema instructions.
-- Nothing to `pip install`. Every script is plain-stdlib Python.
+- Provider SDK dependencies (run `pip install -r requirements.txt` to install dependencies for the default Ollama provider, or install `anthropic` / `google-generativeai` if using them. DeepSeek and OpenRouter are fully standard-library-only with zero external dependencies).
 
 ## 1. Set up API keys
 

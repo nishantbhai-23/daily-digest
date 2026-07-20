@@ -13,9 +13,7 @@ persona it's run for, answering four things, per the persona's own rubric:
 4. Where the data itself is stale, missing, or contradictory — stated
    honestly, not papered over.
 
-Stdlib-only, provider-agnostic across five LLM providers, zero `pip install`
-required. Every capability is invoked as an explicit CLI command by a human
-— there is no scheduler, daemon, or queue anywhere in this codebase.
+Provider-agnostic across five LLM providers, and standard-library-only when using DeepSeek/OpenRouter (others require lightweight SDK installs). Every capability is invoked as an explicit CLI command by a human — there is no scheduler, daemon, or queue anywhere in this codebase.
 
 ## System shape
 
