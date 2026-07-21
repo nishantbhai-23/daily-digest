@@ -43,6 +43,7 @@ Usage:
 import hashlib
 import json
 import os
+import re
 from datetime import datetime, timezone
 
 EVAL_HISTORY_DIR = "eval_history"
@@ -54,9 +55,19 @@ def _snapshot_filename(eval_name: str, variant: str, prompt_text: str) -> str:
     """Content-addressed filename — re-running the same variant with
     identical prompt text always resolves to the same file, so
     record_eval_run never writes a duplicate snapshot.
+
+    variant is sanitized before being used as a path component — found
+    live: a caller passing "provider/model" as its variant name (a
+    reasonable-looking label) turned the "/" into an unintended
+    subdirectory, crashing with FileNotFoundError since that directory
+    was never created. Every existing caller's variant names happened to
+    already be filesystem-safe (single_call/staged/lexical/etc.), which
+    is exactly why this went unnoticed until a caller broke that
+    unwritten assumption.
     """
+    safe_variant = re.sub(r"[^A-Za-z0-9._-]", "-", variant)
     content_hash = hashlib.sha256(prompt_text.encode("utf-8")).hexdigest()[:12]
-    return f"{eval_name}_{variant}_{content_hash}.txt"
+    return f"{eval_name}_{safe_variant}_{content_hash}.txt"
 
 
 def record_eval_run(

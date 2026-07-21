@@ -1,0 +1,57 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Generated Persona//Daily Digest Generator//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Generated Persona's Calendar
+X-WR-TIMEZONE:America/Chicago
+BEGIN:VEVENT
+UID:generated-2026-07-19-0@logitranssolutions.example.com
+DTSTAMP:20260721T120409Z
+DTSTART:20260719T080000
+DTEND:20260719T100000
+SUMMARY:Deep Work - Contract Review
+STATUS:CONFIRMED
+DESCRIPTION:Blocked time to review PalletCo contract draft and prepare questions for Tom.
+LOCATION:My office
+ATTENDEE;CN=alex.mercer@logitrans.com;PARTSTAT=ACCEPTED:mailto:alexmercerlogitranscom@logitranssolutions.example.com
+END:VEVENT
+BEGIN:VEVENT
+UID:generated-2026-07-19-1@logitranssolutions.example.com
+DTSTAMP:20260721T120409Z
+DTSTART:20260719T093000
+DTEND:20260719T103000
+SUMMARY:Safety Incident Debrief with Mike
+STATUS:CONFIRMED
+DESCRIPTION:Review findings from the forklift incident on July 15. Discuss corrective actions.
+LOCATION:Conference Room B
+ATTENDEE;CN=alex.mercer@logitrans.com;PARTSTAT=ACCEPTED:mailto:alexmercerlogitranscom@logitranssolutions.example.com
+ATTENDEE;CN=mike.odonnell@logitrans.com;PARTSTAT=ACCEPTED:mailto:mikeodonnelllogitranscom@logitranssolutions.example.com
+END:VEVENT
+BEGIN:VEVENT
+UID:generated-2026-07-20-0@logitranssolutions.example.com
+DTSTAMP:20260721T120409Z
+DTSTART:20260720T130000
+DTEND:20260720T143000
+SUMMARY:Site walkthrough with automation vendor
+STATUS:CONFIRMED
+DESCRIPTION:Walk the warehouse floor with the vendor to assess installation progress and address delays.
+LOCATION:Warehouse A
+ATTENDEE;CN=alex.mercer@logitrans.com;PARTSTAT=ACCEPTED:mailto:alexmercerlogitranscom@logitranssolutions.example.com
+ATTENDEE;CN=sarah.chen@logitrans.com;PARTSTAT=ACCEPTED:mailto:sarahchenlogitranscom@logitranssolutions.example.com
+ATTENDEE;CN=david.kim@logitrans.com;PARTSTAT=ACCEPTED:mailto:davidkimlogitranscom@logitranssolutions.example.com
+END:VEVENT
+BEGIN:VEVENT
+UID:generated-2026-07-21-0@logitranssolutions.example.com
+DTSTAMP:20260721T120409Z
+DTSTART:20260721T093000
+DTEND:20260721T100000
+SUMMARY:Team stand-up
+STATUS:CONFIRMED
+DESCRIPTION:Daily stand-up with ops team.
+LOCATION:Virtual
+ATTENDEE;CN=alex.mercer@logitrans.com;PARTSTAT=ACCEPTED:mailto:alexmercerlogitranscom@logitranssolutions.example.com
+ATTENDEE;CN=sarah.chen@logitrans.com;PARTSTAT=ACCEPTED:mailto:sarahchenlogitranscom@logitranssolutions.example.com
+ATTENDEE;CN=jane.park@logitrans.com;PARTSTAT=ACCEPTED:mailto:janeparklogitranscom@logitranssolutions.example.com
+END:VEVENT
+END:VCALENDAR

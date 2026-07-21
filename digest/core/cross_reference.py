@@ -31,9 +31,20 @@ the body's actual topic (verified as occasional, not systemic) — an
 accepted tradeoff, not a silent gap. The LLM stages downstream
 (contradiction detection, synthesis) are specifically designed to apply
 judgment on top of these candidates rather than trust every match as
-confirmed fact. See docs/HIGH_LEVEL_DESIGN.md's "Search architecture: why
-keyword matching, not embeddings or a search index" decision for why this
-stays keyword-based at this system's scale.
+confirmed fact.
+
+build_cross_reference_index above stays purely lexical by design — this
+index directly seeds Stage 1's contradiction-detection candidate set, so
+a false match here has a bigger blast radius than a false positive
+anywhere else this system does keyword matching (it could feed a
+hallucinated contradiction about two things that were never actually the
+same task). An embedding-assisted alternative exists as a genuinely
+separate implementation (build_cross_reference_index_embedding_assisted,
+see CROSS_REFERENCE_VARIANTS below) rather than a modification of this
+one, specifically so it can be compared against real data
+(eval_cross_reference_variants.py) before any decision to change what
+Stage 0 actually runs by default — see docs/HIGH_LEVEL_DESIGN.md's Stage
+0 section for the current status of that comparison.
 
 Usage:
     from digest.core.cross_reference import build_cross_reference_index
@@ -43,6 +54,8 @@ Usage:
 
 import re
 from datetime import date
+
+from digest.core.embeddings import cosine_similarity, embed_texts
 
 _STOPWORDS = {
     "a", "an", "the", "of", "for", "and", "or", "on", "in", "to", "with",
@@ -273,3 +286,191 @@ def build_cross_reference_index(
         }
 
     return index
+
+
+# ─── Embedding-Assisted Variant (separate implementation, not a replacement) ──
+#
+# build_cross_reference_index above is untouched by everything below — this
+# is a genuinely parallel implementation, not a modification of it, exposed
+# alongside it via CROSS_REFERENCE_VARIANTS for orchestrator.py's
+# --cross-reference-variant flag and eval_cross_reference_variants.py to
+# compare against real data before any decision to change the default.
+#
+# Higher stakes than citations.py's embedding tier: this index directly
+# seeds Stage 1's contradiction-detection candidate set, so a false
+# cross-reference here could feed a hallucinated contradiction about two
+# things that were never actually the same task — not just mislabel one
+# citation, as a false positive in citations.py would. That's the reason
+# this stays a separate, evaluated variant rather than folding straight
+# into the lexical function the way citations.py's tier did.
+
+# Live-checked, not just guessed and left alone — and deliberately kept
+# higher than the other two embedding thresholds in this codebase
+# (citations.py's 0.70, orchestrator.check_priority_coverage's 0.65).
+# Scanned every non-lexically-covered item in arclight's real data for
+# ARC-102 ("Open senior SRE req and run interviews"): the highest
+# similarity found among genuinely uncovered items was 0.524 ("SRE
+# capacity tight this sprint", "Send Q3 eng headcount ask to Om today") —
+# real, topically related, but not confidently "the same mention," and
+# well short of qualifying at any of this codebase's other calibrated
+# thresholds either. Left at 0.70 rather than lowered to catch these:
+# this index directly seeds Stage 1's contradiction-detection candidates,
+# so the higher precision bar is a deliberate asymmetry with the lower-
+# stakes, advisory-only checks elsewhere, not an oversight.
+_EMBEDDING_SIMILARITY_THRESHOLD = 0.70
+
+
+def _embed_ledger_entries(ledger: list[dict], embed_fn) -> list[tuple]:
+    """Pre-embeds every non-compacted entry's searchable items once —
+    same 'embed the corpus once, reuse across every comparison'
+    discipline as citations.py's cite_brief, since this gets reused
+    across every flagged task's comparison, not recomputed per task.
+
+    Returns [(entry, category, text, vector), ...]. Compacted entries are
+    skipped, same reasoning _scan_ledger already documents (per-day
+    granularity lost by design — see ledger.compact_ledger).
+    """
+    meta = []
+    texts = []
+    for entry in ledger:
+        if entry.get("compacted"):
+            continue
+        for category, text in _entry_searchable_items(entry):
+            meta.append((entry, category, text))
+            texts.append(text)
+
+    if not texts:
+        return []
+    vectors = embed_fn(texts)
+    return [(entry, category, text, vector) for (entry, category, text), vector in zip(meta, vectors)]
+
+
+def _scan_ledger_embedding(
+    source_name: str, embedded_items: list[tuple], task_vector: list[float],
+    already_covered_days: set, threshold: float = _EMBEDDING_SIMILARITY_THRESHOLD,
+) -> list[dict]:
+    """OR-rescue pass: adds a mention for an entry's best-matching item
+    when it clears embedding similarity — but only for days
+    `already_covered_days` (the lexical _scan_ledger pass's own results)
+    didn't already cover for this task. Lexical always wins when both
+    would match on the same day; this only fills gaps the lexical pass
+    left, mirroring _scan_ledger's own "best-matching item per entry
+    wins" posture.
+
+    Mentions are tagged "matched_via": "embedding" (lexical mentions have
+    no such key) so provenance stays visible downstream — Stage 1's
+    prompt, and eval_cross_reference_variants.py's scoring.
+    """
+    best_by_entry = {}
+    for entry, category, text, vector in embedded_items:
+        day = entry.get("note_id") or entry.get("day", "unknown")
+        if day in already_covered_days:
+            continue
+        sim = cosine_similarity(task_vector, vector)
+        key = id(entry)
+        if key not in best_by_entry or sim > best_by_entry[key][0]:
+            best_by_entry[key] = (sim, category, text, day)
+
+    mentions = []
+    for sim, category, text, day in best_by_entry.values():
+        if sim >= threshold:
+            mentions.append({
+                "source": source_name,
+                "day": day,
+                "matched_keywords": [],
+                "matched_fields": [category],
+                "excerpt": text[:250],
+                "matched_via": "embedding",
+                "similarity": round(sim, 3),
+            })
+    return mentions
+
+
+def build_cross_reference_index_embedding_assisted(
+    email_ledger: list[dict],
+    calendar_ledger: list[dict],
+    notes_ledger: list[dict],
+    task_signals: dict,
+    embed_fn=embed_texts,
+) -> dict:
+    """Same output shape as build_cross_reference_index (see its
+    docstring for the field-by-field contract) — a separate
+    implementation, not a modification of it. Runs the identical lexical
+    _scan_ledger pass first for every flagged task (the existing
+    precision floor never regresses), then adds embedding-matched
+    mentions only for whatever the lexical pass missed on a given
+    day/source.
+
+    Batch-embeds all flagged task titles once upfront (not once per
+    task) plus each ledger once (via _embed_ledger_entries), reusing both
+    across every task's comparison — the same "embed the corpus once"
+    discipline as citations.py. Degrades to the pure-lexical result
+    (prints a warning) if embed_fn raises, e.g. Ollama isn't running.
+    """
+    flagged_tasks = {}
+    for bucket in ("overdue", "due_soon", "blocked", "stalled"):
+        for task in task_signals.get(bucket, []):
+            flagged_tasks[task["id"]] = task
+
+    lexical_by_task = {}
+    for task_id, task in flagged_tasks.items():
+        keywords = title_keywords(task["title"])
+        if not keywords:
+            continue
+        lexical_by_task[task_id] = (
+            _scan_ledger("email", email_ledger, keywords)
+            + _scan_ledger("calendar", calendar_ledger, keywords)
+            + _scan_ledger("notes", notes_ledger, keywords)
+        )
+
+    embedded_by_source = {}
+    task_vectors = {}
+    if embed_fn is not None and lexical_by_task:
+        try:
+            embedded_by_source = {
+                "email": _embed_ledger_entries(email_ledger, embed_fn),
+                "calendar": _embed_ledger_entries(calendar_ledger, embed_fn),
+                "notes": _embed_ledger_entries(notes_ledger, embed_fn),
+            }
+            task_ids = list(lexical_by_task.keys())
+            vectors = embed_fn([flagged_tasks[tid]["title"] for tid in task_ids])
+            task_vectors = dict(zip(task_ids, vectors))
+        except Exception as e:
+            print(f"   ⚠️  Embedding-assisted cross-referencing unavailable ({e}) — using lexical-only result.")
+            embedded_by_source, task_vectors = {}, {}
+
+    index = {}
+    for task_id, lexical_mentions in lexical_by_task.items():
+        task = flagged_tasks[task_id]
+        covered_days = {m["day"] for m in lexical_mentions}
+
+        embedding_mentions = []
+        if task_id in task_vectors:
+            task_vector = task_vectors[task_id]
+            for source_name in ("email", "calendar", "notes"):
+                embedding_mentions += _scan_ledger_embedding(
+                    source_name, embedded_by_source.get(source_name, []), task_vector, covered_days,
+                )
+
+        mentions = lexical_mentions + embedding_mentions
+        if not mentions:
+            continue
+
+        due = _parse_leading_date(task["due_date"]) if task.get("due_date") else None
+        for mention in mentions:
+            mention_date = _parse_leading_date(mention["day"])
+            mention["days_from_due"] = (mention_date - due).days if (due and mention_date) else None
+
+        index[task_id] = {
+            "title": task["title"],
+            "priority": task.get("priority", "?"),
+            "mentioned_in": mentions,
+        }
+
+    return index
+
+
+CROSS_REFERENCE_VARIANTS = {
+    "lexical": build_cross_reference_index,
+    "embedding_assisted": build_cross_reference_index_embedding_assisted,
+}

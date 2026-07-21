@@ -24,6 +24,17 @@ Also runs digest_checks.check_extraction_bloat per entry — a coarse,
 per-source-calibrated sanity bound that warns (never fails) if a day's
 extraction looks like a hallucination flood rather than real content.
 
+Optional --llm-judge flag additionally runs quality_judge.judge_map_quality
+per scenario — groundedness/completeness/conciseness/coherence, a
+supplement to score_scenario's keyword-coverage check (which verifies a
+known signal wasn't dropped, not whether the output is otherwise a *good*
+summary). Costs one extra LLM call per scenario. Full detail prints to
+the console; groundedness is also persisted to eval_history.py
+(discretized to fully_grounded/has_unverified_claims — see
+_discretize_groundedness) so hallucination rate is trend-trackable
+across prompt/model changes, the same way coverage accuracy already is
+for eval_synthesis_variants.py/eval_cross_reference_variants.py.
+
 This calls a real model — it is NOT run automatically. Invoke explicitly
 once a working LLM provider is available:
 
@@ -31,6 +42,7 @@ once a working LLM provider is available:
     python3 eval_map.py --provider deepseek --model deepseek-chat
     python3 eval_map.py --source email       # limit to one source
     python3 eval_map.py --provider ollama --model llama3   # slow; local
+    python3 eval_map.py --llm-judge          # also score summary quality
 """
 
 import argparse
@@ -52,6 +64,8 @@ from digest.eval.golden_scenarios import (
 from digest.core.llm import create_llm
 from digest.parsers.notes_parser import load_notes
 from digest.core.persona import load_persona
+from digest.eval.eval_history import record_eval_run
+from digest.eval.quality_judge import build_quality_judge_prompt, judge_map_quality
 
 # Email/calendar bloat ceilings scale with the actual day's batch size (see
 # digest_checks.dynamic_bloat_ceiling) instead of one flat number for every
@@ -112,7 +126,60 @@ def score_scenario(entry: dict, scenario: dict, include_stats: bool = False) -> 
     return (not missing, "OK" if not missing else f"missing: {missing}")
 
 
-def eval_email_scenarios(llm, persona_text: str) -> list[tuple]:
+def _discretize_groundedness(score: dict) -> str:
+    """Reduces judge_map_quality's continuous groundedness score to a
+    trend-trackable pass/fail. record_eval_run's accuracy computation is
+    exact-string-match (result == expected), which doesn't fit a 0.0-1.0
+    float directly — "0.875" and "0.0" would both just count as "not
+    1.0", losing exactly the distinction that matters. A scenario is only
+    "fully_grounded" when every claim verified; any unverified claim at
+    all makes it "has_unverified_claims" — binary, but the binary that's
+    actually worth trending over time (what fraction of scenarios had
+    zero fabricated claims this run).
+    """
+    return "fully_grounded" if not score["groundedness"]["unverified_claims"] else "has_unverified_claims"
+
+
+def _run_quality_judge(llm, scenario_name: str, source_items: list[dict], entry: dict) -> None:
+    """Opt-in (see --llm-judge) supplement to score_scenario's deterministic
+    keyword-coverage check — groundedness/completeness/conciseness/
+    coherence for this scenario's MAP output. Printed in full for human
+    reading, and groundedness is also persisted to eval_history.py
+    (discretized — see _discretize_groundedness) so hallucination rate is
+    trend-trackable across prompt/model changes, not just a one-off
+    console observation. Reuses the exact same persistence path
+    eval_synthesis_variants.py/eval_cross_reference_variants.py already
+    use — same JSONL file, same content-addressed prompt-snapshot
+    mechanism, so the judge prompt itself is versioned too, not just the
+    score.
+    """
+    source_text = " ".join(extract_searchable_text(item) for item in source_items)
+    output_text = extract_searchable_text(entry.get("delta", {}))
+    score = judge_map_quality(llm, source_text, output_text)
+
+    g, c, cc, ct = score["groundedness"], score["completeness"], score["conciseness"], score["coherence_tone"]
+    print(f"      🔎 quality — groundedness: {g['score']}", end="")
+    if g["unverified_claims"]:
+        print(f" (unverified: {g['unverified_claims']})", end="")
+    print(f" | completeness gaps: {c['gaps']}", end="")
+    if c["contradicted_gaps"]:
+        print(f" (contradicted: {c['contradicted_gaps']})", end="")
+    print(f" | conciseness: {cc['verdict']} (ratio {cc['ratio']})", end="")
+    print(f" | coherence/tone: {ct['score']}/5 — {ct.get('notes', '')}")
+
+    outcome = _discretize_groundedness(score)
+    record_eval_run(
+        eval_name="map_quality_judge",
+        variant=f"{getattr(llm, 'provider', 'unknown')}/{llm.model}",
+        prompt_text=build_quality_judge_prompt(),
+        provider=getattr(llm, "provider", "unknown"),
+        model=llm.model,
+        trials_per_scenario=1,
+        scenario_results={scenario_name: {"expected": "fully_grounded", "results": [outcome]}},
+    )
+
+
+def eval_email_scenarios(llm, persona_text: str, llm_judge: bool = False) -> list[tuple]:
     prompt = triage_agent.build_map_system_prompt(persona_text)
     by_day = group_email_by_date(load_inbox(triage_agent.INBOX_DIR))
 
@@ -130,12 +197,14 @@ def eval_email_scenarios(llm, persona_text: str) -> list[tuple]:
         bloat = check_extraction_bloat(entry["delta"], max_items)
         if bloat:
             print(f"   ⚠️  {scenario['name']}: {bloat}")
+        if llm_judge:
+            _run_quality_judge(llm, scenario["name"], batch, entry)
         passed, detail = score_scenario(entry, scenario, include_stats=False)
         results.append((scenario["name"], passed, detail))
     return results
 
 
-def eval_calendar_scenarios(llm, persona_text: str) -> list[tuple]:
+def eval_calendar_scenarios(llm, persona_text: str, llm_judge: bool = False) -> list[tuple]:
     prompt = calendar_agent.build_map_system_prompt(persona_text)
     by_day = group_calendar_by_date(load_calendar(calendar_agent.CALENDAR_FILE))
 
@@ -153,13 +222,15 @@ def eval_calendar_scenarios(llm, persona_text: str) -> list[tuple]:
         bloat = check_extraction_bloat(entry["delta"], max_items)
         if bloat:
             print(f"   ⚠️  {scenario['name']}: {bloat}")
+        if llm_judge:
+            _run_quality_judge(llm, scenario["name"], batch, entry)
         # Deterministic stats and the LLM delta both count as "extraction".
         passed, detail = score_scenario(entry, scenario, include_stats=True)
         results.append((scenario["name"], passed, detail))
     return results
 
 
-def eval_notes_scenarios(llm, persona_text: str) -> list[tuple]:
+def eval_notes_scenarios(llm, persona_text: str, llm_judge: bool = False) -> list[tuple]:
     prompt = notes_agent.build_map_system_prompt(persona_text)
     notes_by_id = {n["note_id"]: n for n in load_notes(notes_agent.NOTES_DIR)}
 
@@ -176,6 +247,8 @@ def eval_notes_scenarios(llm, persona_text: str) -> list[tuple]:
         bloat = check_extraction_bloat(entry["delta"], NOTES_MAX_ITEMS)
         if bloat:
             print(f"   ⚠️  {scenario['name']}: {bloat}")
+        if llm_judge:
+            _run_quality_judge(llm, scenario["name"], [note], entry)
         passed, detail = score_scenario(entry, scenario, include_stats=True)
         results.append((scenario["name"], passed, detail))
     return results
@@ -193,6 +266,7 @@ def main():
     parser.add_argument("--provider", default="ollama", choices=["ollama", "anthropic", "google", "openrouter", "deepseek"])
     parser.add_argument("--model", default="llama3")
     parser.add_argument("--source", choices=["email", "calendar", "notes", "all"], default="all")
+    parser.add_argument("--llm-judge", action="store_true", help="Also run the in-house quality judge (groundedness/completeness/conciseness/coherence) per scenario — costs one extra LLM call each")
     args = parser.parse_args()
 
     persona_text = load_persona()
@@ -200,11 +274,11 @@ def main():
 
     all_results = []
     if args.source in ("email", "all"):
-        all_results.append(("email", eval_email_scenarios(llm, persona_text)))
+        all_results.append(("email", eval_email_scenarios(llm, persona_text, llm_judge=args.llm_judge)))
     if args.source in ("calendar", "all"):
-        all_results.append(("calendar", eval_calendar_scenarios(llm, persona_text)))
+        all_results.append(("calendar", eval_calendar_scenarios(llm, persona_text, llm_judge=args.llm_judge)))
     if args.source in ("notes", "all"):
-        all_results.append(("notes", eval_notes_scenarios(llm, persona_text)))
+        all_results.append(("notes", eval_notes_scenarios(llm, persona_text, llm_judge=args.llm_judge)))
 
     total_pass = total = 0
     for source, results in all_results:
