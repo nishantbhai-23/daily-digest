@@ -21,10 +21,14 @@ degrades to a lexical-only result on its own (see its docstring), and
 this script's comparison will correctly show no difference between the
 two variants rather than erroring.
 
-Metric: score_cross_reference_scenario against golden_scenarios.CROSS_REFERENCE_SCENARIOS
-— for each scenario's task_id, does the variant's index include at least
-`expected_sources` (a floor: a variant that finds a superset still
-passes). Recorded via eval_history's existing scenario_results shape.
+Metric: golden_scenarios.CROSS_REFERENCE_SCENARIOS, scored two ways —
+recall (score_cross_reference_scenario: does the variant's index include
+at least `expected_sources`, a floor, a superset still passes) and
+precision (score_cross_reference_precision_scenario: does the variant's
+index avoid every `forbidden_mentions` pair — real, live-verified
+near-misses that are topically related but not the same mention). A
+scenario has one or the other, never both. Recorded via eval_history's
+existing scenario_results shape.
 
 Also surfaced (not scored): total mention count per variant across the
 whole tenant (not just golden-scenario tasks) — the real tradeoff being
@@ -72,6 +76,31 @@ def score_cross_reference_scenario(index: dict, scenario: dict) -> tuple[bool, s
     return (True, "OK")
 
 
+def score_cross_reference_precision_scenario(index: dict, scenario: dict) -> tuple[bool, str]:
+    """The precision-testing counterpart to score_cross_reference_scenario
+    — checks that none of `forbidden_mentions` (real, live-verified
+    near-misses, see golden_scenarios.py) show up in the task's
+    mentioned_in, rather than checking that expected ones do.
+
+    A task not indexed at all trivially passes (nothing to forbid if
+    there's no mentioned_in list) — that's score_cross_reference_scenario's
+    concern, not this one's.
+
+    Returns:
+        (passed, detail) — detail is "OK" or a human-readable failure
+        naming which forbidden (source, day) pair leaked in.
+    """
+    task_id = scenario["task_id"]
+    if task_id not in index:
+        return (True, "OK (task not indexed at all)")
+    actual_pairs = {(m["source"], m["day"]) for m in index[task_id]["mentioned_in"]}
+    for forbidden in scenario["forbidden_mentions"]:
+        pair = (forbidden["source"], forbidden["day"])
+        if pair in actual_pairs:
+            return (False, f"forbidden mention leaked in: {pair}")
+    return (True, "OK")
+
+
 def run_comparison(tenant_id: str) -> dict:
     """Runs both cross-reference variants once each against one tenant's
     real ledger data (no trials — see module docstring for why).
@@ -103,7 +132,13 @@ def run_comparison(tenant_id: str) -> dict:
 
         scenario_results = {}
         for scenario in scenarios:
-            passed, detail = score_cross_reference_scenario(index, scenario)
+            # A scenario has either expected_sources (recall — the floor
+            # check) or forbidden_mentions (precision — nothing should
+            # leak in), never both. See golden_scenarios.py.
+            if "forbidden_mentions" in scenario:
+                passed, detail = score_cross_reference_precision_scenario(index, scenario)
+            else:
+                passed, detail = score_cross_reference_scenario(index, scenario)
             scenario_results[scenario["name"]] = (passed, detail)
             icon = "✅" if passed else "❌"
             print(f"   {icon} {scenario['name']} — {detail}")

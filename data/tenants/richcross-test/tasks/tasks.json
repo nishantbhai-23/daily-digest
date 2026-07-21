@@ -1,0 +1,26 @@
+[
+  {
+    "id": "task-001",
+    "title": "Approve PalletCo contract renewal",
+    "description": "Review Jane's draft and approve the 3% price increase. Confirm with Tom on Thursday at 10am.",
+    "status": "in-progress",
+    "priority": "P0",
+    "due_date": "2026-07-23",
+    "tags": [
+      "vendor",
+      "contract"
+    ]
+  },
+  {
+    "id": "task-002",
+    "title": "Replace forklift sensors batch #4472",
+    "description": "Order replacement sensors and schedule installation. Follow up with Mike.",
+    "status": "todo",
+    "priority": "P1",
+    "due_date": "2026-07-22",
+    "tags": [
+      "safety",
+      "incident"
+    ]
+  }
+]

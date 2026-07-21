@@ -28,8 +28,12 @@ Optional --llm-judge flag additionally runs quality_judge.judge_map_quality
 per scenario — groundedness/completeness/conciseness/coherence, a
 supplement to score_scenario's keyword-coverage check (which verifies a
 known signal wasn't dropped, not whether the output is otherwise a *good*
-summary). Costs one extra LLM call per scenario; print-only, not
-persisted to eval_history.py in this pass.
+summary). Costs one extra LLM call per scenario. Full detail prints to
+the console; groundedness is also persisted to eval_history.py
+(discretized to fully_grounded/has_unverified_claims — see
+_discretize_groundedness) so hallucination rate is trend-trackable
+across prompt/model changes, the same way coverage accuracy already is
+for eval_synthesis_variants.py/eval_cross_reference_variants.py.
 
 This calls a real model — it is NOT run automatically. Invoke explicitly
 once a working LLM provider is available:
@@ -60,7 +64,8 @@ from digest.eval.golden_scenarios import (
 from digest.core.llm import create_llm
 from digest.parsers.notes_parser import load_notes
 from digest.core.persona import load_persona
-from digest.eval.quality_judge import judge_map_quality
+from digest.eval.eval_history import record_eval_run
+from digest.eval.quality_judge import build_quality_judge_prompt, judge_map_quality
 
 # Email/calendar bloat ceilings scale with the actual day's batch size (see
 # digest_checks.dynamic_bloat_ceiling) instead of one flat number for every
@@ -121,11 +126,32 @@ def score_scenario(entry: dict, scenario: dict, include_stats: bool = False) -> 
     return (not missing, "OK" if not missing else f"missing: {missing}")
 
 
+def _discretize_groundedness(score: dict) -> str:
+    """Reduces judge_map_quality's continuous groundedness score to a
+    trend-trackable pass/fail. record_eval_run's accuracy computation is
+    exact-string-match (result == expected), which doesn't fit a 0.0-1.0
+    float directly — "0.875" and "0.0" would both just count as "not
+    1.0", losing exactly the distinction that matters. A scenario is only
+    "fully_grounded" when every claim verified; any unverified claim at
+    all makes it "has_unverified_claims" — binary, but the binary that's
+    actually worth trending over time (what fraction of scenarios had
+    zero fabricated claims this run).
+    """
+    return "fully_grounded" if not score["groundedness"]["unverified_claims"] else "has_unverified_claims"
+
+
 def _run_quality_judge(llm, scenario_name: str, source_items: list[dict], entry: dict) -> None:
     """Opt-in (see --llm-judge) supplement to score_scenario's deterministic
-    keyword-coverage check — prints groundedness/completeness/conciseness/
-    coherence for this scenario's MAP output. Print-only, like the rest of
-    this module's output; not persisted to eval_history.py in this pass.
+    keyword-coverage check — groundedness/completeness/conciseness/
+    coherence for this scenario's MAP output. Printed in full for human
+    reading, and groundedness is also persisted to eval_history.py
+    (discretized — see _discretize_groundedness) so hallucination rate is
+    trend-trackable across prompt/model changes, not just a one-off
+    console observation. Reuses the exact same persistence path
+    eval_synthesis_variants.py/eval_cross_reference_variants.py already
+    use — same JSONL file, same content-addressed prompt-snapshot
+    mechanism, so the judge prompt itself is versioned too, not just the
+    score.
     """
     source_text = " ".join(extract_searchable_text(item) for item in source_items)
     output_text = extract_searchable_text(entry.get("delta", {}))
@@ -140,6 +166,17 @@ def _run_quality_judge(llm, scenario_name: str, source_items: list[dict], entry:
         print(f" (contradicted: {c['contradicted_gaps']})", end="")
     print(f" | conciseness: {cc['verdict']} (ratio {cc['ratio']})", end="")
     print(f" | coherence/tone: {ct['score']}/5 — {ct.get('notes', '')}")
+
+    outcome = _discretize_groundedness(score)
+    record_eval_run(
+        eval_name="map_quality_judge",
+        variant=f"{getattr(llm, 'provider', 'unknown')}/{llm.model}",
+        prompt_text=build_quality_judge_prompt(),
+        provider=getattr(llm, "provider", "unknown"),
+        model=llm.model,
+        trials_per_scenario=1,
+        scenario_results={scenario_name: {"expected": "fully_grounded", "results": [outcome]}},
+    )
 
 
 def eval_email_scenarios(llm, persona_text: str, llm_judge: bool = False) -> list[tuple]:

@@ -55,6 +55,25 @@ is never asked to re-derive: meeting overlap math
 (`ledger.format_today`, injected as a fact). The LLM's job is interpreting
 what these facts mean, not computing them.
 
+Whether MAP itself should see the persona (`use_persona_in_map`, default
+`true`) is also evidence-based, not assumed — `eval_persona_map.py`
+compares `build_map_system_prompt(use_persona=True)` against
+`use_persona=False` (extraction-only framing: no priority field, generic
+structural noise-filtering instead of persona-informed judgment) across
+every source's `golden_scenarios.py` MAP scenarios. As of the last
+comparison run (deepseek-chat, Tessera/Avery-CEO corpus), persona-aware
+MAP scored 100% scenario coverage vs. 75% persona-free — two scenarios
+that specifically require named-priority context
+(`quiet_marcus_investor_thread`, `halberd_souring_signal`, both keyed to
+names persona.md flags as high-priority) were under-extracted without
+persona, since the model has no way to know a specific name matters
+without it being told. `quality_judge.py`'s groundedness showed no
+difference between the two (62% fully-grounded both ways) — persona
+doesn't cost accuracy when present, it costs recall when removed. REDUCE
+always gets full persona regardless of this toggle, so the question is
+scoped narrowly to whether MAP-time extraction itself benefits, not
+whether the operator ever sees persona-weighted output.
+
 ### Per-note MAP (notes)
 
 `notes_agent.py` processes one note at a time rather than day-batching —
@@ -384,6 +403,15 @@ provider budget; `eval_cross_reference_variants.py` is the one exception
   MAP-prompt and Stage-2-synthesis variants against each other across
   multiple trials, each run recorded to `eval_history/results.jsonl` with a
   content-addressed snapshot of the exact prompt text tested.
+- **`eval_persona_map.py`**: compares `use_persona=True` vs. `False` MAP
+  prompts across all three sources' `golden_scenarios.py` MAP scenarios —
+  both keyword-coverage (`eval_map.score_scenario`, reused as-is) and,
+  with `--llm-judge`, `quality_judge` groundedness. Two separate
+  `eval_history.py` records per run (`map_persona_ablation` for coverage,
+  `map_persona_quality_judge` for groundedness — keyed by persona mode,
+  not provider/model, so they never collide with `eval_map.py`'s own
+  `--llm-judge` records). See the MAP-REDUCE section above for the actual
+  result this produced.
 - **`eval_cross_reference_variants.py`**: compares Stage 0's `lexical` and
   `embedding_assisted` cross-reference variants against a tenant's real
   ledger data — the one eval script here that makes no LLM call at all
@@ -406,7 +434,7 @@ provider budget; `eval_cross_reference_variants.py` is the one exception
 ```bash
 python3 -m unittest discover -s tests -p "test_*.py"
 ```
-370 tests, fully offline, no LLM calls, no API keys needed — run in
+388 tests, fully offline, no LLM calls, no API keys needed — run in
 milliseconds. This includes the embedding-assisted matchers above: every
 test injects a fake/precomputed `embed_fn` rather than calling Ollama for
 real, so the suite doesn't depend on it being installed or running.

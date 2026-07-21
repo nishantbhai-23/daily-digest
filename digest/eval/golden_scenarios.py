@@ -285,6 +285,20 @@ PRIORITY_CALIBRATION_SCENARIOS = [
 # against arclight's real ledgers. expected_sources is a floor, not a
 # ceiling: a variant that finds a superset (e.g. embedding_assisted adding a
 # calendar mention lexical misses) still passes.
+#
+# forbidden_mentions is the precision-testing counterpart — the inverse of
+# expected_sources, same positive/negative-pair convention this file
+# already uses for MAP scenarios (required_keywords vs. forbidden_keywords).
+# A scenario has either expected_sources or forbidden_mentions, never both.
+# Every entry below is a real, live-verified near-miss found while
+# calibrating cross_reference.py's embedding threshold: a genuinely
+# topically-related item (headcount/SRE-capacity chatter) that scored
+# 0.50-0.52 cosine similarity against ARC-102's title — real, but
+# correctly judged not the same mention at the current 0.70 threshold.
+# Recorded as a permanent regression test rather than a one-off manual
+# check, so a future threshold change or embedding model swap that starts
+# pulling these in gets caught here instead of shipping a silent
+# precision regression.
 CROSS_REFERENCE_SCENARIOS = [
     {
         "name": "arclight_sre_req_open",
@@ -297,5 +311,59 @@ CROSS_REFERENCE_SCENARIOS = [
         "tenant_id": "arclight",
         "task_id": "ARC-103",
         "expected_sources": {"email", "calendar", "notes"},
+    },
+    {
+        "name": "arclight_sre_req_not_headcount_ask_email",
+        "tenant_id": "arclight",
+        "task_id": "ARC-102",
+        # "Send Q3 eng headcount ask to Om today" — real, topically
+        # adjacent (headcount/hiring), similarity 0.508. A different,
+        # specific ask than the SRE req itself, not the same mention.
+        "forbidden_mentions": [{"source": "email", "day": "2026-07-03"}],
+    },
+    {
+        "name": "arclight_sre_req_not_capacity_retro_prep",
+        "tenant_id": "arclight",
+        "task_id": "ARC-102",
+        # "Forecasting Fix Ship Retro Prep... Prep notes for SRE capacity
+        # retro" — real, similarity 0.524, the closest near-miss found.
+        # A retro about current team capacity/workload, not the same
+        # thing as the open req/interview task.
+        "forbidden_mentions": [{"source": "calendar", "day": "2026-07-10"}],
+    },
+    # richcross-test — generated via generate_persona.py specifically to
+    # stress-test this comparison with richer, more naturally-interconnected
+    # content than arclight's hand-authored fixture. Confirmed real: run
+    # build_cross_reference_index directly against its ledgers, then read
+    # the actual raw source files (not just the extracted snippets) before
+    # asserting anything, since generated content turned out ambiguous in
+    # ways arclight's didn't — one genuinely close near-miss (0.611
+    # similarity, the calendar entry for the meeting where the sensor
+    # decision was actually made) was deliberately NOT encoded here,
+    # since a reasonable person could argue it should legitimately match;
+    # only the one confidently-wrong case below was kept.
+    {
+        "name": "richcross_palletco_contract_open",
+        "tenant_id": "richcross-test",
+        "task_id": "task-001",
+        "expected_sources": {"calendar", "email"},
+    },
+    {
+        "name": "richcross_forklift_sensors_open",
+        "tenant_id": "richcross-test",
+        "task_id": "task-002",
+        "expected_sources": {"email", "notes"},
+    },
+    {
+        "name": "richcross_palletco_not_autovend_sla_note",
+        "tenant_id": "richcross-test",
+        "task_id": "task-001",
+        # notes/2026-07-20-contractreviewthoughts.md is titled "Thoughts on
+        # AutoVend contract draft" — a different vendor entirely, not
+        # PalletCo (task-001's actual subject). Similarity 0.490 against
+        # task-001's title despite being about an unrelated contract —
+        # confirmed by reading the raw note content, not just the
+        # embedding-matched snippet.
+        "forbidden_mentions": [{"source": "notes", "day": "2026-07-20-contractreviewthoughts.md"}],
     },
 ]

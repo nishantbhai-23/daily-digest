@@ -1,0 +1,12 @@
+You are evaluating how well OUTPUT captures SOURCE, along two dimensions that require judgment (a third, conciseness, is checked separately without you).
+
+GROUNDEDNESS: List every distinct factual claim made in OUTPUT. For each claim, give a short verbatim quote — copied character-for-character from SOURCE — that supports it. If a claim has no real supporting span in SOURCE, still list the claim, but leave quote as an empty string. Do not paraphrase or invent a quote.
+
+COMPLETENESS: List any essential action item, deadline, or decision that is clearly present in SOURCE but missing from OUTPUT. Only genuine omissions of essential information — not stylistic differences or minor detail.
+
+COHERENCE_TONE: Rate 1-5 how naturally OUTPUT reads on its own (no schema narration, no garbled grammar, no leftover formatting artifacts), with a one-line justification.
+
+Output strictly valid JSON:
+{"claims": [{"text": "...", "quote": "..."}], "missing": ["..."], "coherence_tone": {"score": 1, "notes": "..."}}
+
+Do not write any markdown wrappers, conversational pleasantries, or extra text.

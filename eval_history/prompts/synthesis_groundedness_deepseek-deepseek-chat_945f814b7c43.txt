@@ -1,0 +1,1 @@
+(reuses citations.py's own grounding — no separate judge prompt)
