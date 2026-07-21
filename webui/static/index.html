@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Digest — Demo Console</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-name">Daily Digest</span>
+      <span class="brand-sub">demo console</span>
+    </div>
+
+    <div class="topbar-controls">
+      <select id="tenant-select" title="Switch tenant"></select>
+      <button id="run-btn" class="btn btn-ghost" title="Re-run the pipeline for the selected tenant">Run pipeline</button>
+      <button id="new-persona-btn" class="btn btn-primary">＋ New persona</button>
+    </div>
+  </header>
+
+  <div id="gen-panel" class="gen-panel hidden">
+    <div class="gen-panel-row">
+      <label for="hint-input">Hint <span class="muted">(optional — industry, role, whatever you want steered)</span></label>
+      <input id="hint-input" type="text" placeholder="e.g. boutique law firm managing partner, juggling three client crises">
+    </div>
+    <div class="gen-panel-row gen-panel-inline">
+      <div>
+        <label for="provider-select">Provider</label>
+        <select id="provider-select">
+          <option value="deepseek" selected>deepseek</option>
+          <option value="anthropic">anthropic</option>
+          <option value="google">google</option>
+          <option value="openrouter">openrouter</option>
+          <option value="ollama">ollama</option>
+        </select>
+      </div>
+      <div>
+        <label for="model-input">Model</label>
+        <input id="model-input" type="text" value="deepseek-chat">
+      </div>
+      <div class="gen-panel-actions">
+        <button id="generate-btn" class="btn btn-primary">Generate + run</button>
+        <button id="cancel-gen-btn" class="btn btn-ghost">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="status-bar" class="status-bar hidden">
+    <div class="spinner"></div>
+    <span id="status-text">Working…</span>
+  </div>
+
+  <div id="empty-state" class="empty-state">
+    <p>No tenant selected yet.</p>
+    <p class="muted">Generate a new persona to spin up a fresh fictional inbox, calendar, and notes — then run the pipeline against it.</p>
+    <button id="empty-generate-btn" class="btn btn-primary">＋ New persona</button>
+  </div>
+
+  <main id="main-view" class="main-view hidden">
+    <nav class="tabs">
+      <button class="tab active" data-tab="brief">Brief</button>
+      <button class="tab" data-tab="emails">Inbox</button>
+      <button class="tab" data-tab="calendar">Calendar</button>
+      <button class="tab" data-tab="notes">Notes</button>
+      <button class="tab" data-tab="drafts">Drafts</button>
+      <button class="tab" data-tab="persona">Persona</button>
+    </nav>
+
+    <section id="tab-brief" class="tab-panel active">
+      <div id="freshness-notice" class="freshness-notice hidden"></div>
+      <div class="brief-section">
+        <h2>What matters today</h2>
+        <div id="what-matters" class="bullet-list"></div>
+      </div>
+      <div class="brief-section">
+        <h2>What you might be missing</h2>
+        <div id="what-missed" class="bullet-list"></div>
+      </div>
+      <div id="no-brief" class="empty-inline hidden">No brief generated yet for this tenant — click <strong>Run pipeline</strong>.</div>
+    </section>
+
+    <section id="tab-emails" class="tab-panel">
+      <div id="email-list" class="email-list"></div>
+    </section>
+
+    <section id="tab-calendar" class="tab-panel">
+      <div id="calendar-list" class="email-list"></div>
+    </section>
+
+    <section id="tab-notes" class="tab-panel">
+      <div id="notes-list" class="email-list"></div>
+    </section>
+
+    <section id="tab-drafts" class="tab-panel">
+      <div id="drafts-list" class="drafts-list"></div>
+      <div id="no-drafts" class="empty-inline hidden">No dispatchable items yet — run the pipeline first.</div>
+    </section>
+
+    <section id="tab-persona" class="tab-panel">
+      <pre id="persona-text" class="persona-text"></pre>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
